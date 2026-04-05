@@ -1,4 +1,4 @@
-/* RAW Entry — Estilos v.4.015
+/* RAW Entry — Estilos v.4.017
    Design system: Uber monochrome
    Negro puro · partículas blancas · pills 999px · sombra 0.12 · sin gradientes
 */
@@ -54,7 +54,7 @@ html,body{
 .pt{position:absolute;width:3px;height:3px;border-radius:50%}
 .pt.blue{background:rgba(255,255,255,.9);box-shadow:0 0 8px rgba(255,255,255,.6),0 0 16px rgba(255,255,255,.3)}
 .pt.cyan{background:rgba(255,255,255,.65);box-shadow:0 0 6px rgba(255,255,255,.4)}
-.pt.white{background:rgba(255,255,255,.4);box-shadow:0 0 4px rgba(255,255,255,.25)}
+.pt.white{background:#ffffff;box-shadow:0 0 10px 3px rgba(255,255,255,.8),0 0 24px rgba(255,255,255,.4)}
 @keyframes subir{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-130vh);opacity:0}}
 
 /* ═══════════════════════════════════════════
