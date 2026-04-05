@@ -1,4 +1,4 @@
-/* RAW Entry — Dashboard v.3.0033
+/* RAW Entry — Dashboard v.4.001
    Tablas Variables/Fijos · Flujo Mensual · Gráficas
 */
 // ══════════════════════════════════════════
@@ -232,16 +232,29 @@ function refreshTodo(){
   const btn=document.getElementById('btn-rf');
   btn.classList.add('spinning');btn.disabled=true;
   progStart();
-  // FIX 3: ya no refresca eventuales por separado
-  let n=7,done=0;
-  const tick=()=>{done++;if(done>=n){btn.classList.remove('spinning');btn.disabled=false;progDone();showToast('Datos actualizados');}};
-  consultarSaldo();tick();
-  api.getFijos().then(d=>{renderEntes(d);tick();}).catch(tick);
-  api.getGastos().then(d=>{renderAnualidad(d);tick();}).catch(tick);
-  api.getDatosMes().then(d=>{onDatosMes(d);tick();}).catch(tick);
-  api.getLogros().then(d=>{renderLogros(d);tick();}).catch(tick);
-  api.getNecesidades().then(d=>{renderNecesidades(d);tick();}).catch(tick);
-  api.getFlujoPorMes().then(d=>{renderFlujoMensual(d);tick();}).catch(tick);
+  setChip('load','Actualizando');
+  // Una sola llamada getAll + saldo por separado (depende de fecha dinámica)
+  Promise.all([
+    api.getAll(),
+    consultarSaldo()
+  ])
+  .then(([d])=>{
+    if(d && d.catalogos) onCats(d.catalogos);
+    if(d && d.fijos)     renderEntes(d.fijos);
+    if(d && d.datosMes)  onDatosMes(d.datosMes);
+    if(d && d.gastos)    renderAnualidad(d.gastos);
+    if(d && d.logros)    renderLogros(d.logros);
+    if(d && d.necesidades) renderNecesidades(d.necesidades);
+    if(d && d.flujoPorMes) renderFlujoMensual(d.flujoPorMes);
+    btn.classList.remove('spinning');btn.disabled=false;
+    progDone();
+    showToast('Datos actualizados');
+  })
+  .catch(()=>{
+    btn.classList.remove('spinning');btn.disabled=false;
+    progDone();
+    showToast('Error al actualizar',false);
+  });
 }
 
 // ══════════════════════════════════════════
