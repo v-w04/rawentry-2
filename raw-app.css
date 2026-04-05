@@ -1,4 +1,4 @@
-/* RAW Entry — Estilos v.4.007
+/* RAW Entry — Estilos v.4.008
    Design system: Uber monochrome
    Negro puro · partículas blancas · pills 999px · sombra 0.12 · sin gradientes
 */
@@ -40,7 +40,7 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Inter,Arial,sans-serif;
-  background:var(--bg);color:var(--t);
+  background:transparent;color:var(--t);
   min-height:100%;overflow-x:hidden;
   font-size:var(--base);
   letter-spacing:-.015em;
@@ -49,6 +49,7 @@ html,body{
 /* ═══════════════════════════════════════════
    PARTÍCULAS — monocromáticas (3 opacidades)
 ═══════════════════════════════════════════ */
+#bg{position:fixed;inset:0;background:#0a0a0a;z-index:0}
 #pts{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden}
 .pt{position:absolute;border-radius:50%;will-change:transform,opacity}
 .pt.blue{background:#ffffff;box-shadow:0 0 12px 4px rgba(255,255,255,.8),0 0 30px rgba(255,255,255,.5),0 0 50px rgba(255,255,255,.2)}
@@ -467,7 +468,7 @@ html.mob .panel-overlay.show{display:block !important}
 
 /* Globals */
 html{background:#0a0a0a;min-height:100vh;scroll-behavior:smooth}
-body{background:#0a0a0a !important;overflow-x:hidden}
+body{background:transparent !important;overflow-x:hidden}
 .sections{transform:translateZ(0);backface-visibility:hidden}
 .mob-saldo-wrap{display:none}
 html.mob .mob-saldo-wrap{display:block !important;text-align:right}
