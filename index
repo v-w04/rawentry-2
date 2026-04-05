@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0A0F1E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>RAW Entry</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="raw-app.css">
+</head>
+<body>
+
+<div class="gtip" id="gtip"></div>
+
+<!-- Panel gestionar lista -->
+<div class="panel-overlay" id="panel-overlay" onclick="cPanel()"></div>
+<div class="panel" id="panel">
+  <div style="width:40px;height:4px;background:var(--dim);border-radius:2px;margin:12px auto 0;flex-shrink:0;cursor:pointer" onclick="cPanel()"></div>
+  <div class="panel-head">
+    <div class="panel-title"><i class="fas fa-list-check" style="color:var(--p);margin-right:6px"></i>Gestionar Lista</div>
+    <button class="panel-close" onclick="cPanel()" style="font-size:22px;width:36px;height:36px">×</button>
+  </div>
+  <div class="panel-body" id="panel-body">
+    <div style="text-align:center;padding:24px;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:var(--p);font-size:18px"></i></div>
+  </div>
+</div>
+
+<!-- Popup concepto -->
+<div class="popup-overlay" id="popup-concepto" onclick="cerrarConcepto(event)">
+  <div class="popup-sheet" onclick="event.stopPropagation()">
+    <div class="popup-handle"></div>
+    <div class="popup-head">
+      <div class="popup-head-top">
+        <span class="popup-title">Concepto</span>
+        <button class="popup-close" onclick="cerrarConcepto()">×</button>
+      </div>
+      <input type="text" class="popup-search" id="pop-search" placeholder="Buscar concepto…" oninput="filtrarConcepto()">
+    </div>
+    <div class="popup-body" id="pop-body"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="fas fa-circle-check"></i><span id="toast-msg"></span></div>
+
+<!-- APP -->
+<div class="app">
+  <div id="pts" style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden"></div>
+
+  <!-- HERO / SALDO -->
+  <div class="hero">
+    <div class="hero-left">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="hero-icon"><i class="fas fa-table-list"></i></div>
+        <div>
+          <!-- FIX 1: versión actualizada a v.3.0033 -->
+          <div class="hero-title">RAW <span style="color:var(--p)">Entry</span></div>
+          <div class="hero-sub">v.3.0033 · Trello · Sheets</div>
+        </div>
+      </div>
+      <div class="hero-right-mob" style="display:none">
+        <div id="saldo-clock2" class="hero-clock"></div>
+        <div class="hero-chip load" id="chip2">
+          <span class="chip-dot"></span>
+          <span id="chip-txt2">Cargando</span>
+        </div>
+        <button class="btn-refresh" onclick="refreshTodo()">
+          <i class="fas fa-arrows-rotate"></i>
+        </button>
+      </div>
+    </div>
+    <div class="hero-center">
+      <div class="saldo-label">
+        <i class="fas fa-scale-balanced"></i>
+        <span>SALDO</span>
+        <input type="date" class="saldo-fecha-input" id="saldo-fecha" onchange="consultarSaldo()">
+        <button onclick="consultarSaldo()" class="saldo-refresh-btn"><i class="fas fa-arrows-rotate"></i></button>
+      </div>
+      <div class="saldo-val ld" id="saldo-val">—</div>
+    </div>
+    <div class="hero-right">
+      <div class="mob-saldo-wrap">
+        <div class="saldo-label" style="justify-content:flex-end">
+          <i class="fas fa-scale-balanced"></i>
+          <span>SALDO</span>
+          <input type="date" class="saldo-fecha-input" id="saldo-fecha2" onchange="document.getElementById('saldo-fecha').value=this.value;consultarSaldo()">
+        </div>
+        <div class="saldo-val ld" id="saldo-val-mob">—</div>
+      </div>
+      <div id="saldo-clock" class="hero-clock"></div>
+      <div class="hero-chip load" id="chip">
+        <span class="chip-dot"></span>
+        <span id="chip-txt">Cargando</span>
+      </div>
+      <button class="btn-flip" id="btn-logros" onclick="irALogros()" title="Ver Logros">
+        🏆 Logros
+      </button>
+      <button class="btn-flip" id="btn-maslow" onclick="irAMaslow()" title="Ver Maslow">
+        🧠 Maslow
+      </button>
+      <button class="btn-refresh" id="btn-rf" onclick="refreshTodo()" title="Actualizar">
+        <i class="fas fa-arrows-rotate" id="rf-ico"></i>
+      </button>
+    </div>
+  </div>
+  <div class="prog-wrap"><div class="prog-bar" id="prog"></div></div>
+
+  <!-- BOARD WRAP -->
+  <div class="board-wrap">
+
+  <!-- ANVERSO -->
+  <div class="board-face anverso" id="board-anverso">
+  <div class="sections">
+
+    <div id="col1-wrap" style="display:flex;flex-direction:column;gap:12px;align-self:start">
+    <!-- ① NUEVA ENTRADA -->
+    <div class="section" id="sec-entrada">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-entrada-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon blue"><i class="fas fa-table-list"></i></div>
+          <span class="sec-hdr-title">Nueva Entrada</span>
+        </div>
+        <div class="sec-hdr-right">
+          <i class="fas fa-chevron-down sec-chevron"></i>
+        </div>
+      </div>
+      <div class="sec-body" id="sec-entrada-body">
+
+        <div class="field active" id="cf-fecha">
+          <div class="field-bar"></div>
+          <div class="field-lbl">Fecha</div>
+          <input type="date" class="finput" id="fecha" onchange="onFechaChange()"
+            style="max-width:140px;font-size:13px;padding:6px 8px;flex-shrink:0;cursor:pointer"
+            onclick="event.stopPropagation()">
+        </div>
+
+        <div class="field" id="cf-proyecto" onclick="activarCampo('proyecto')">
+          <div class="field-bar"></div>
+          <div class="field-lbl">Proyecto</div>
+          <div class="field-val empty" id="cv-proyecto"></div>
+          <i class="fas fa-chevron-down field-chev"></i>
+          <div class="field-expand">
+            <div class="field-expand-inner">
+              <div class="opts" id="sw-proyecto"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field" id="cf-contacto" onclick="activarCampo('contacto')">
+          <div class="field-bar"></div>
+          <div class="field-lbl">Contacto</div>
+          <div class="field-val empty" id="cv-contacto"></div>
+          <i class="fas fa-chevron-down field-chev"></i>
+          <div class="field-expand">
+            <div class="field-expand-inner">
+              <div class="opts" id="sw-contacto"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field" id="cf-concepto" onclick="abrirConcepto()">
+          <div class="field-bar"></div>
+          <div class="field-lbl">Concepto</div>
+          <div class="field-val empty" id="cv-concepto"></div>
+          <i class="fas fa-chevron-down field-chev"></i>
+        </div>
+
+        <div class="field" id="cf-monto" onclick="activarCampo('monto')">
+          <div class="field-bar"></div>
+          <div class="field-lbl">Monto</div>
+          <div class="field-val empty" id="cv-monto">$ 0.00</div>
+          <i class="fas fa-chevron-down field-chev"></i>
+          <div class="field-expand">
+            <div class="field-expand-inner">
+              <div class="monto-wrap">
+                <div class="monto-signs">
+                  <button class="msign pos" id="sbp" onclick="setSign(1);event.stopPropagation()">+</button>
+                  <button class="msign" id="sbn" onclick="setSign(-1);event.stopPropagation()">−</button>
+                </div>
+                <input type="number" class="finput" id="monto" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="upM()">
+              </div>
+              <div class="mprev" id="mprev">$ 0.00</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field" id="cf-recurrencia" onclick="activarCampo('recurrencia')">
+          <div class="field-bar"></div>
+          <div class="field-lbl">Recurrencia</div>
+          <div class="field-val empty" id="cv-recurrencia"></div>
+          <i class="fas fa-chevron-down field-chev"></i>
+          <div class="field-expand">
+            <div class="field-expand-inner">
+              <div class="opts" id="sw-recurrencia"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field" id="cf-necesidad" onclick="activarCampo('necesidad')">
+          <div class="field-bar"></div>
+          <div class="field-lbl">Necesidad</div>
+          <div class="field-val empty" id="cv-necesidad"></div>
+          <i class="fas fa-chevron-down field-chev"></i>
+          <div class="field-expand">
+            <div class="field-expand-inner">
+              <div class="opts" id="sw-necesidad"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field" id="cf-clave" onclick="activarCampo('clave')">
+          <div class="field-bar"></div>
+          <div class="field-lbl">Clave</div>
+          <div class="field-val empty" id="cv-clave"></div>
+          <i class="fas fa-chevron-down field-chev"></i>
+          <div class="field-expand">
+            <div class="field-expand-inner">
+              <input type="text" class="finput" id="clave" placeholder="Renta Enero, CFE E-F…" oninput="onClaveChange()">
+            </div>
+          </div>
+        </div>
+
+        <div class="save-res" id="save-res"><span id="res-ico"></span><span id="res-msg"></span></div>
+
+        <div class="form-actions">
+          <button class="btn-save" id="btnG" onclick="guardar()">
+            <div class="spin-sm" id="spin"></div>
+            <i class="fas fa-floppy-disk" id="bico"></i>
+            Guardar
+          </button>
+          <button class="btn-sm sec" onclick="limpiar()" title="Limpiar"><i class="fas fa-rotate-left"></i></button>
+          <button class="btn-sm suc" onclick="oPanel()" title="Gestionar Lista"><i class="fas fa-list-check"></i></button>
+          <button class="btn-sm lnk" onclick="irASheet()" title="Abrir Sheet"><i class="fas fa-table-cells"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② ENTES -->
+    <div class="section" id="sec-entes">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-entes-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon amber"><i class="fas fa-building-columns"></i></div>
+          <span class="sec-hdr-title">Bancos</span>
+        </div>
+        <div class="sec-hdr-right">
+          <span class="sec-hdr-val muted" id="entes-total"></span>
+          <i class="fas fa-chevron-down sec-chevron"></i>
+        </div>
+      </div>
+      <div class="sec-body" id="sec-entes-body">
+        <div id="entes-list" style="text-align:center;padding:20px;color:var(--m)">
+          <i class="fas fa-circle-notch fa-spin" style="color:var(--p)"></i>
+        </div>
+      </div>
+    </div>
+    <!-- ⑤ FLUJO MENSUAL -->
+    <div class="section" id="sec-flujo">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-flujo-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon" style="background:rgba(34,197,94,.15);color:#22C55E">
+            <i class="fas fa-arrow-right-arrow-left"></i>
+          </div>
+          <span class="sec-hdr-title">Flujo Mensual</span>
+        </div>
+        <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+      </div>
+      <div class="sec-body" id="sec-flujo-body">
+        <div id="flujo-body">
+          <div style="text-align:center;padding:20px;color:var(--m)">
+            <i class="fas fa-circle-notch fa-spin" style="color:var(--ok)"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div><!-- /col1-wrap -->
+
+    <!-- ③ VARIABLES -->
+    <div class="section" id="sec-gastos">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-gastos-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon green"><i class="fas fa-calendar-days"></i></div>
+          <span class="sec-hdr-title">Variables</span>
+        </div>
+        <div class="sec-hdr-right">
+          <i class="fas fa-chevron-down sec-chevron"></i>
+        </div>
+      </div>
+      <div class="sec-body" id="sec-gastos-body" style="display:flex;flex-direction:column">
+        <div id="gastos-body" style="text-align:center;padding:20px;color:var(--m)">
+          <i class="fas fa-circle-notch fa-spin" style="color:var(--p)"></i>
+        </div>
+        <div style="border-top:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 14px 6px">
+            <div style="width:24px;height:24px;border-radius:7px;background:rgba(139,92,246,.15);
+              display:flex;align-items:center;justify-content:center;font-size:12px;color:#8B5CF6">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <span style="font-size:13px;font-weight:700;color:var(--m);letter-spacing:-.01em">Gráfica Variables</span>
+          </div>
+          <div id="sec-graficas-body" style="display:flex;flex-direction:column">
+            <div style="padding:0 14px 6px">
+              <div id="graf-loading" style="text-align:center;padding:24px;color:var(--m);font-size:13px">
+                <i class="fas fa-circle-notch fa-spin" style="color:var(--p);font-size:16px;display:block;margin-bottom:8px"></i>
+                Cargando gráfica…
+              </div>
+              <canvas id="graf-canvas" style="display:none;width:100%;height:260px"></canvas>
+            </div>
+            <div id="graf-leyenda" style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 14px 14px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ④ FIJOS -->
+    <div class="section" id="sec-anualidad">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-anualidad-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon cyan"><i class="fas fa-receipt"></i></div>
+          <span class="sec-hdr-title">Fijos</span>
+        </div>
+        <div class="sec-hdr-right">
+          <i class="fas fa-chevron-down sec-chevron"></i>
+        </div>
+      </div>
+      <div class="sec-body" id="sec-anualidad-body" style="display:flex;flex-direction:column">
+        <div id="anualidad-body" style="text-align:center;padding:20px;color:var(--m)">
+          <i class="fas fa-circle-notch fa-spin" style="color:var(--p)"></i>
+        </div>
+        <div style="border-top:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 14px 6px">
+            <div style="width:24px;height:24px;border-radius:7px;background:rgba(6,182,212,.15);
+              display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--s)">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <span style="font-size:13px;font-weight:700;color:var(--m);letter-spacing:-.01em">Gráfica Fijos</span>
+          </div>
+          <div style="display:flex;flex-direction:column">
+            <div style="padding:0 14px 6px">
+              <div id="graf-fijos-loading" style="text-align:center;padding:24px;color:var(--m);font-size:13px">
+                <i class="fas fa-circle-notch fa-spin" style="color:var(--s);font-size:16px;display:block;margin-bottom:8px"></i>
+                Cargando gráfica…
+              </div>
+              <canvas id="graf-fijos-canvas" style="display:none;width:100%;height:260px"></canvas>
+            </div>
+            <div id="graf-fijos-leyenda" style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 14px 14px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /sections -->
+  </div><!-- /board-anverso -->
+
+  <!-- REVERSO: logros -->
+  <div class="board-face panel-logros" id="board-logros">
+    <div class="reverso-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:10px;
+          background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(251,191,36,.05));
+          border:1px solid rgba(251,191,36,.2);
+          display:flex;align-items:center;justify-content:center;font-size:14px">🏆</div>
+        <div>
+          <div class="reverso-title">Logros</div>
+          <div style="font-size:10px;color:var(--m);font-weight:500" id="reverso-count"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <!-- Filtros Proyecto / Contacto -->
+        <select id="reverso-fil-proyecto" onchange="pintarReverso()"
+          style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+          border-radius:20px;color:var(--m);font-family:inherit;font-size:11px;
+          padding:4px 10px;outline:none;cursor:pointer;max-width:110px">
+          <option value="">Proyecto</option>
+        </select>
+        <select id="reverso-fil-grupo" onchange="pintarReverso()"
+          style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+          border-radius:20px;color:var(--m);font-family:inherit;font-size:11px;
+          padding:4px 10px;outline:none;cursor:pointer;max-width:110px">
+          <option value="">Contacto</option>
+        </select>
+        <!-- Orden A–Z / $ -->
+        <div style="display:flex;gap:4px;background:rgba(255,255,255,.04);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,.06)">
+          <button onclick="setOrdenLogros('az')" id="lord-az"
+            class="rev-pill on" style="border:none;border-radius:16px;padding:3px 10px">A–Z</button>
+          <button onclick="setOrdenLogros('monto-desc')" id="lord-desc"
+            class="rev-pill" style="border:none;border-radius:16px;padding:3px 10px">$ ↓</button>
+          <button onclick="setOrdenLogros('monto')" id="lord-asc"
+            class="rev-pill" style="border:none;border-radius:16px;padding:3px 10px">$ ↑</button>
+        </div>
+        <button id="reverso-tog-done" onclick="toggleReversoMostrarDone()"
+          class="rev-pill">
+          <i class="fas fa-eye-slash" style="font-size:10px"></i> Completados
+        </button>
+        <button onclick="resetReverso()" class="rev-pill" title="Resetear filtros">
+          <i class="fas fa-rotate-left" style="font-size:10px"></i>
+        </button>
+        <button class="btn-flip active" onclick="volverAlAnverso()">
+          <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
+        </button>
+      </div>
+    </div>
+    <div id="inv-grid-full"></div>
+  </div><!-- /board-logros -->
+
+  <!-- PANEL MASLOW -->
+  <div class="board-face panel-maslow" id="board-maslow">
+    <div class="reverso-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:10px;
+          background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(139,92,246,.08));
+          border:1px solid rgba(139,92,246,.3);
+          display:flex;align-items:center;justify-content:center;font-size:14px">🧠</div>
+        <div>
+          <div class="reverso-title">Necesidades</div>
+          <div style="font-size:10px;color:var(--m)">Pirámide de Maslow</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div style="display:flex;gap:3px;background:rgba(0,0,0,.4);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,.06)">
+          <button id="nec-btn-piramide" onclick="switchVistaNec('piramide')"
+            style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:700;
+            background:rgba(139,92,246,.25);border:1px solid rgba(139,92,246,.4);color:#C4B5FD;
+            cursor:pointer;font-family:inherit;transition:all .2s">▲ Pirámide</button>
+          <button id="nec-btn-radar" onclick="switchVistaNec('radar')"
+            style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:500;
+            background:none;border:none;color:var(--m);
+            cursor:pointer;font-family:inherit;transition:all .2s">◈ Radar</button>
+        </div>
+        <div id="nec-filtros-mes" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center"></div>
+        <button onclick="resetFiltrosMes()" class="rev-pill" style="font-size:9px">Todo</button>
+        <span id="nec-periodo" style="font-size:10px;color:var(--m);margin:0 4px"></span>
+        <button class="btn-flip active" onclick="volverAlAnverso()">
+          <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
+        </button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+      <div id="nec-container"></div>
+      <div id="nec-tabla"
+        style="background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
+        border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px;
+        backdrop-filter:blur(12px)">
+      </div>
+    </div>
+  </div><!-- /board-maslow -->
+
+  </div><!-- /board-wrap -->
+</div><!-- /app -->
+<!-- Tab Bar Móvil -->
+<nav class="mob-tabbar" id="mob-tabbar">
+  <button class="mob-tab active" data-tab="entrada" onclick="mobTab('entrada')">
+    <span class="mob-tab-icon">📋</span>
+    <span class="mob-tab-label">Entrada</span>
+  </button>
+  <button class="mob-tab" data-tab="bancos" onclick="mobTab('bancos')">
+    <span class="mob-tab-icon">🏦</span>
+    <span class="mob-tab-label">Bancos</span>
+  </button>
+  <button class="mob-tab" data-tab="flujo" onclick="mobTab('flujo')">
+    <span class="mob-tab-icon">📊</span>
+    <span class="mob-tab-label">Flujo</span>
+  </button>
+  <button class="mob-tab" data-tab="logros" onclick="mobTab('logros')">
+    <span class="mob-tab-icon">🏆</span>
+    <span class="mob-tab-label">Logros</span>
+  </button>
+  <button class="mob-tab" data-tab="maslow" onclick="mobTab('maslow')">
+    <span class="mob-tab-icon">🧠</span>
+    <span class="mob-tab-label">Maslow</span>
+  </button>
+</nav>
+
+<!-- RAW Entry scripts — carga en orden: core → dashboard → logros -->
+<script src="raw-core.js"></script>
+<script src="raw-dashboard.js"></script>
+<script src="raw-logros.js"></script>
+</body>
+</html>
