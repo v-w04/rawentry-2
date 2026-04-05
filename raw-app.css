@@ -1,4 +1,4 @@
-/* RAW Entry — Estilos v.4.017
+/* RAW Entry — Estilos v.4.018
    Design system: Uber monochrome
    Negro puro · partículas blancas · pills 999px · sombra 0.12 · sin gradientes
 */
@@ -50,7 +50,7 @@ html,body{
    PARTÍCULAS — monocromáticas (3 opacidades)
 ═══════════════════════════════════════════ */
 #bg{position:fixed;inset:0;background:#0a0a0a;z-index:0}
-#pts{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
+#pts{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden}
 .pt{position:absolute;width:3px;height:3px;border-radius:50%}
 .pt.blue{background:rgba(255,255,255,.9);box-shadow:0 0 8px rgba(255,255,255,.6),0 0 16px rgba(255,255,255,.3)}
 .pt.cyan{background:rgba(255,255,255,.65);box-shadow:0 0 6px rgba(255,255,255,.4)}
@@ -60,7 +60,7 @@ html,body{
 /* ═══════════════════════════════════════════
    LAYOUT
 ═══════════════════════════════════════════ */
-.app{position:relative;z-index:3;width:100%;min-height:100vh;display:flex;flex-direction:column;background:transparent}
+.app{position:relative;z-index:1;width:100%;min-height:100vh;display:flex;flex-direction:column;background:transparent}
 
 /* ── HERO — glass nav Uber style ── */
 .hero{
