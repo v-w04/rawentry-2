@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.4.001
+/* RAW Entry — Core v.3.0033
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Detectar móvil
@@ -145,9 +145,7 @@ function mostrarErrorConexion(msg){
   d.innerHTML='⚠ <b>Error de conexión:</b> '+msg+'<br><small>Verifica que la URL de GAS es correcta y está desplegada como web app pública</small>';
   document.body.appendChild(d);
   setTimeout(()=>d.remove(),10000);
-}/ FIX 3: getEventuales ya no se llama en init — eventuales ya viven en hoja Logros
-  initTooltip();
-});
+}
 
 // ══════════════════════════════════════════
 //  HELPERS
