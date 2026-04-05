@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.4.011
+/* RAW Entry — Core v.4.013
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Detectar móvil
@@ -83,15 +83,14 @@ let _toast=null;
 (()=>{
   const c=document.getElementById('pts');
   if(!c)return;
-  const types=['blue','blue','blue','cyan','cyan','white'];
-  const anims=['f1','f2','f3'];
+  const tipos=['blue','blue','blue','cyan','cyan','white'];
   for(let i=0;i<60;i++){
     const p=document.createElement('div');
-    const type=types[Math.floor(Math.random()*types.length)];
-    p.className='pt '+type;
+    const tipo=tipos[Math.floor(Math.random()*tipos.length)];
+    p.className='pt '+tipo;
     p.style.left=Math.random()*100+'vw';
     p.style.top=(100+Math.random()*120)+'vh';
-    p.style.animationName=anims[i%3];
+    p.style.animationName='subir';
     p.style.animationDuration=(10+Math.random()*8)+'s';
     p.style.animationDelay=(Math.random()*12)+'s';
     p.style.animationTimingFunction='linear';
