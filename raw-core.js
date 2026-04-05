@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.4.013
+/* RAW Entry — Core v.4.014
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Detectar móvil
