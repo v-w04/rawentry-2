@@ -1,4 +1,4 @@
-/* RAW Entry — Estilos v.4.005
+/* RAW Entry — Estilos v.4.010
    Design system: Uber monochrome
    Negro puro · partículas blancas · pills 999px · sombra 0.12 · sin gradientes
 */
@@ -52,12 +52,12 @@ html,body{
 #bg{position:fixed;inset:0;background:#0a0a0a;z-index:0}
 #pts{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
 .pt{position:absolute;border-radius:50%;will-change:transform,opacity}
-.pt.blue{background:rgba(59,130,246,.9);box-shadow:0 0 8px 2px rgba(59,130,246,.7),0 0 20px rgba(59,130,246,.4)}
-.pt.cyan{background:rgba(6,182,212,.9);box-shadow:0 0 8px 2px rgba(6,182,212,.7),0 0 20px rgba(6,182,212,.4)}
-.pt.white{background:rgba(220,240,255,.8);box-shadow:0 0 6px rgba(200,220,255,.6)}
-@keyframes f1{0%{transform:translate(0,100vh) scale(0);opacity:0}5%{opacity:1}50%{transform:translate(-15px,45vh) scale(.9)}95%{opacity:.4}100%{transform:translate(0,0) scale(0);opacity:0}}
-@keyframes f2{0%{transform:translate(0,100vh) scale(0) rotate(0deg);opacity:0}5%{opacity:1}60%{transform:translate(30px,35vh) scale(.8) rotate(200deg)}100%{transform:translate(0,0) scale(0) rotate(360deg);opacity:0}}
-@keyframes f3{0%{transform:translate(0,100vh) scale(0);opacity:0}8%{opacity:1}55%{transform:translate(-25px,40vh) scale(1.2)}100%{transform:translate(0,0) scale(0);opacity:0}}
+.pt.blue{background:rgba(59,130,246,.9);box-shadow:0 0 8px rgba(59,130,246,.8),0 0 16px rgba(59,130,246,.6)}
+.pt.cyan{background:rgba(6,182,212,.9);box-shadow:0 0 8px rgba(6,182,212,.8),0 0 16px rgba(6,182,212,.6)}
+.pt.white{background:rgba(220,240,255,.9);box-shadow:0 0 6px rgba(200,220,255,.8)}
+@keyframes f1{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-130vh) scale(.8);opacity:0}}5%{opacity:1}50%{transform:translate(-15px,45vh) scale(.9)}95%{opacity:.4}100%{transform:translate(0,0) scale(0);opacity:0}}
+@keyframes f2{0%{transform:translateY(0) scale(1);opacity:.9}100%{transform:translateY(-130vh) scale(.7);opacity:0}}5%{opacity:1}60%{transform:translate(30px,35vh) scale(.8) rotate(200deg)}100%{transform:translate(0,0) scale(0) rotate(360deg);opacity:0}}
+@keyframes f3{0%{transform:translateY(0) scale(1);opacity:.8}100%{transform:translateY(-130vh) scale(.9);opacity:0}}8%{opacity:1}55%{transform:translate(-25px,40vh) scale(1.2)}100%{transform:translate(0,0) scale(0);opacity:0}}
 
 /* ═══════════════════════════════════════════
    LAYOUT
