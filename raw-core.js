@@ -83,22 +83,19 @@ let _toast=null;
 (()=>{
   const c=document.getElementById('pts');
   if(!c)return;
-  const anims=['f1','f2','f3'];
   const types=['blue','blue','blue','cyan','cyan','white'];
-  for(let i=0;i<42;i++){
+  const anims=['f1','f2','f3'];
+  for(let i=0;i<60;i++){
     const p=document.createElement('div');
     const type=types[Math.floor(Math.random()*types.length)];
     p.className='pt '+type;
-    p.style.left=Math.random()*100+'%';
+    p.style.left=Math.random()*100+'vw';
+    p.style.top=(100+Math.random()*120)+'vh';
     p.style.animationName=anims[i%3];
-    const dur=12+Math.random()*16;
-    p.style.animationDuration=dur+'s';
-    p.style.animationDelay=(Math.random()*20)+'s';
-    p.style.animationTimingFunction='ease-in-out';
+    p.style.animationDuration=(10+Math.random()*8)+'s';
+    p.style.animationDelay=(Math.random()*12)+'s';
+    p.style.animationTimingFunction='linear';
     p.style.animationIterationCount='infinite';
-    const s=type==='white'?2+Math.random()*2:3+Math.random()*3.5;
-    p.style.width=p.style.height=s+'px';
-    p.style.opacity=type==='white'?0.6+Math.random()*0.3:0.8+Math.random()*0.2;
     c.appendChild(p);
   }
 })();
