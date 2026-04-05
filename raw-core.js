@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.4.016
+/* RAW Entry — Core v.4.019
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Detectar móvil
@@ -83,7 +83,10 @@ let _toast=null;
 (()=>{
   const c=document.getElementById('pts');
   if(!c)return;
-  const tipos=['white','white','white','white','white','white'];
+  const esMob=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const tipos=esMob
+    ?['white','white','white','white','white','white']
+    :['blue','blue','blue','cyan','cyan','blue'];
   for(let i=0;i<60;i++){
     const p=document.createElement('div');
     const tipo=tipos[Math.floor(Math.random()*tipos.length)];
