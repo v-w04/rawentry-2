@@ -1,4 +1,4 @@
-/* RAW Entry — Estilos v.4.002
+/* RAW Entry — Estilos v.4.003
    Design system: Uber monochrome
    Negro puro · partículas blancas · pills 999px · sombra 0.12 · sin gradientes
 */
@@ -51,9 +51,9 @@ html,body{
 ═══════════════════════════════════════════ */
 #pts{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .pt{position:absolute;border-radius:50%;will-change:transform,opacity}
-.pt.blue{background:rgba(255,255,255,.9);box-shadow:0 0 6px 1px rgba(255,255,255,.5),0 0 14px rgba(255,255,255,.2)}
-.pt.cyan{background:rgba(255,255,255,.55);box-shadow:0 0 5px rgba(255,255,255,.3)}
-.pt.white{background:rgba(255,255,255,.25);box-shadow:0 0 4px rgba(255,255,255,.15)}
+.pt.blue{background:rgba(255,255,255,.95);box-shadow:0 0 10px 3px rgba(255,255,255,.6),0 0 24px rgba(255,255,255,.3)}
+.pt.cyan{background:rgba(255,255,255,.75);box-shadow:0 0 8px 2px rgba(255,255,255,.4),0 0 16px rgba(255,255,255,.2)}
+.pt.white{background:rgba(255,255,255,.45);box-shadow:0 0 6px rgba(255,255,255,.25)}
 @keyframes f1{0%{transform:translate(0,100vh) scale(0);opacity:0}5%{opacity:1}50%{transform:translate(-15px,45vh) scale(.9)}95%{opacity:.4}100%{transform:translate(0,0) scale(0);opacity:0}}
 @keyframes f2{0%{transform:translate(0,100vh) scale(0) rotate(0deg);opacity:0}5%{opacity:1}60%{transform:translate(30px,35vh) scale(.8) rotate(200deg)}100%{transform:translate(0,0) scale(0) rotate(360deg);opacity:0}}
 @keyframes f3{0%{transform:translate(0,100vh) scale(0);opacity:0}8%{opacity:1}55%{transform:translate(-25px,40vh) scale(1.2)}100%{transform:translate(0,0) scale(0);opacity:0}}
