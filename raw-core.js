@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.3.0033
+/* RAW Entry — Core v.4.001
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Detectar móvil
@@ -51,22 +51,21 @@ async function apiPost(action, data={}) {
 }
 
 const api = {
-  getCatalogos:      () => EN_GAS ? gasRun('getCatalogos') : apiGet('getCatalogos'),
-  getSheetUrl:       () => EN_GAS ? gasRun('getSheetUrl').then(u=>({url: typeof u==='string'?u:u.url})) : apiGet('getSheetUrl'),
-  getFijos:          () => EN_GAS ? gasRun('getFijos') : apiGet('getFijos'),
-  getDatosMes:       () => EN_GAS ? gasRun('getDatosMes') : apiGet('getDatosMes'),
-  getGastos:         () => EN_GAS ? gasRun('getGastos') : apiGet('getGastos'),
+  // ── Un solo request para toda la carga inicial ──
+  getAll:            () => EN_GAS ? gasRun('getAll') : apiGet('getAll'),
+  // ── Llamadas individuales que siguen siendo lazy ──
   getSaldoDia:       (f) => EN_GAS ? gasRun('getSaldoDia', f) : apiGet('getSaldoDia', { fecha: f }),
   getListaEstructura:() => EN_GAS ? gasRun('getListaEstructura') : apiGet('getListaEstructura'),
+  // ── Escritura ──
   insertarEnRAW:     (d) => EN_GAS ? gasRun('insertarEnRAW', d) : apiPost('insertarEnRAW', { data: d }),
   actualizarFijo:    (fila, monto) => EN_GAS ? gasRun('actualizarFijo', fila, monto) : apiPost('actualizarFijo', { fila, monto }),
   agregarALista:     (colIndex, valor) => EN_GAS ? gasRun('agregarALista', colIndex, valor) : apiPost('agregarALista', { colIndex, valor }),
-  getLogros:         () => EN_GAS ? gasRun('getLogros') : apiGet('getLogros'),
-  // FIX 3: getEventuales se mantiene en la API pero renderEventuales ya no mezcla con logros
-  getEventuales:     () => EN_GAS ? gasRun('getEventuales') : apiGet('getEventuales'),
   marcarLogro:       (fila, val) => EN_GAS ? gasRun('marcarLogro', fila, val) : apiPost('marcarLogro', { fila, val }),
-  getNecesidades:    () => EN_GAS ? gasRun('getNecesidades') : apiGet('getNecesidades'),
-  getFlujoPorMes:    () => EN_GAS ? gasRun('getFlujoPorMes') : apiGet('getFlujoPorMes'),
+  // ── Individuales para refresh parcial post-guardar ──
+  getFijos:          () => EN_GAS ? gasRun('getFijos') : apiGet('getFijos'),
+  getDatosMes:       () => EN_GAS ? gasRun('getDatosMes') : apiGet('getDatosMes'),
+  getGastos:         () => EN_GAS ? gasRun('getGastos') : apiGet('getGastos'),
+  getLogros:         () => EN_GAS ? gasRun('getLogros') : apiGet('getLogros'),
 };
 
 // ══════════════════════════════════════════
@@ -108,27 +107,45 @@ let _toast=null;
 //  INIT
 // ══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded',()=>{
-  if(!EN_GAS) apiGet('getCatalogos').catch(err=>{
-    const d=document.createElement('div');
-    d.style.cssText='position:fixed;top:60px;left:8px;right:8px;z-index:9999;background:#EF4444;color:#fff;padding:12px 16px;border-radius:12px;font-size:13px;font-weight:600';
-    d.innerHTML='⚠ <b>Error de conexión:</b> '+err.message+'<br><small>Verifica que la URL de GAS es correcta y está desplegada como web app pública</small>';
-    document.body.appendChild(d);
-    setTimeout(()=>d.remove(),10000);
-  });
   const hoy=fmtD(new Date());
   document.getElementById('fecha').value=hoy;
   document.getElementById('saldo-fecha').value=hoy;
   actualizarResumenFecha(hoy);
   consultarSaldo();
-  api.getCatalogos().then(onCats).catch(()=>setChip('err','Error'));
-  api.getSheetUrl().then(r=>sheetUrl=r.url).catch(()=>{});
-  api.getFijos().then(renderEntes).catch(()=>{});
-  api.getDatosMes().then(onDatosMes).catch(()=>{});
-  api.getGastos().then(renderAnualidad).catch(()=>{});
-  api.getLogros().then(renderLogros).catch(()=>{});
-  api.getNecesidades().then(renderNecesidades).catch(()=>{});
-  api.getFlujoPorMes().then(renderFlujoMensual).catch(()=>{});
-  // FIX 3: getEventuales ya no se llama en init — eventuales ya viven en hoja Logros
+
+  // Una sola llamada a GAS en lugar de 8
+  setChip('load','Cargando');
+  api.getAll()
+    .then(d=>{
+      if(!d.ok && !d.catalogos){
+        setChip('err','Error');
+        mostrarErrorConexion('getAll falló: '+(d.error||'sin datos'));
+        return;
+      }
+      sheetUrl = d.sheetUrl || '';
+      onCats(d.catalogos);
+      renderEntes(d.fijos);
+      onDatosMes(d.datosMes);
+      renderAnualidad(d.gastos);
+      renderLogros(d.logros);
+      renderNecesidades(d.necesidades);
+      renderFlujoMensual(d.flujoPorMes);
+    })
+    .catch(err=>{
+      setChip('err','Error');
+      mostrarErrorConexion(err.message);
+    });
+
+  initTooltip();
+});
+
+function mostrarErrorConexion(msg){
+  const d=document.createElement('div');
+  d.style.cssText='position:fixed;top:60px;left:8px;right:8px;z-index:9999;background:#EF4444;color:#fff;padding:12px 16px;border-radius:12px;font-size:13px;font-weight:600';
+  d.innerHTML='⚠ <b>Error de conexión:</b> '+msg+'<br><small>Verifica que la URL de GAS es correcta y está desplegada como web app pública</small>';
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(),10000);
+}/ FIX 3: getEventuales ya no se llama en init — eventuales ya viven en hoja Logros
   initTooltip();
 });
 
