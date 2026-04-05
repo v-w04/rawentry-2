@@ -96,9 +96,9 @@ let _toast=null;
     p.style.animationDelay=(Math.random()*20)+'s';
     p.style.animationTimingFunction='ease-in-out';
     p.style.animationIterationCount='infinite';
-    const s=type==='white'?1+Math.random():2+Math.random()*2.5;
+    const s=type==='white'?2+Math.random()*2:3+Math.random()*3.5;
     p.style.width=p.style.height=s+'px';
-    p.style.opacity=type==='white'?0.5+Math.random()*0.4:0.7+Math.random()*0.3;
+    p.style.opacity=type==='white'?0.6+Math.random()*0.3:0.8+Math.random()*0.2;
     c.appendChild(p);
   }
 })();
