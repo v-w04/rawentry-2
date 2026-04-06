@@ -1,5 +1,5 @@
-/* RAW Entry — Dashboard v.4.014
-   Tablas Variables/Fijos · Flujo Mensual · Gráficas 
+/* RAW Entry — Dashboard v.4.020
+   Tablas Variables/Fijos · Flujo Mensual · Gráficas
 */
 // ══════════════════════════════════════════
 //  ANUALIDAD (Fijos — tabla K:P)
