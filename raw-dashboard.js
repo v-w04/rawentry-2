@@ -1,4 +1,4 @@
-/* RAW Entry — Dashboard v.4.021
+/* RAW Entry — Dashboard v.4.022
    Tablas Variables/Fijos · Flujo Mensual · Gráficas
 */
 // ══════════════════════════════════════════
@@ -321,7 +321,7 @@ function mostrarGraficaAnual(){
   const idx = {};
   data.meses.forEach(mes=>{ idx[mes]={};(data.grupos[mes]||[]).forEach(e=>idx[mes][e.ente]=e.monto); });
 
-  const entesGraf = entes.filter(e=>e!=='BW'&&e!=='Final');
+  const entesGraf = entes.filter(e=>e!=='BW'&&e!=='Final'&&e!=='Inicio');
 
   const dsets = entesGraf.map(ente=>{
     const cfg = getEnteColor(ente);
