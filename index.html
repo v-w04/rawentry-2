@@ -60,9 +60,9 @@
       <div style="display:flex;align-items:center;gap:10px">
         <div class="hero-icon"><i class="fas fa-table-list"></i></div>
         <div>
-          <!-- FIX 1: versión actualizada a v.4.021 -->
+          <!-- FIX 1: versión actualizada a v.4.024 -->
           <div class="hero-title">RAW <span style="color:var(--p)">Entry</span></div>
-          <div class="hero-sub">v.4.021 · Trello · Sheets</div>
+          <div class="hero-sub">v.4.024 · Trello · Sheets</div>
         </div>
       </div>
       <div class="hero-right-mob" style="display:none">
@@ -104,6 +104,9 @@
       </button>
       <button class="btn-flip" id="btn-maslow" onclick="irAMaslow()" title="Ver Maslow">
         🧠 Maslow
+      </button>
+      <button class="btn-flip" id="btn-activity" onclick="irAActivity()" title="Activity Check">
+        ⚡ Activity
       </button>
       <button class="btn-refresh" id="btn-rf" onclick="refreshTodo()" title="Actualizar">
         <i class="fas fa-arrows-rotate" id="rf-ico"></i>
@@ -494,6 +497,43 @@
     </div>
   </div><!-- /board-maslow -->
 
+
+  <!-- PANEL ACTIVITY CHECK -->
+  <div class="board-face panel-activity" id="board-activity">
+    <div class="reverso-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:10px;
+          background:linear-gradient(135deg,rgba(59,130,246,.2),rgba(59,130,246,.05));
+          border:1px solid rgba(59,130,246,.2);
+          display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div>
+        <div>
+          <div class="reverso-title">Activity Check</div>
+          <div style="font-size:10px;color:var(--m)" id="act-semana-lbl"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <div style="display:flex;gap:3px;background:rgba(0,0,0,.4);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,.06)">
+          <button id="act-btn-habitos" onclick="switchVistaAct('habitos')"
+            style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:700;
+            background:rgba(59,130,246,.25);border:1px solid rgba(59,130,246,.6);color:#93C5FD;
+            cursor:pointer;font-family:inherit;transition:all .2s">✓ Hábitos</button>
+          <button id="act-btn-media" onclick="switchVistaAct('media')"
+            style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:500;
+            background:none;border:none;color:var(--m);
+            cursor:pointer;font-family:inherit;transition:all .2s">📚 Media</button>
+          <button id="act-btn-historial" onclick="switchVistaAct('historial')"
+            style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:500;
+            background:none;border:none;color:var(--m);
+            cursor:pointer;font-family:inherit;transition:all .2s">📊 Historial</button>
+        </div>
+        <button class="btn-flip active" onclick="volverAlAnverso()">
+          <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
+        </button>
+      </div>
+    </div>
+    <div id="act-container" style="padding:4px 0"></div>
+  </div><!-- /board-activity -->
+
   </div><!-- /board-wrap -->
 </div><!-- /app -->
 <!-- Tab Bar Móvil -->
@@ -509,6 +549,10 @@
   <button class="mob-tab" data-tab="logros" onclick="mobTab('logros')">
     <span class="mob-tab-icon">🏆</span>
     <span class="mob-tab-label">Logros</span>
+  </button>
+  <button class="mob-tab" data-tab="activity" onclick="mobTab('activity')">
+    <span class="mob-tab-icon">⚡</span>
+    <span class="mob-tab-label">Activity</span>
   </button>
   <button class="mob-tab" data-tab="maslow" onclick="mobTab('maslow')">
     <span class="mob-tab-icon">🧠</span>
