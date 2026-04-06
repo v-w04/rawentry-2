@@ -1,4 +1,4 @@
-/* RAW Entry — Dashboard v.4.020
+/* RAW Entry — Dashboard v.4.021
    Tablas Variables/Fijos · Flujo Mensual · Gráficas
 */
 // ══════════════════════════════════════════
