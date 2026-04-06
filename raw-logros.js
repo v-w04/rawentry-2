@@ -1,4 +1,4 @@
-/* RAW Entry — Logros v.4.020
+/* RAW Entry — Logros v.4.024
    Board/Carrusel · Tooltip · Logros+Íconos · Maslow · Tab Móvil
 */
 // ══════════════════════════════════════════
@@ -35,6 +35,7 @@ function _setPantalla(p){
   anv.classList.remove('slide-left','slide-right');
   if(logros) logros.classList.remove('active');
   if(maslow) maslow.classList.remove('active');
+  const act=document.getElementById('board-activity');if(act)act.classList.remove('active');
 
   if(p === 'logros'){
     anv.classList.add('slide-left');
@@ -42,11 +43,17 @@ function _setPantalla(p){
   } else if(p === 'maslow'){
     anv.classList.add('slide-right');
     if(maslow) maslow.classList.add('active');
+  } else if(p === 'activity'){
+    anv.classList.add('slide-right');
+    const act = document.getElementById('board-activity');
+    if(act) act.classList.add('active');
   }
   const bL = document.getElementById('btn-logros');
   const bM = document.getElementById('btn-maslow');
+  const bA = document.getElementById('btn-activity');
   if(bL) bL.classList.toggle('active', p==='logros');
   if(bM) bM.classList.toggle('active', p==='maslow');
+  if(bA) bA.classList.toggle('active', p==='activity');
   if(typeof _syncMobTab==='function') _syncMobTab(p);
 }
 
@@ -393,25 +400,26 @@ function toggleLogro(idx, event){
 }
 
 // ══════════════════════════════════════════
-//  NECESIDADES — Pirámide de Maslow + Radar
+//  MASLOW — análisis completo
 // ══════════════════════════════════════════
 let _necData  = null;
 let _necVista = 'piramide';
 let _radarChart = null;
+let _pctAhorro = 20; // % ajustable por el usuario
 
 const NEC_NIVELES = [
-  { key:'1', label:'Fisiológicas',   sub:'Comer, dormir, agua',        color:'#EF4444', glow:'rgba(239,68,68,.3)',   emoji:'🔴' },
-  { key:'2', label:'Seguridad',      sub:'Estabilidad y vivienda',     color:'#F97316', glow:'rgba(249,115,22,.3)',  emoji:'🟠' },
-  { key:'3', label:'Afiliación',     sub:'Relaciones y pertenencia',   color:'#EAB308', glow:'rgba(234,179,8,.3)',   emoji:'🟡' },
-  { key:'4', label:'Reconocimiento', sub:'Logros y autoestima',        color:'#22C55E', glow:'rgba(34,197,94,.3)',   emoji:'🟢' },
-  { key:'5', label:'Autorrealización',sub:'Propósito y potencial',     color:'#8B5CF6', glow:'rgba(139,92,246,.3)',  emoji:'🟣' },
+  { key:'1', label:'Fisiológicas',    sub:'Comer, dormir, agua',              color:'#EF4444', emoji:'🔴' },
+  { key:'2', label:'Seguridad',       sub:'Estabilidad y vivienda',           color:'#F97316', emoji:'🟠' },
+  { key:'3', label:'Afiliación',      sub:'Relaciones y pertenencia',         color:'#EAB308', emoji:'🟡' },
+  { key:'4', label:'Reconocimiento',  sub:'Logros y autoestima',              color:'#22C55E', emoji:'🟢' },
+  { key:'5', label:'Autorrealización',sub:'Propósito y potencial',            color:'#8B5CF6', emoji:'🟣' },
 ];
 
 let _necMesesSeleccionados = new Set();
 
 function renderNecesidades(data){
   _necData = data;
-  if(_boardFlipped){
+  if(_pantalla==='maslow'){
     poblarFiltrosMes();
     dibujarNecesidades();
   }
@@ -446,9 +454,7 @@ function resetFiltrosMes(){
 
 function calcularNivelesFiltrados(){
   if(!_necData) return [];
-  if(!_necData.rawPorMes || _necMesesSeleccionados.size === 0) {
-    return _necData.niveles || [];
-  }
+  if(!_necData.rawPorMes || _necMesesSeleccionados.size === 0) return _necData.niveles || [];
   const sumas = {};
   [..._necMesesSeleccionados].forEach(mes=>{
     (_necData.rawPorMes[mes]||[]).forEach(({key,monto,concepto})=>{
@@ -458,22 +464,20 @@ function calcularNivelesFiltrados(){
     });
   });
   return ['1','2','3','4','5'].map(key=>({
-    key,
-    total:     sumas[key]?sumas[key].total:0,
-    conceptos: sumas[key]?sumas[key].conceptos:[]
+    key, total: sumas[key]?sumas[key].total:0, conceptos: sumas[key]?sumas[key].conceptos:[]
   }));
 }
 
 function switchVistaNec(vista){
   _necVista = vista;
-  ['piramide','radar'].forEach(v=>{
+  ['piramide','radar','ahorro','tendencia'].forEach(v=>{
     const btn = document.getElementById('nec-btn-'+v);
     if(!btn) return;
     const on = v===vista;
-    btn.style.background   = on?'rgba(139,92,246,.25)':'rgba(255,255,255,.04)';
-    btn.style.borderColor  = on?'rgba(139,92,246,.6)':'var(--border)';
-    btn.style.color        = on?'#C4B5FD':'var(--m)';
-    btn.style.fontWeight   = on?'700':'500';
+    btn.style.background  = on?'rgba(139,92,246,.25)':'rgba(255,255,255,.04)';
+    btn.style.borderColor = on?'rgba(139,92,246,.6)':'var(--border)';
+    btn.style.color       = on?'#C4B5FD':'var(--m)';
+    btn.style.fontWeight  = on?'700':'500';
   });
   if(_radarChart){ try{_radarChart.destroy();}catch(e){} _radarChart=null; }
   dibujarNecesidades();
@@ -483,19 +487,19 @@ function dibujarNecesidades(){
   const cont = document.getElementById('nec-container');
   if(!cont) return;
   if(!_necData || (!_necData.niveles && !_necData.rawPorMes)){
-    cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m);font-size:13px">Cargando datos de necesidades…</div>';
+    cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m);font-size:13px">Cargando…</div>';
     return;
   }
   const nivelesFiltrados = calcularNivelesFiltrados();
   const per = document.getElementById('nec-periodo');
   if(per){
-    if(_necMesesSeleccionados.size > 0)
-      per.textContent = [..._necMesesSeleccionados].join(', ');
-    else
-      per.textContent = _necData.periodo || '';
+    if(_necMesesSeleccionados.size>0) per.textContent=[..._necMesesSeleccionados].join(', ');
+    else per.textContent=_necData.periodo||'';
   }
-  if(_necVista==='piramide') dibujarPiramide(cont, nivelesFiltrados);
-  else dibujarRadar(cont, nivelesFiltrados);
+  if(_necVista==='piramide')  dibujarPiramide(cont, nivelesFiltrados);
+  else if(_necVista==='radar') dibujarRadar(cont, nivelesFiltrados);
+  else if(_necVista==='ahorro') dibujarAhorro(cont, nivelesFiltrados);
+  else if(_necVista==='tendencia') dibujarTendencia(cont);
   dibujarTablaAnalisis(nivelesFiltrados);
 }
 
@@ -505,139 +509,221 @@ function dataNivel(key, nivelesArr){
 }
 function fmtK(v){ const a=Math.abs(v); return a>=1000?'$'+Math.round(a/1000)+'k':'$'+a.toLocaleString('es-MX',{maximumFractionDigits:0}); }
 
+// ── Pirámide — barras horizontales minimalistas
 function dibujarPiramide(cont, niveles){
   niveles = niveles || (_necData ? _necData.niveles : []);
-  const maxAbs = Math.max(...NEC_NIVELES.map(n=>Math.abs(dataNivel(n.key,niveles).total||0)),1);
-  const pisos = [...NEC_NIVELES].reverse();
-  const totalSum = pisos.reduce((s,t)=>s+Math.abs(dataNivel(t.key,niveles).total||0),0);
-  const html = pisos.map((niv,i)=>{
+  const maxAbs  = Math.max(...NEC_NIVELES.map(n=>Math.abs(dataNivel(n.key,niveles).total||0)),1);
+  const totalSum= NEC_NIVELES.reduce((s,n)=>s+Math.abs(dataNivel(n.key,niveles).total||0),0);
+  const pisos   = [...NEC_NIVELES].reverse();
+
+  const html = pisos.map((niv)=>{
     const d    = dataNivel(niv.key, niveles);
     const abs  = Math.abs(d.total||0);
-    const pctMonto = abs/maxAbs;
-    const ancho = abs===0 ? 20 : Math.max(22, 20 + 80*pctMonto);
-    const pct   = totalSum>0 ? abs/totalSum : 0;
+    const pct  = totalSum>0 ? (abs/totalSum*100) : 0;
+    const barW = maxAbs>0 ? (abs/maxAbs*100) : 0;
     const vacio = abs===0;
-    const monto = vacio?'—':'$ '+abs.toLocaleString('es-MX',{minimumFractionDigits:0});
-    const tops  = (d.conceptos||[]).join(' · ');
-
-    return `<div style="width:${ancho}%;margin:0 auto 6px;transition:width .5s cubic-bezier(.4,0,.2,1)">
-      <div style="
-        background:${vacio?'rgba(255,255,255,.03)':'linear-gradient(135deg,'+niv.color+'18,'+niv.color+'08)'};
-        border:1px solid ${vacio?'rgba(255,255,255,.06)':niv.color+'55'};
-        border-radius:10px;padding:12px 16px;
-        box-shadow:${vacio?'none':`inset 0 1px 0 ${niv.color}30, 0 4px 20px ${niv.glow}`};
-        transition:all .3s">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-          <div style="display:flex;align-items:center;gap:10px;min-width:0">
-            <div style="width:32px;height:32px;border-radius:50%;flex-shrink:0;
-              background:${niv.color}22;border:2px solid ${niv.color}66;
-              display:flex;align-items:center;justify-content:center;font-size:14px">
-              ${niv.emoji}
-            </div>
-            <div style="min-width:0">
-              <div style="font-size:13px;font-weight:700;color:${vacio?'var(--m)':niv.color}">${niv.label}</div>
-              <div style="font-size:10px;color:var(--m)">${niv.sub}</div>
-            </div>
-          </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div style="font-size:14px;font-weight:800;color:${vacio?'var(--dim)':niv.color};font-variant-numeric:tabular-nums">
-              ${vacio?'—':monto}
-            </div>
-            ${vacio?'<div style="font-size:9px;color:var(--warn);font-weight:700;margin-top:2px">⚠ Descuidado</div>':`<div style='font-size:9px;color:var(--m);margin-top:2px'>${Math.round(pct*100)}% del total</div>`}
-          </div>
+    const tops  = (d.conceptos||[]).slice(0,3).join(', ');
+    return `<div style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:8px;height:8px;border-radius:50%;background:${vacio?'var(--dim)':niv.color};flex-shrink:0"></div>
+          <span style="font-size:12px;font-weight:600;color:${vacio?'var(--m)':'var(--t)'}">${niv.label}</span>
+          ${vacio?'<span style="font-size:10px;color:var(--warn)">⚠ descuidado</span>':''}
         </div>
-        <div style="height:3px;background:rgba(255,255,255,.05);border-radius:2px;margin-top:10px;overflow:hidden">
-          <div style="height:100%;width:${(pct*100).toFixed(1)}%;background:linear-gradient(90deg,${niv.color},${niv.color}88);
-            border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)"></div>
+        <div>
+          <span style="font-size:13px;font-weight:700;color:${vacio?'var(--dim)':'var(--t)'};font-variant-numeric:tabular-nums">
+            ${vacio?'—':'$ '+abs.toLocaleString('es-MX',{minimumFractionDigits:0})}
+          </span>
+          <span style="font-size:10px;color:var(--m);margin-left:6px">${vacio?'':Math.round(pct)+'%'}</span>
         </div>
-        ${tops?`<div style="font-size:10px;color:var(--m);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">↳ ${tops}</div>`:''}
       </div>
+      <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${barW.toFixed(1)}%;background:${niv.color};border-radius:2px;opacity:${vacio?.25:.8}"></div>
+      </div>
+      ${tops?`<div style="font-size:10px;color:var(--m);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">↳ ${tops}</div>`:''}
     </div>`;
   }).join('');
-
-  cont.innerHTML=`<div style="padding:4px 0 8px">${html}</div>`;
+  cont.innerHTML=`<div style="padding:4px 0">${html}</div>`;
 }
 
+// ── Radar
 function dibujarRadar(cont, niveles){
   niveles = niveles || (_necData ? _necData.niveles : []);
-  cont.innerHTML=`<canvas id="radar-canvas" style="max-height:380px"></canvas>`;
+  cont.innerHTML=`<canvas id="radar-canvas" style="max-height:320px"></canvas>`;
   const canvas = document.getElementById('radar-canvas');
   if(!canvas||!window.Chart) return;
-
   const labels  = NEC_NIVELES.map(n=>n.label);
-  const valores  = NEC_NIVELES.map(n=>Math.abs(dataNivel(n.key, niveles).total||0));
+  const valores  = NEC_NIVELES.map(n=>Math.abs(dataNivel(n.key,niveles).total||0));
   const colors   = NEC_NIVELES.map(n=>n.color);
   const maxVal   = Math.max(...valores,1);
   const norm     = valores.map(v=>(v/maxVal*100));
-
   if(_radarChart){ try{_radarChart.destroy();}catch(e){} _radarChart=null; }
-
   _radarChart = new Chart(canvas,{
     type:'radar',
-    data:{
-      labels,
-      datasets:[{
-        label:'Gasto por necesidad',
-        data: norm,
-        backgroundColor:'rgba(139,92,246,.15)',
-        borderColor:'rgba(139,92,246,.8)',
-        borderWidth:2,
-        pointBackgroundColor: colors,
-        pointBorderColor:'#111827',
-        pointBorderWidth:2,
-        pointRadius:6,
-        pointHoverRadius:8,
-        fill:true,
-      }]
-    },
+    data:{ labels, datasets:[{
+      label:'Gasto por necesidad', data:norm,
+      backgroundColor:'rgba(139,92,246,.12)', borderColor:'rgba(139,92,246,.6)',
+      borderWidth:1.5, pointBackgroundColor:colors, pointBorderColor:'#111',
+      pointBorderWidth:2, pointRadius:5, pointHoverRadius:7, fill:true,
+    }]},
     options:{
-      responsive:true,
-      maintainAspectRatio:true,
-      aspectRatio:1.2,
+      responsive:true, maintainAspectRatio:true, aspectRatio:1.3,
       plugins:{
         legend:{display:false},
         tooltip:{
-          backgroundColor:'rgba(15,23,42,.95)',
-          borderColor:'rgba(139,92,246,.3)',
-          borderWidth:1,
-          titleColor:'#fff',
-          bodyColor:'#94A3B8',
-          padding:10,
-          callbacks:{
-            label: ctx=>{
-              const i   = ctx.dataIndex;
-              const abs = valores[i];
-              return ' '+NEC_NIVELES[i].emoji+' $ '+abs.toLocaleString('es-MX',{minimumFractionDigits:0});
-            }
-          }
+          backgroundColor:'rgba(15,23,42,.95)', borderColor:'rgba(139,92,246,.3)',
+          borderWidth:1, titleColor:'#fff', bodyColor:'#94A3B8', padding:10,
+          callbacks:{ label:ctx=>{ const i=ctx.dataIndex; return ' '+NEC_NIVELES[i].emoji+' $ '+valores[i].toLocaleString('es-MX',{minimumFractionDigits:0}); }}
+        }
+      },
+      scales:{ r:{
+        min:0, max:100, backgroundColor:'rgba(0,0,0,.15)',
+        angleLines:{color:'rgba(255,255,255,.06)',lineWidth:1},
+        grid:{color:'rgba(255,255,255,.06)'},
+        ticks:{display:false,stepSize:25},
+        pointLabels:{ font:{size:11,weight:'600',family:'system-ui'}, color:ctx=>colors[ctx.index]||'#94A3B8',
+          callback:(label,i)=>[label,fmtK(valores[i])] }
+      }}
+    }
+  });
+}
+
+// ── Ahorro — regla 50/30/20 + slider
+function dibujarAhorro(cont, niveles){
+  niveles = niveles || (_necData ? _necData.niveles : []);
+  // Calcular ingresos del mes actual desde flujoPorMes
+  const MESES_ES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const mesActual = MESES_ES[new Date().getMonth()];
+
+  // Usar datos de flujo si están disponibles, si no estimamos desde niveles
+  const totalGasto = Math.abs(NEC_NIVELES.reduce((s,n)=>s+Math.abs(dataNivel(n.key,niveles).total||0),0));
+  const necesidades = Math.abs(dataNivel('1',niveles).total||0) + Math.abs(dataNivel('2',niveles).total||0);
+  const deseos      = Math.abs(dataNivel('3',niveles).total||0) + Math.abs(dataNivel('4',niveles).total||0) + Math.abs(dataNivel('5',niveles).total||0);
+
+  const mesesCount = _necMesesSeleccionados.size || _necData?.mesesDisponibles?.length || 1;
+  const promedioMensual = totalGasto / mesesCount;
+
+  const pctN = Math.round(necesidades/totalGasto*100)||0;
+  const pctD = Math.round(deseos/totalGasto*100)||0;
+
+  cont.innerHTML=`
+    <div style="margin-bottom:20px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:12px">
+        Meta de ahorro mensual
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <span style="font-size:12px;color:var(--m);white-space:nowrap">Objetivo:</span>
+        <input type="range" min="5" max="50" step="5" value="${_pctAhorro}"
+          oninput="_pctAhorro=parseInt(this.value);document.getElementById('ahorro-pct-lbl').textContent=this.value+'%';_recalcAhorro()"
+          style="flex:1;accent-color:var(--ok)">
+        <span id="ahorro-pct-lbl" style="font-size:16px;font-weight:700;color:var(--ok);min-width:36px">${_pctAhorro}%</span>
+      </div>
+    </div>
+
+    <div id="ahorro-cards" style="display:flex;flex-direction:column;gap:10px">
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px 16px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px">Gasto promedio mensual</div>
+        <div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--t)">
+          $ ${promedioMensual.toLocaleString('es-MX',{minimumFractionDigits:0})}
+        </div>
+        <div style="font-size:11px;color:var(--m);margin-top:2px">basado en ${mesesCount} mes${mesesCount!==1?'es':''}</div>
+      </div>
+
+      <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15);border-radius:10px;padding:14px 16px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ok);margin-bottom:8px">Ahorro mínimo mensual (${_pctAhorro}%)</div>
+        <div id="ahorro-meta-val" style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ok)">
+          $ ${Math.round(promedioMensual*_pctAhorro/100).toLocaleString('es-MX')}
+        </div>
+        <div style="font-size:11px;color:var(--m);margin-top:2px">del gasto promedio mensual</div>
+      </div>
+
+      <div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:14px 16px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:10px">Distribución 50/30/20 ideal</div>
+        ${[
+          {label:'Necesidades',pct:50,color:'#EF4444',real:pctN},
+          {label:'Deseos',pct:30,color:'#8B5CF6',real:pctD},
+          {label:'Ahorro',pct:20,color:'var(--ok)',real:_pctAhorro},
+        ].map(r=>`
+          <div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:11px;color:var(--m)">${r.label}</span>
+              <span style="font-size:11px;font-weight:600;color:${r.color}">${r.pct}% ideal · <span style="color:var(--t)">${r.real||_pctAhorro}% actual</span></span>
+            </div>
+            <div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
+              <div style="height:100%;width:${Math.min(r.real||_pctAhorro,100)}%;background:${r.color};border-radius:2px;opacity:.8"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
+function _recalcAhorro(){
+  const niveles = calcularNivelesFiltrados();
+  const totalGasto = NEC_NIVELES.reduce((s,n)=>s+Math.abs(dataNivel(n.key,niveles).total||0),0);
+  const mesesCount = _necMesesSeleccionados.size || _necData?.mesesDisponibles?.length || 1;
+  const prom = totalGasto / mesesCount;
+  const el = document.getElementById('ahorro-meta-val');
+  if(el) el.textContent='$ '+Math.round(prom*_pctAhorro/100).toLocaleString('es-MX');
+}
+
+// ── Tendencia mensual por nivel
+function dibujarTendencia(cont){
+  if(!_necData||!_necData.rawPorMes){
+    cont.innerHTML='<div style="padding:24px;text-align:center;color:var(--m)">Sin datos de tendencia</div>';
+    return;
+  }
+  cont.innerHTML=`<canvas id="tend-canvas" style="height:280px"></canvas>`;
+  const canvas = document.getElementById('tend-canvas');
+  if(!canvas||!window.Chart) return;
+
+  const ORDEN_M=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const meses = (_necData.mesesDisponibles||[]).sort((a,b)=>ORDEN_M.indexOf(a)-ORDEN_M.indexOf(b));
+
+  const datasets = NEC_NIVELES.map(niv=>{
+    const data = meses.map(mes=>{
+      const items = (_necData.rawPorMes[mes]||[]).filter(i=>i.key===niv.key);
+      return items.reduce((s,i)=>s+Math.abs(i.monto||0),0)||null;
+    });
+    return {
+      label: niv.label, data,
+      borderColor: niv.color, borderWidth:1.5,
+      pointRadius:3, pointHoverRadius:6,
+      fill:false, tension:.3, spanGaps:true,
+    };
+  });
+
+  new Chart(canvas,{
+    type:'line',
+    data:{labels:meses,datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'rgba(15,23,42,.95)',borderColor:'rgba(255,255,255,.1)',
+          borderWidth:1,titleColor:'#fff',bodyColor:'#94A3B8',padding:10,
+          callbacks:{ label:ctx=>{ const v=ctx.raw; return v?` ${ctx.dataset.label}: $ ${v.toLocaleString('es-MX',{minimumFractionDigits:0})}`:null; }}
         }
       },
       scales:{
-        r:{
-          min:0, max:100,
-          backgroundColor:'rgba(0,0,0,.2)',
-          angleLines:{ color:'rgba(255,255,255,.08)', lineWidth:1 },
-          grid:{ color:'rgba(255,255,255,.07)' },
-          ticks:{ display:false, stepSize:20 },
-          pointLabels:{
-            font:{ size:12, weight:'700', family:'system-ui' },
-            color: ctx => colors[ctx.index]||'#94A3B8',
-            callback:(label,i)=>{ const abs = valores[i]; return [label, fmtK(abs)]; }
-          }
-        }
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#64748B',font:{size:10}}},
+        y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#64748B',font:{size:10},callback:v=>'$'+Math.abs(v/1000).toFixed(0)+'k'}}
       }
     }
   });
 }
 
+// ── Tabla análisis
 function dibujarTablaAnalisis(niveles){
   niveles = niveles || (_necData ? _necData.niveles : []);
   const cont = document.getElementById('nec-tabla');
   if(!cont||!_necData||!_necData.niveles) return;
 
-  const total = NEC_NIVELES.reduce((s,n)=>s+Math.abs(dataNivel(n.key).total||0),0);
+  const total  = NEC_NIVELES.reduce((s,n)=>s+Math.abs(dataNivel(n.key,niveles).total||0),0);
   const sorted = [...NEC_NIVELES]
-    .map(n=>({ ...n, ...dataNivel(n.key, niveles) }))
+    .map(n=>({...n,...dataNivel(n.key,niveles)}))
     .sort((a,b)=>Math.abs(b.total||0)-Math.abs(a.total||0));
 
   const rows = sorted.map(n=>{
@@ -645,45 +731,34 @@ function dibujarTablaAnalisis(niveles){
     const pct  = total>0?(abs/total*100).toFixed(1):0;
     const tops = (n.conceptos||[]).join(', ')||'—';
     const vacio= abs===0;
-    return `<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
-      <td style="padding:8px 10px;white-space:nowrap">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="width:10px;height:10px;border-radius:50%;background:${n.color};flex-shrink:0"></div>
-          <span style="font-size:12px;font-weight:700;color:${vacio?'var(--m)':n.color}">${n.label}</span>
+    const status = vacio
+      ? `<span style="font-size:10px;color:var(--warn);background:rgba(245,158,11,.08);padding:2px 8px;border-radius:10px;border:1px solid rgba(245,158,11,.15)">⚠ Descuidado</span>`
+      : pct>40
+        ? `<span style="font-size:10px;color:var(--err);background:rgba(239,68,68,.08);padding:2px 8px;border-radius:10px;border:1px solid rgba(239,68,68,.15)">Alto</span>`
+        : `<span style="font-size:10px;color:var(--ok);background:rgba(74,222,128,.08);padding:2px 8px;border-radius:10px;border:1px solid rgba(74,222,128,.15)">✓ OK</span>`;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div style="width:8px;height:8px;border-radius:50%;background:${n.color};flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:${vacio?'var(--m)':'var(--t)'}">${n.label}</div>
+        <div style="font-size:10px;color:var(--m);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tops}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:13px;font-weight:700;color:${vacio?'var(--dim)':'var(--t)'};font-variant-numeric:tabular-nums">
+          ${vacio?'—':'$ '+abs.toLocaleString('es-MX',{minimumFractionDigits:0})}
         </div>
-      </td>
-      <td style="padding:8px 10px;text-align:right;font-variant-numeric:tabular-nums;
-        font-size:13px;font-weight:700;color:${vacio?'var(--dim)':n.color};white-space:nowrap">
-        ${vacio?'—':'$ '+abs.toLocaleString('es-MX',{minimumFractionDigits:0})}
-      </td>
-      <td style="padding:8px 10px;text-align:right;font-size:11px;color:var(--m)">${pct}%</td>
-      <td style="padding:8px 10px;min-width:140px">
-        <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:${n.color};border-radius:2px"></div>
-        </div>
-      </td>
-      <td style="padding:8px 10px;font-size:10px;color:var(--m);max-width:200px;
-        overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tops}</td>
-      <td style="padding:8px 10px;text-align:center">
-        ${vacio
-          ?'<span style="font-size:10px;color:var(--warn);font-weight:700;background:rgba(245,158,11,.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(245,158,11,.2)">⚠ Descuidado</span>'
-          :pct>40
-            ?'<span style="font-size:10px;color:var(--err);background:rgba(239,68,68,.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(239,68,68,.2)">Sobreinvertido</span>'
-            :'<span style="font-size:10px;color:var(--ok);background:rgba(74,222,128,.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(74,222,128,.2)">✓ OK</span>'
-        }
-      </td>
-    </tr>`;
+        <div style="font-size:10px;color:var(--m)">${pct}%</div>
+      </div>
+      <div style="flex-shrink:0">${status}</div>
+    </div>`;
   }).join('');
 
   cont.innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--m)">Análisis</div>
-      <div style="font-size:12px;font-weight:800;color:var(--t);font-variant-numeric:tabular-nums">
-        $ ${total.toLocaleString('es-MX',{minimumFractionDigits:0})}
-      </div>
+    <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:10px">
+      Resumen · <span style="color:var(--t);font-variant-numeric:tabular-nums">$ ${total.toLocaleString('es-MX',{minimumFractionDigits:0})}</span>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px">${rows}</div>`;
+    ${rows}`;
 }
+
 
 // ── Tab Bar Móvil ──
 let _mobTabActivo = 'entrada';
@@ -695,6 +770,7 @@ function mobTab(tab){
   });
   if(tab==='logros'){ irALogros(); return; }
   if(tab==='maslow'){ irAMaslow(); return; }
+  if(tab==='activity'){ irAActivity(); return; }
   if(_pantalla!=='anverso') volverAlAnverso();
   const ids = { entrada:'col1-wrap', bancos:'col1-wrap', flujo:'sec-flujo' };
   const targetId = ids[tab];
@@ -724,3 +800,194 @@ function _syncMobTab(p){
 }
 
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// ══════════════════════════════════════════
+//  ACTIVITY CHECK — hábitos + lecturas
+// ══════════════════════════════════════════
+let _actData    = null;
+let _actVista   = 'habitos';
+let _actChecks  = {}; // { 'habitoKey_YYYY-WW': true/false }
+
+function irAActivity(){
+  if(_pantalla==='activity'){ volverAlAnverso(); return; }
+  _setPantalla('activity');
+  if(_actData) renderActivity();
+  else {
+    const grid = document.getElementById('act-container');
+    if(grid) grid.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px"></i></div>';
+    api.getActivityCheck().then(d=>{ _actData=d; renderActivity(); }).catch(()=>{});
+  }
+}
+
+function renderActivity(){
+  if(!_actData) return;
+  switchVistaAct(_actVista);
+}
+
+function switchVistaAct(vista){
+  _actVista = vista;
+  ['habitos','media','historial'].forEach(v=>{
+    const btn = document.getElementById('act-btn-'+v);
+    if(!btn) return;
+    const on = v===vista;
+    btn.style.background  = on?'rgba(59,130,246,.25)':'rgba(255,255,255,.04)';
+    btn.style.borderColor = on?'rgba(59,130,246,.6)':'var(--border)';
+    btn.style.color       = on?'#93C5FD':'var(--m)';
+    btn.style.fontWeight  = on?'700':'500';
+  });
+  const cont = document.getElementById('act-container');
+  if(!cont) return;
+  if(vista==='habitos')   dibujarHabitos(cont);
+  else if(vista==='media') dibujarMedia(cont);
+  else if(vista==='historial') dibujarHistorial(cont);
+}
+
+// ── Semana actual
+function _getSemanaKey(){
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const week  = Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
+  return `${now.getFullYear()}-W${String(week).padStart(2,'0')}`;
+}
+
+function _getDiasEstaSemanaMX(){
+  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const hoy  = new Date();
+  const dow   = hoy.getDay(); // 0=Dom
+  const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - (dow===0?6:dow-1));
+  return Array.from({length:7},(_,i)=>{
+    const d = new Date(lunes); d.setDate(lunes.getDate()+i);
+    return { label:dias[d.getDay()], date:d.toISOString().slice(0,10), isPast: d<=hoy };
+  });
+}
+
+// ── Hábitos — checkboxes semanales
+function dibujarHabitos(cont){
+  if(!_actData||!_actData.habitos||!_actData.habitos.length){
+    cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin hábitos configurados</div>';
+    return;
+  }
+
+  const semana = _getSemanaKey();
+  const dias   = _getDiasEstaSemanaMX();
+  const hoy    = new Date().toISOString().slice(0,10);
+
+  const thead = `<div style="display:grid;grid-template-columns:1fr ${dias.map(()=>'36px').join(' ')};gap:6px;align-items:center;padding:0 0 8px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:8px">
+    <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Hábito</div>
+    ${dias.map(d=>`<div style="text-align:center;font-size:9px;font-weight:600;color:${d.date===hoy?'var(--ok)':'var(--m)'};letter-spacing:.04em">${d.label}</div>`).join('')}
+  </div>`;
+
+  const rows = _actData.habitos.map(hab=>{
+    const checks = dias.map(d=>{
+      const key   = `${hab.nombre}_${semana}_${d.date}`;
+      const done  = !!_actChecks[key];
+      const past  = d.isPast;
+      return `<div style="display:flex;align-items:center;justify-content:center">
+        <button onclick="toggleHabito('${hab.nombre}','${semana}','${d.date}')"
+          style="width:28px;height:28px;border-radius:8px;border:1px solid ${done?'rgba(74,222,128,.4)':'rgba(255,255,255,.1)'};
+          background:${done?'rgba(74,222,128,.15)':'rgba(255,255,255,.03)'};cursor:${past?'pointer':'default'};
+          display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;
+          opacity:${past?1:.35}"
+          ${!past?'disabled':''}>
+          ${done?'✓':''}
+        </button>
+      </div>`;
+    }).join('');
+
+    const total = dias.filter(d=>{ const k=`${hab.nombre}_${semana}_${d.date}`; return _actChecks[k]; }).length;
+    const pct   = Math.round(total/7*100);
+
+    return `<div style="display:grid;grid-template-columns:1fr ${dias.map(()=>'36px').join(' ')};gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)">
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--t)">${hab.nombre}</div>
+        <div style="font-size:10px;color:var(--m);margin-top:2px">${hab.recurrencia||'Diario'} · ${total}/7 días</div>
+        <div style="height:2px;background:rgba(255,255,255,.06);border-radius:1px;margin-top:4px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:var(--ok);border-radius:1px;opacity:.7"></div>
+        </div>
+      </div>
+      ${checks}
+    </div>`;
+  }).join('');
+
+  const semanaLabel = `Semana ${semana}`;
+  cont.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:11px;color:var(--m)">${semanaLabel}</div>
+      <button onclick="guardarChecks()" style="padding:6px 14px;border-radius:var(--rad-pill);background:var(--ok);color:#000;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">
+        <i class="fas fa-cloud-arrow-up" style="margin-right:4px"></i>Guardar
+      </button>
+    </div>
+    ${thead}${rows}`;
+}
+
+function toggleHabito(nombre, semana, fecha){
+  const key = `${nombre}_${semana}_${fecha}`;
+  _actChecks[key] = !_actChecks[key];
+  dibujarHabitos(document.getElementById('act-container'));
+}
+
+function guardarChecks(){
+  const semana = _getSemanaKey();
+  const payload = Object.entries(_actChecks)
+    .filter(([k,v])=>k.includes(semana) && v)
+    .map(([k])=>{ const parts=k.split('_'); return {nombre:parts[0],semana:parts[1],fecha:parts[2]}; });
+  api.guardarActivityChecks(semana, payload)
+    .then(r=>showToast(r.ok?'✓ Guardado':'Error',r.ok))
+    .catch(()=>showToast('Error al guardar',false));
+}
+
+// ── Media — lecturas, series, películas
+function dibujarMedia(cont){
+  if(!_actData||!_actData.media||!_actData.media.length){
+    cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin elementos en lista</div>';
+    return;
+  }
+
+  const porCategoria = {};
+  _actData.media.forEach(item=>{
+    const cat = item.categoria||'Sin categoría';
+    if(!porCategoria[cat]) porCategoria[cat]=[];
+    porCategoria[cat].push(item);
+  });
+
+  const CAT_ICONS = {'L':'📚','M':'🎬','S':'📺','':'🎯'};
+
+  const html = Object.entries(porCategoria).map(([cat,items])=>{
+    const icon = CAT_ICONS[cat]||'🎯';
+    const rows = items.map(item=>{
+      const done = item.completado==='Sí'||item.completado==='Si';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)">
+        <div style="width:20px;height:20px;border-radius:6px;border:1px solid ${done?'rgba(74,222,128,.4)':'rgba(255,255,255,.1)'};
+          background:${done?'rgba(74,222,128,.1)':'transparent'};display:flex;align-items:center;justify-content:center;
+          font-size:11px;flex-shrink:0;color:${done?'var(--ok)':'var(--m)'}">${done?'✓':''}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;color:${done?'var(--m)':'var(--t)'};text-decoration:${done?'line-through':'none'};
+            overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.nombre}</div>
+          ${item.nota?`<div style="font-size:10px;color:var(--m)">${item.nota}</div>`:''}
+        </div>
+        ${item.categoria?`<div style="font-size:18px;flex-shrink:0">${CAT_ICONS[item.categoria]||'🎯'}</div>`:''}
+      </div>`;
+    }).join('');
+    const total = items.length;
+    const done  = items.filter(i=>i.completado==='Sí'||i.completado==='Si').length;
+    return `<div style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--m);display:flex;align-items:center;gap:6px">
+          <span>${icon}</span><span>${cat==='L'?'Libros':cat==='M'?'Películas':cat==='S'?'Series':'Otros'}</span>
+        </div>
+        <span style="font-size:10px;color:var(--m)">${done}/${total}</span>
+      </div>
+      ${rows}
+    </div>`;
+  }).join('');
+
+  cont.innerHTML=html;
+}
+
+// ── Historial — resumen por semana
+function dibujarHistorial(cont){
+  cont.innerHTML=`<div style="padding:40px;text-align:center;color:var(--m);font-size:13px">
+    <div style="font-size:32px;margin-bottom:12px">📊</div>
+    El historial se construirá conforme guardes semanas. Próximamente disponible.
+  </div>`;
+}
