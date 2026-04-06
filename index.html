@@ -60,9 +60,9 @@
       <div style="display:flex;align-items:center;gap:10px">
         <div class="hero-icon"><i class="fas fa-table-list"></i></div>
         <div>
-          <!-- FIX 1: versión actualizada a v.4.018 -->
+          <!-- FIX 1: versión actualizada a v.4.020 -->
           <div class="hero-title">RAW <span style="color:var(--p)">Entry</span></div>
-          <div class="hero-sub">v.4.018 · Trello · Sheets</div>
+          <div class="hero-sub">v.4.020 · Trello · Sheets</div>
         </div>
       </div>
       <div class="hero-right-mob" style="display:none">
@@ -117,7 +117,36 @@
 
   <!-- ANVERSO -->
   <div class="board-face anverso" id="board-anverso">
-  <div class="sections">
+  <!-- Tablero móvil — solo visible en .mob -->
+  <div class="mob-tablero" id="mob-tablero" style="display:none">
+    <div class="mob-modulo" onclick="mobTab('entrada')">
+      <div class="mob-modulo-icon">📋</div>
+      <div class="mob-modulo-label">Nueva Entrada</div>
+      <div class="mob-modulo-sub">Registrar gasto</div>
+    </div>
+    <div class="mob-modulo" onclick="abrirSeccionMob('bancos')">
+      <div class="mob-modulo-icon">🏦</div>
+      <div class="mob-modulo-label">Bancos</div>
+      <div class="mob-modulo-sub" id="mob-mod-saldo">—</div>
+    </div>
+    <div class="mob-modulo" onclick="abrirSeccionMob('flujo')">
+      <div class="mob-modulo-icon">📊</div>
+      <div class="mob-modulo-label">Flujo</div>
+      <div class="mob-modulo-sub">Mensual</div>
+    </div>
+    <div class="mob-modulo" onclick="irALogros()">
+      <div class="mob-modulo-icon">🏆</div>
+      <div class="mob-modulo-label">Logros</div>
+      <div class="mob-modulo-sub" id="mob-mod-logros">—</div>
+    </div>
+    <div class="mob-modulo" onclick="irAMaslow()" style="grid-column:span 2">
+      <div class="mob-modulo-icon">🧠</div>
+      <div class="mob-modulo-label">Maslow</div>
+      <div class="mob-modulo-sub">Necesidades</div>
+    </div>
+  </div>
+
+  <div class="sections" id="mob-sections">
 
     <div id="col1-wrap" style="display:flex;flex-direction:column;gap:12px;align-self:start">
     <!-- ① NUEVA ENTRADA -->
@@ -257,6 +286,21 @@
       <div class="sec-body" id="sec-entes-body">
         <div id="entes-list" style="text-align:center;padding:20px;color:var(--m)">
           <i class="fas fa-circle-notch fa-spin" style="color:var(--p)"></i>
+        </div>
+
+        <!-- Form agregar en Bancos -->
+        <div id="form-banco-wrap" style="padding:12px var(--pad);border-top:1px solid rgba(255,255,255,.06)">
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:10px">
+            <i class="fas fa-plus" style="margin-right:4px"></i>Nuevo registro
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <input type="text" id="banco-nombre" class="finput" placeholder="Nombre del banco" style="font-size:13px;padding:9px 12px">
+            <input type="number" id="banco-monto" class="finput" placeholder="Monto" step="0.01" inputmode="decimal" style="font-size:13px;padding:9px 12px">
+            <input type="date" id="banco-fecha" class="finput" style="font-size:13px;padding:9px 12px">
+            <button onclick="guardarBanco()" class="btn-save" style="padding:11px;font-size:13px">
+              <i class="fas fa-floppy-disk"></i> Guardar en Bancos
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -457,10 +501,6 @@
   <button class="mob-tab active" data-tab="entrada" onclick="mobTab('entrada')">
     <span class="mob-tab-icon">📋</span>
     <span class="mob-tab-label">Entrada</span>
-  </button>
-  <button class="mob-tab" data-tab="bancos" onclick="mobTab('bancos')">
-    <span class="mob-tab-icon">🏦</span>
-    <span class="mob-tab-label">Bancos</span>
   </button>
   <button class="mob-tab" data-tab="flujo" onclick="mobTab('flujo')">
     <span class="mob-tab-icon">📊</span>
