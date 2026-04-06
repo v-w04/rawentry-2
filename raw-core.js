@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.4.021
+/* RAW Entry — Core v.4.024
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Detectar móvil
@@ -66,6 +66,8 @@ const api = {
   getDatosMes:       () => EN_GAS ? gasRun('getDatosMes') : apiGet('getDatosMes'),
   getGastos:         () => EN_GAS ? gasRun('getGastos') : apiGet('getGastos'),
   getLogros:         () => EN_GAS ? gasRun('getLogros') : apiGet('getLogros'),
+  getActivityCheck:  () => EN_GAS ? gasRun('getActivityCheck') : apiGet('getActivityCheck'),
+  guardarActivityChecks: (semana,checks) => EN_GAS ? gasRun('guardarActivityChecks',semana,checks) : apiPost('guardarActivityChecks',{semana,checks}),
 };
 
 // ══════════════════════════════════════════
@@ -189,6 +191,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       renderLogros(d.logros);
       renderNecesidades(d.necesidades);
       renderFlujoMensual(d.flujoPorMes);
+      if(d.activityCheck){ _actData=d.activityCheck; }
     })
     .catch(err=>{
       setChip('err','Error');
