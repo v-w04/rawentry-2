@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.4.019
+/* RAW Entry — Core v.4.020
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Detectar móvil
@@ -102,6 +102,66 @@ let _toast=null;
   }
 })();
 
+
+// ══════════════════════════════════════════
+//  TABLERO MÓVIL
+// ══════════════════════════════════════════
+function _initMobTablero(){
+  const isMob = document.documentElement.classList.contains('mob');
+  const tablero = document.getElementById('mob-tablero');
+  const sections = document.getElementById('mob-sections');
+  if(!isMob){ if(tablero) tablero.style.display='none'; return; }
+  if(tablero) tablero.style.display='grid';
+  if(sections) sections.style.display='none';
+}
+
+function abrirSeccionMob(secId){
+  const sections = document.getElementById('mob-sections');
+  if(sections) sections.style.display='flex';
+  const tablero = document.getElementById('mob-tablero');
+  if(tablero) tablero.style.display='none';
+  setTimeout(()=>{
+    const el = document.getElementById('sec-'+secId);
+    if(el){
+      el.scrollIntoView({behavior:'smooth',block:'start'});
+      const hdr = el.querySelector('.sec-hdr');
+      const body = el.querySelector('.sec-body');
+      if(hdr && body && !body.classList.contains('open')){
+        body.classList.add('open');
+        hdr.classList.add('open');
+      }
+    }
+  }, 50);
+}
+
+// ══════════════════════════════════════════
+//  GUARDAR BANCO
+// ══════════════════════════════════════════
+function guardarBanco(){
+  const nombre = document.getElementById('banco-nombre').value.trim();
+  const monto  = parseFloat(document.getElementById('banco-monto').value);
+  const fecha  = document.getElementById('banco-fecha').value;
+  if(!nombre || isNaN(monto) || !fecha){
+    showToast('Completa todos los campos', false); return;
+  }
+  const btn = document.querySelector('#form-banco-wrap .btn-save');
+  btn.disabled = true;
+  api.insertarEnRAW({fecha, proyecto:'Bancos', contacto:nombre, concepto:'Saldo', monto, recurrencia:'Único', necesidad:'', clave:''})
+    .then(r=>{
+      btn.disabled = false;
+      if(r.ok){
+        showToast('✓ Banco guardado');
+        document.getElementById('banco-nombre').value='';
+        document.getElementById('banco-monto').value='';
+        document.getElementById('banco-fecha').value=fmtD(new Date());
+        api.getFijos().then(renderEntes);
+      } else {
+        showToast(r.mensaje||'Error', false);
+      }
+    })
+    .catch(()=>{ btn.disabled=false; showToast('Error al guardar', false); });
+}
+
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
@@ -136,6 +196,8 @@ window.addEventListener('DOMContentLoaded',()=>{
     });
 
   initTooltip();
+  _initMobTablero();
+  document.getElementById('banco-fecha').value=fmtD(new Date());
 });
 
 function mostrarErrorConexion(msg){
@@ -152,6 +214,15 @@ function mostrarErrorConexion(msg){
 function fmtD(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function fmtDisplay(str){if(!str)return'';const p=str.split('-');return`${p[2]}/${p[1]}/${p[0]}`;}
 function fmtShort(str){if(!str)return'';const p=str.split('-');return p.length===3?`${p[2]}/${p[1]}`:''}
+
+function fmtDiaSemana(str){
+  if(!str)return'';
+  const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const p=str.split('-');
+  if(p.length!==3)return str;
+  const d=new Date(Number(p[0]),Number(p[1])-1,Number(p[2]));
+  return DIAS[d.getDay()]+' '+p[2]+'/'+p[1];
+}
 
 function fmtMoneda(v){
   if(v===null||v===undefined||v==='')return{txt:'—',cls:'z'};
@@ -453,7 +524,7 @@ function renderEntes(data){
       <div class="ente-nombre">${f.nombre}</div>
       <div class="ente-right">
         <div class="ente-monto ${cls}" id="em-${f.fila}">${txt}</div>
-        <div class="ente-fecha">${f.fecha}</div>
+        <div class="ente-fecha">${fmtDiaSemana(f.fecha)}</div>
       </div>
     </div>
     <div class="ente-edit" id="ee-${f.fila}">
