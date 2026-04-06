@@ -1,4 +1,4 @@
-/* RAW Entry — Estilos v.4.021
+/* RAW Entry — Estilos v.4.024
    Design system: Uber monochrome
    Negro puro · partículas blancas · pills 999px · sombra 0.12 · sin gradientes
 */
@@ -368,10 +368,10 @@ html.mob .panel-overlay.show{display:block !important}
 /* Misceláneos */
 .hero-sub{font-size:10px;color:var(--m);letter-spacing:.02em;margin-top:1px}
 .chip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:var(--m)}
-.hero-chip.ok   .chip-dot{background:#fff;box-shadow:0 0 6px rgba(255,255,255,.8);animation:chipPulse 2s ease-in-out infinite}
+.hero-chip.ok   .chip-dot{background:var(--ok);box-shadow:0 0 6px rgba(74,222,128,.6);animation:chipPulse 2s ease-in-out infinite}
 .hero-chip.err  .chip-dot{background:var(--err)}
 .hero-chip.load .chip-dot{background:var(--m);animation:chipPulse 1s ease-in-out infinite}
-@keyframes chipPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.3)}50%{box-shadow:0 0 0 4px rgba(255,255,255,0)}}
+@keyframes chipPulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.4)}50%{box-shadow:0 0 0 5px rgba(74,222,128,0)}}
 
 /* ── FLIP BOARD ── */
 .board-wrap{position:relative;width:100%;flex:1;overflow:hidden}
@@ -522,3 +522,7 @@ html.mob .hero-right{display:none !important}
   .mob-modulo-label{font-size:13px;font-weight:700;color:#fff;letter-spacing:-.02em}
   .mob-modulo-sub{font-size:11px;color:var(--m)}
 }
+
+/* Activity Check */
+.board-face.panel-activity{transform:none;opacity:0;pointer-events:none;padding:12px 20px 24px}
+.board-face.panel-activity.active{transform:none;opacity:1;pointer-events:all}
