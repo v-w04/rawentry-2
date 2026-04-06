@@ -1,4 +1,4 @@
-/* RAW Entry — Logros v.4.014
+/* RAW Entry — Logros v.4.020
    Board/Carrusel · Tooltip · Logros+Íconos · Maslow · Tab Móvil
 */
 // ══════════════════════════════════════════
