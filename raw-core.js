@@ -51,23 +51,20 @@ async function apiPost(action, data={}) {
 }
 
 const api = {
-  // ── Un solo request para toda la carga inicial ──
   getAll:            () => EN_GAS ? gasRun('getAll') : apiGet('getAll'),
-  // ── Llamadas individuales que siguen siendo lazy ──
   getSaldoDia:       (f) => EN_GAS ? gasRun('getSaldoDia', f) : apiGet('getSaldoDia', { fecha: f }),
   getListaEstructura:() => EN_GAS ? gasRun('getListaEstructura') : apiGet('getListaEstructura'),
-  // ── Escritura ──
   insertarEnRAW:     (d) => EN_GAS ? gasRun('insertarEnRAW', d) : apiPost('insertarEnRAW', { data: d }),
   actualizarFijo:    (fila, monto) => EN_GAS ? gasRun('actualizarFijo', fila, monto) : apiPost('actualizarFijo', { fila, monto }),
   agregarALista:     (colIndex, valor) => EN_GAS ? gasRun('agregarALista', colIndex, valor) : apiPost('agregarALista', { colIndex, valor }),
   marcarLogro:       (fila, val) => EN_GAS ? gasRun('marcarLogro', fila, val) : apiPost('marcarLogro', { fila, val }),
-  // ── Individuales para refresh parcial post-guardar ──
   getFijos:          () => EN_GAS ? gasRun('getFijos') : apiGet('getFijos'),
   getDatosMes:       () => EN_GAS ? gasRun('getDatosMes') : apiGet('getDatosMes'),
   getGastos:         () => EN_GAS ? gasRun('getGastos') : apiGet('getGastos'),
   getLogros:         () => EN_GAS ? gasRun('getLogros') : apiGet('getLogros'),
   getActivityCheck:  () => EN_GAS ? gasRun('getActivityCheck') : apiGet('getActivityCheck'),
   guardarActivityChecks: (semana,checks) => EN_GAS ? gasRun('guardarActivityChecks',semana,checks) : apiPost('guardarActivityChecks',{semana,checks}),
+  guardarEnBancos:   (nombre, monto, fecha) => EN_GAS ? gasRun('guardarEnBancos', nombre, monto, fecha) : apiPost('guardarEnBancos', { nombre, monto, fecha }),
 };
 
 // ══════════════════════════════════════════
@@ -148,7 +145,7 @@ function guardarBanco(){
   }
   const btn = document.querySelector('#form-banco-wrap .btn-save');
   btn.disabled = true;
-  api.insertarEnRAW({fecha, proyecto:'Bancos', contacto:nombre, concepto:'Saldo', monto, recurrencia:'Único', necesidad:'', clave:''})
+  api.guardarEnBancos(nombre, monto, fecha)
     .then(r=>{
       btn.disabled = false;
       if(r.ok){
@@ -174,7 +171,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   actualizarResumenFecha(hoy);
   consultarSaldo();
 
-  // Una sola llamada a GAS en lugar de 8
   setChip('load','Cargando');
   api.getAll()
     .then(d=>{
@@ -512,12 +508,12 @@ function irASheet(){
 }
 
 // ══════════════════════════════════════════
-//  ENTES (Fijos)
+//  ENTES (Bancos)
 // ══════════════════════════════════════════
 function renderEntes(data){
   const body=document.getElementById('entes-list');
   if(!data||!data.length){body.innerHTML='<div style="padding:16px;color:var(--m);text-align:center">Sin datos</div>';return;}
-  const total=data.reduce((s,f)=>s+(f.monto||0),0);
+  const total=data.reduce((s,f)=>f.nombre==='P'?s:s+(f.monto||0),0);
   const {txt:tt,cls:tc}=fmtMoneda(total);
   document.getElementById('entes-total').textContent=tt;
   document.getElementById('entes-total').className='sec-hdr-val '+tc;
@@ -561,4 +557,98 @@ function guardarEnte(fila){
       }
     })
     .catch(()=>{ico.className='fas fa-check';});
+}
+
+// ══════════════════════════════════════════
+//  PANEL GESTIONAR LISTA
+// ══════════════════════════════════════════
+const ICOS=['fa-folder','fa-user','fa-tag','fa-rotate','fa-calendar','fa-star'];
+function oPanel(){
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('panel-overlay').classList.add('show');
+  document.body.style.overflow='hidden';
+  cargarPanel();
+}
+function cPanel(){
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('panel-overlay').classList.remove('show');
+  document.body.style.overflow='';
+}
+function cargarPanel(){
+  const b=document.getElementById('panel-body');
+  b.innerHTML='<div style="text-align:center;padding:24px;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:var(--p);font-size:18px"></i></div>';
+  api.getListaEstructura().then(renderPanel).catch(()=>{});
+}
+function renderPanel(data){
+  const b=document.getElementById('panel-body');
+  if(!data.columnas||!data.columnas.length){b.innerHTML='<div style="padding:16px;color:var(--m)">Sin columnas</div>';return;}
+  b.innerHTML=data.columnas.map((col,idx)=>`
+    <div class="panel-group">
+      <div class="panel-group-hdr">
+        <div class="panel-group-name"><i class="fas ${ICOS[idx]||'fa-circle-dot'}"></i>${col.header}</div>
+        <span class="panel-cnt" id="pc-${idx}">${col.count}</span>
+      </div>
+      <div class="panel-add">
+        <input type="text" id="pi-${idx}" placeholder="Nuevo valor…" onkeydown="if(event.key==='Enter')addItem(${idx})">
+        <button class="btn-add" onclick="addItem(${idx})"><i class="fas fa-plus"></i> Agregar</button>
+      </div>
+      <div class="panel-chips" id="pchips-${idx}">
+        ${col.valores.map(v=>`<span class="chip">${v}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+function addItem(idx){
+  const inp=document.getElementById('pi-'+idx);
+  const val=inp.value.trim();if(!val)return;
+  inp.disabled=true;
+  api.agregarALista(idx,val)
+    .then(r=>{
+      inp.disabled=false;inp.value='';
+      if(r.ok){
+        const chips=document.getElementById('pchips-'+idx);
+        const ch=document.createElement('span');ch.className='chip new';ch.textContent=val;chips.appendChild(ch);
+        const cnt=document.getElementById('pc-'+idx);cnt.textContent=parseInt(cnt.textContent)+1;
+        const CMAP={0:'proyectos',1:'contactos',2:'conceptos',3:'recurrencias'};
+        const key=CMAP[idx];
+        if(key&&cats[key]&&!cats[key].includes(val)){
+          cats[key].push(val);
+          if(idx===0)buildOpts('sw-proyecto',cats.proyectos,v=>{proxSel=v;setFieldVal('proyecto',v);marcarDone('proyecto');avanzarA('proyecto');});
+          else if(idx===1)buildOpts('sw-contacto',cats.contactos,v=>{contactoSel=v;setFieldVal('contacto',v);marcarDone('contacto');avanzarA('contacto');});
+          else if(idx===3)buildOpts('sw-recurrencia',cats.recurrencias,v=>{recSel=v;setFieldVal('recurrencia',v);marcarDone('recurrencia');avanzarA('recurrencia');});
+        }
+      }
+    })
+    .catch(()=>{inp.disabled=false;});
+}
+
+// ══════════════════════════════════════════
+//  REFRESH GLOBAL
+// ══════════════════════════════════════════
+function refreshTodo(){
+  const btn=document.getElementById('btn-rf');
+  btn.classList.add('spinning');btn.disabled=true;
+  progStart();
+  setChip('load','Actualizando');
+  Promise.all([
+    api.getAll(),
+    consultarSaldo()
+  ])
+  .then(([d])=>{
+    if(d && d.catalogos) onCats(d.catalogos);
+    if(d && d.fijos)     renderEntes(d.fijos);
+    if(d && d.datosMes)  onDatosMes(d.datosMes);
+    if(d && d.gastos)    renderAnualidad(d.gastos);
+    if(d && d.logros)    renderLogros(d.logros);
+    if(d && d.necesidades) renderNecesidades(d.necesidades);
+    if(d && d.flujoPorMes) renderFlujoMensual(d.flujoPorMes);
+    btn.classList.remove('spinning');btn.disabled=false;
+    progDone();
+    showToast('Datos actualizados');
+  })
+  .catch(()=>{
+    btn.classList.remove('spinning');btn.disabled=false;
+    progDone();
+    showToast('Error al actualizar',false);
+  });
 }
