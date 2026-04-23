@@ -106,12 +106,10 @@ let _toast=null;
 //  TABLERO MÓVIL
 // ══════════════════════════════════════════
 function _initMobTablero(){
-  const isMob = document.documentElement.classList.contains('mob');
   const tablero = document.getElementById('mob-tablero');
   const sections = document.getElementById('mob-sections');
-  if(!isMob){ if(tablero) tablero.style.display='none'; return; }
-  if(tablero) tablero.style.display='grid';
-  if(sections) sections.style.display='none';
+  if(tablero) tablero.style.display='none';
+  if(sections) sections.style.display='flex';
 }
 
 function abrirSeccionMob(secId){
@@ -505,6 +503,49 @@ function limpiar(rf=true){
 function irASheet(){
   var url = sheetUrl || 'https://docs.google.com/spreadsheets/d/15T14Hb7tvmv24ZAaC3su1NRtDwVS6-dWbJGxQYUGP1o/edit';
   window.open(url,'_blank');
+}
+
+// ══════════════════════════════════════════
+//  SHEETS EMBED — config de hojas
+// ══════════════════════════════════════════
+const SHEETS_CONFIG = [
+  {
+    id:    'raw',
+    label: 'RAW',
+    emoji: '📄',
+    gid:   '0',   // gid de la pestaña RAW en tu Sheets
+    spreadsheetId: '15T14Hb7tvmv24ZAaC3su1NRtDwVS6-dWbJGxQYUGP1o',
+  },
+  // Para agregar más hojas en el futuro:
+  // { id:'pagos', label:'Pagos', emoji:'💳', gid:'123456789', spreadsheetId:'...' },
+];
+
+function _sheetEmbedUrl(cfg){
+  return `https://docs.google.com/spreadsheets/d/${cfg.spreadsheetId}/edit?usp=sharing&rm=minimal#gid=${cfg.gid}`;
+}
+
+function irASheets(sheetId){
+  sheetId = sheetId || 'raw';
+  if(_pantalla === 'sheets_'+sheetId){ volverAlAnverso(); return; }
+  _setPantalla('sheets_'+sheetId);
+  const cfg = SHEETS_CONFIG.find(s=>s.id===sheetId);
+  if(!cfg) return;
+  // Render iframe
+  const cont = document.getElementById('sheets-iframe-cont');
+  if(cont){
+    cont.innerHTML = `<iframe
+      src="${_sheetEmbedUrl(cfg)}"
+      style="width:100%;height:100%;border:none;border-radius:0"
+      allowfullscreen
+      loading="lazy">
+    </iframe>`;
+  }
+  // Update header label
+  const lbl = document.getElementById('sheets-panel-label');
+  if(lbl) lbl.textContent = cfg.emoji + ' ' + cfg.label;
+  // Update open-in-sheets link
+  const btn = document.getElementById('sheets-open-btn');
+  if(btn) btn.href = `https://docs.google.com/spreadsheets/d/${cfg.spreadsheetId}/edit#gid=${cfg.gid}`;
 }
 
 // ══════════════════════════════════════════
