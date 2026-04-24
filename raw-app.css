@@ -548,6 +548,10 @@ html.mob .hero-right{display:none !important}
   height:100%;
   border:none;
 }
+/* fix: sec-body flex direction for gastos/anualidad */
+#sec-gastos-body, #sec-anualidad-body {
+  flex-direction: column;
+}
 @media(min-width:900px){
   #sheets-iframe-cont{
     height:calc(100vh - 120px);
