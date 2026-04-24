@@ -441,21 +441,26 @@ function guardar(){
   const fecha=document.getElementById('fecha').value;
   const concepto=document.getElementById('cv-concepto').classList.contains('empty')?'':document.getElementById('cv-concepto').textContent.trim();
   const monto=(parseFloat(document.getElementById('monto').value)||0)*sign;
-  const errs=[];
-  if(!fecha)errs.push('Fecha');
-  if(!proxSel)errs.push('Proyecto');
-  if(!contactoSel)errs.push('Contacto');
-  if(!concepto)errs.push('Concepto');
-  if(monto===0)errs.push('Monto');
-  if(!recSel)errs.push('Recurrencia');
-  if(errs.length){
-    mostrarRes(false,'Faltan: '+errs.join(', '));
-    errs.forEach(e=>{
-      const m={Fecha:'fecha',Proyecto:'proyecto',Contacto:'contacto',Concepto:'concepto',Monto:'monto',Recurrencia:'recurrencia'};
-      const el=document.getElementById('cf-'+m[e]);
-      if(el){el.style.outline='1px solid var(--err)';setTimeout(()=>el.style.outline='',2000);}
-    });
-    return;
+  // En modo editar solo validar que haya ID cargado
+  if(_modoEditar){
+    if(!_filaEditar){ mostrarRes(false,'Busca un ID primero'); return; }
+  } else {
+    const errs=[];
+    if(!fecha)errs.push('Fecha');
+    if(!proxSel)errs.push('Proyecto');
+    if(!contactoSel)errs.push('Contacto');
+    if(!concepto)errs.push('Concepto');
+    if(monto===0)errs.push('Monto');
+    if(!recSel)errs.push('Recurrencia');
+    if(errs.length){
+      mostrarRes(false,'Faltan: '+errs.join(', '));
+      errs.forEach(e=>{
+        const m={Fecha:'fecha',Proyecto:'proyecto',Contacto:'contacto',Concepto:'concepto',Monto:'monto',Recurrencia:'recurrencia'};
+        const el=document.getElementById('cf-'+m[e]);
+        if(el){el.style.outline='1px solid var(--err)';setTimeout(()=>el.style.outline='',2000);}
+      });
+      return;
+    }
   }
   ocultarRes();progStart();setBtn(true);
   const claveVal = document.getElementById('clave').value.trim();
