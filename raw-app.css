@@ -526,3 +526,38 @@ html.mob .hero-right{display:none !important}
 /* Activity Check */
 .board-face.panel-activity{transform:none;opacity:0;pointer-events:none;padding:12px 20px 24px}
 .board-face.panel-activity.active{transform:none;opacity:1;pointer-events:all}
+
+
+/* ── PANEL SHEETS ── */
+.board-face.panel-sheets{
+  transform:none;opacity:0;pointer-events:none;
+  padding:0;display:flex;flex-direction:column;
+}
+.board-face.panel-sheets.active{
+  transform:none;opacity:1;pointer-events:all;
+}
+.board-face.panel-sheets .reverso-header{
+  flex-shrink:0;
+}
+#sheets-iframe-cont{
+  flex:1;
+  min-height:0;
+}
+#sheets-iframe-cont iframe{
+  width:100%;
+  height:100%;
+  border:none;
+}
+@media(min-width:900px){
+  #sheets-iframe-cont{
+    height:calc(100vh - 120px);
+  }
+}
+@media(max-width:899px){
+  .board-face.panel-sheets{
+    padding:0 !important;
+  }
+  #sheets-iframe-cont{
+    height:calc(100vh - 180px);
+  }
+}
