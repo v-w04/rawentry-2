@@ -166,8 +166,10 @@ function pintarReverso(){
     const tooltip= [label,monto,it.proyecto,it.fecha].filter(Boolean).join(' · ');
     const isDone = it.completado;
     const isInc  = it.incompleto;
+    // FIX #12: use fila as stable identifier, not grid index
+    const uid    = it.fila || ('tmp_'+i);
     return `<div class="inv-item${isDone?' done':''}${isInc?' inc':''}"
-      title="${tooltip}" onclick="toggleLogroReverso(${i})">
+      title="${tooltip}" data-uid="${uid}" onclick="toggleLogroReverso('${uid}')">
       <div class="inv-corner ${isDone?'done':isInc?'warn':'pend'}">
         <i class="fas fa-${isDone?'check':isInc?'exclamation':'lock'}"></i>
       </div>
@@ -183,16 +185,12 @@ function pintarReverso(){
   if(_pantalla==='maslow') dibujarNecesidades();
 }
 
-function toggleLogroReverso(idx){
-  const filP  = document.getElementById('reverso-fil-proyecto')?.value||'';
-  const filG  = document.getElementById('reverso-fil-grupo')?.value||'';
-  let visibles = _logrosRaw.filter(it=>{
-    if(!_reversoMostrarDone && it.completado) return false;
-    if(filP && it.proyecto!==filP) return false;
-    if(filG && it.grupo!==filG) return false;
-    return true;
+function toggleLogroReverso(uid){
+  // FIX #12: find by stable uid (fila), not by grid index which shifts with filters
+  const item = _logrosRaw.find(it=>{
+    const itUid = it.fila ? String(it.fila) : null;
+    return itUid === String(uid) || ('tmp_'+_logrosRaw.indexOf(it)) === String(uid);
   });
-  const item = visibles[idx];
   if(!item) return;
   if(item.incompleto){ showToast('⚠ Completa el Concepto en el Sheet primero', false); return; }
   const nuevoVal = item.completado ? 'No' : 'Sí';
