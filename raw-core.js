@@ -115,24 +115,6 @@ function _initMobTablero(){
   if(sections) sections.style.display='flex';
 }
 
-function abrirSeccionMob(secId){
-  const sections = document.getElementById('mob-sections');
-  if(sections) sections.style.display='flex';
-  const tablero = document.getElementById('mob-tablero');
-  if(tablero) tablero.style.display='none';
-  setTimeout(()=>{
-    const el = document.getElementById('sec-'+secId);
-    if(el){
-      el.scrollIntoView({behavior:'smooth',block:'start'});
-      const hdr = el.querySelector('.sec-hdr');
-      const body = el.querySelector('.sec-body');
-      if(hdr && body && !body.classList.contains('open')){
-        body.classList.add('open');
-        hdr.classList.add('open');
-      }
-    }
-  }, 50);
-}
 
 // ══════════════════════════════════════════
 //  GUARDAR BANCO
@@ -213,8 +195,6 @@ function mostrarErrorConexion(msg){
 //  HELPERS
 // ══════════════════════════════════════════
 function fmtD(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-function fmtDisplay(str){if(!str)return'';const p=str.split('-');return`${p[2]}/${p[1]}/${p[0]}`;}
-function fmtShort(str){if(!str)return'';const p=str.split('-');return p.length===3?`${p[2]}/${p[1]}`:''}
 
 function fmtDiaSemana(str){
   if(!str)return'';
@@ -698,9 +678,11 @@ function renderEntes(data){
   const {txt:tt,cls:tc}=fmtMoneda(total);
   document.getElementById('entes-total').textContent=tt;
   document.getElementById('entes-total').className='sec-hdr-val '+tc;
+  const hayExcluidos = data.some(f=>f.nombre==='P');
   body.innerHTML=data.map(f=>{
     const {txt,cls}=fmtMoneda(f.monto);
-    return `<div class="ente-row" onclick="togEnteEdit(${f.fila})">
+    const excluido = f.nombre==='P';
+    return `<div class="ente-row${excluido?' excluido-total':''}" onclick="togEnteEdit(${f.fila})">
       <div class="ente-nombre">${f.nombre}</div>
       <div class="ente-right">
         <div class="ente-monto ${cls}" id="em-${f.fila}">${txt}</div>
@@ -713,7 +695,7 @@ function renderEntes(data){
         onkeydown="if(event.key==='Enter')guardarEnte(${f.fila});if(event.key==='Escape')togEnteEdit(${f.fila})">
       <button class="btn-check" id="ec-${f.fila}" onclick="guardarEnte(${f.fila})"><i class="fas fa-check" id="ei-ico-${f.fila}"></i></button>
     </div>`;
-  }).join('');
+  }).join('') + (hayExcluidos ? '<div class="ente-excluido-nota">* excluido del total</div>' : '');
 }
 function togEnteEdit(fila){
   const ee=document.getElementById('ee-'+fila);
