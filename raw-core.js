@@ -65,6 +65,8 @@ const api = {
   getActivityCheck:  () => EN_GAS ? gasRun('getActivityCheck') : apiGet('getActivityCheck'),
   guardarActivityChecks: (semana,checks) => EN_GAS ? gasRun('guardarActivityChecks',semana,checks) : apiPost('guardarActivityChecks',{semana,checks}),
   guardarEnBancos:   (nombre, monto, fecha) => EN_GAS ? gasRun('guardarEnBancos', nombre, monto, fecha) : apiPost('guardarEnBancos', { nombre, monto, fecha }),
+  getFilaPorId:      (id) => EN_GAS ? gasRun('getFilaPorId', id) : apiGet('getFilaPorId', { id }),
+  editarFilaRAW:     (fila, datos) => EN_GAS ? gasRun('editarFilaRAW', fila, datos) : apiPost('editarFilaRAW', { fila, datos }),
 };
 
 // ══════════════════════════════════════════
@@ -73,6 +75,7 @@ const api = {
 const CAMPOS=['fecha','proyecto','contacto','concepto','monto','recurrencia','necesidad','clave'];
 const MESES_ES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 let sign=1, cats={}, proxSel='', contactoSel='', recSel='', necesidadSel='', sheetUrl='';
+let _modoEditar=false, _filaEditar=null, _idEditar=null;
 let datosMes={meses:[],grupos:{}};
 let _toast=null;
 
@@ -165,6 +168,7 @@ function guardarBanco(){
 window.addEventListener('DOMContentLoaded',()=>{
   const hoy=fmtD(new Date());
   document.getElementById('fecha').value=hoy;
+  _inyectarToggleModo();
   document.getElementById('saldo-fecha').value=hoy;
   actualizarResumenFecha(hoy);
   consultarSaldo();
@@ -454,8 +458,12 @@ function guardar(){
     return;
   }
   ocultarRes();progStart();setBtn(true);
-  api.insertarEnRAW({fecha,proyecto:proxSel,contacto:contactoSel,concepto,monto,recurrencia:recSel,necesidad:necesidadSel,clave:document.getElementById('clave').value.trim()})
-    .then(r=>{
+  const claveVal = document.getElementById('clave').value.trim();
+  const payload  = {fecha,proyecto:proxSel,contacto:contactoSel,concepto,monto,recurrencia:recSel,necesidad:necesidadSel,clave:claveVal};
+  const promesa  = _modoEditar && _filaEditar
+    ? api.editarFilaRAW(_filaEditar, payload)
+    : api.insertarEnRAW(payload);
+  promesa.then(r=>{
       progDone();setBtn(false);
       mostrarRes(r.ok,r.mensaje);
       showToast(r.ok?'✓ Guardado':'Error al guardar',r.ok);
@@ -546,6 +554,133 @@ function irASheets(sheetId){
   // Update open-in-sheets link
   const btn = document.getElementById('sheets-open-btn');
   if(btn) btn.href = `https://docs.google.com/spreadsheets/d/${cfg.spreadsheetId}/edit#gid=${cfg.gid}`;
+}
+
+
+// ══════════════════════════════════════════
+//  MODO NUEVA / EDITAR
+// ══════════════════════════════════════════
+function _inyectarToggleModo(){
+  const hdr = document.getElementById('sec-entrada-hdr');
+  if(!hdr || document.getElementById('toggle-modo-wrap')) return;
+  const wrap = document.createElement('div');
+  wrap.id = 'toggle-modo-wrap';
+  wrap.style.cssText = 'display:flex;align-items:center;gap:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:3px;margin:10px var(--pad) 0;';
+  wrap.innerHTML = `
+    <button id="btn-modo-nueva" onclick="setModoEntrada('nueva')"
+      style="flex:1;padding:7px 18px;border-radius:999px;border:none;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;background:#fff;color:#000">
+      + Nueva
+    </button>
+    <button id="btn-modo-editar" onclick="setModoEntrada('editar')"
+      style="flex:1;padding:7px 18px;border-radius:999px;border:none;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;background:none;color:var(--m)">
+      ✏ Editar
+    </button>`;
+  const body = document.getElementById('sec-entrada-body');
+  if(body) body.insertBefore(wrap, body.firstChild);
+
+  // ID input (hidden by default)
+  const idWrap = document.createElement('div');
+  idWrap.id = 'editar-id-wrap';
+  idWrap.style.cssText = 'display:none;padding:12px var(--pad) 0;';
+  idWrap.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px">
+      <input type="number" id="editar-id-input" class="finput" placeholder="ID de la fila (ej. 100000012)"
+        style="font-size:14px;padding:10px 14px;letter-spacing:0"
+        onkeydown="if(event.key==='Enter') buscarFilaId()">
+      <button onclick="buscarFilaId()" class="btn-save"
+        style="flex-shrink:0;padding:10px 18px;font-size:13px;border-radius:999px;min-width:80px">
+        <span id="buscar-spin" class="spin-sm" style="display:none"></span>
+        Buscar
+      </button>
+    </div>
+    <div id="editar-id-msg" style="font-size:11px;margin-top:6px;color:var(--m)"></div>`;
+  if(body) body.insertBefore(idWrap, wrap.nextSibling);
+}
+
+function setModoEntrada(modo){
+  _modoEditar = (modo === 'editar');
+  const btnN = document.getElementById('btn-modo-nueva');
+  const btnE = document.getElementById('btn-modo-editar');
+  const idWrap = document.getElementById('editar-id-wrap');
+  const btnG = document.getElementById('btnG');
+
+  if(_modoEditar){
+    btnN.style.background='none'; btnN.style.color='var(--m)'; btnN.style.fontWeight='500';
+    btnE.style.background='#fff'; btnE.style.color='#000'; btnE.style.fontWeight='600';
+    if(idWrap) idWrap.style.display='block';
+    if(btnG) btnG.innerHTML='<div class="spin-sm" id="spin"></div><i class="fas fa-pen" id="bico"></i> Actualizar';
+    limpiar(false);
+  } else {
+    btnN.style.background='#fff'; btnN.style.color='#000'; btnN.style.fontWeight='600';
+    btnE.style.background='none'; btnE.style.color='var(--m)'; btnE.style.fontWeight='500';
+    if(idWrap) idWrap.style.display='none';
+    if(btnG) btnG.innerHTML='<div class="spin-sm" id="spin"></div><i class="fas fa-floppy-disk" id="bico"></i> Guardar';
+    _filaEditar=null; _idEditar=null;
+    document.getElementById('editar-id-msg').textContent='';
+    limpiar(true);
+  }
+}
+
+function buscarFilaId(){
+  const id = document.getElementById('editar-id-input').value.trim();
+  if(!id){ document.getElementById('editar-id-msg').textContent='Escribe un ID'; return; }
+  const spin = document.getElementById('buscar-spin');
+  const msg  = document.getElementById('editar-id-msg');
+  if(spin) spin.style.display='block';
+  msg.textContent='Buscando…'; msg.style.color='var(--m)';
+  api.getFilaPorId(id)
+    .then(r=>{
+      if(spin) spin.style.display='none';
+      if(!r.ok){ msg.textContent='✗ '+r.mensaje; msg.style.color='var(--err)'; return; }
+      _filaEditar = r.fila;
+      _idEditar   = r.id;
+      msg.textContent='✓ ID '+r.id+' encontrado — fila '+r.fila;
+      msg.style.color='var(--ok)';
+      // Populate fields
+      document.getElementById('fecha').value = r.fecha || fmtD(new Date());
+      marcarDone('fecha');
+      // Proyecto
+      proxSel = r.proyecto;
+      setFieldVal('proyecto', r.proyecto, !r.proyecto);
+      _selectOpt('sw-proyecto', r.proyecto);
+      marcarDone('proyecto');
+      // Contacto
+      contactoSel = r.contacto;
+      setFieldVal('contacto', r.contacto, !r.contacto);
+      _selectOpt('sw-contacto', r.contacto);
+      marcarDone('contacto');
+      // Concepto
+      setFieldVal('concepto', r.concepto, !r.concepto);
+      marcarDone('concepto');
+      // Monto
+      const m = r.monto || 0;
+      sign = m >= 0 ? 1 : -1;
+      document.getElementById('monto').value = Math.abs(m);
+      document.getElementById('sbp').className='msign'+(sign===1?' pos':'');
+      document.getElementById('sbn').className='msign'+(sign===-1?' neg':'');
+      upM(); marcarDone('monto');
+      // Recurrencia
+      recSel = r.recurrencia;
+      setFieldVal('recurrencia', r.recurrencia, !r.recurrencia);
+      _selectOpt('sw-recurrencia', r.recurrencia);
+      marcarDone('recurrencia');
+      // Clave
+      document.getElementById('clave').value = r.clave || '';
+      setFieldVal('clave', r.clave||'', !r.clave);
+      if(r.clave) marcarDone('clave');
+      // Necesidad
+      necesidadSel = r.necesidad || '';
+      if(r.necesidad){ setFieldVal('necesidad', r.necesidad.slice(0,30), false); marcarDone('necesidad'); }
+    })
+    .catch(e=>{ if(spin) spin.style.display='none'; msg.textContent='Error: '+e.message; msg.style.color='var(--err)'; });
+}
+
+function _selectOpt(swId, val){
+  const w = document.getElementById(swId);
+  if(!w) return;
+  w.querySelectorAll('.opt').forEach(b=>{
+    b.classList.toggle('on', b.textContent.trim()===val);
+  });
 }
 
 // ══════════════════════════════════════════
