@@ -47,20 +47,17 @@
 <div class="toast" id="toast"><i class="fas fa-circle-check"></i><span id="toast-msg"></span></div>
 
 <!-- APP -->
-<!-- Fondo base detrás de partículas -->
 <div id="bg"></div>
-<!-- Partículas -->
 <div id="pts" style="position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden"></div>
 
 <div class="app">
 
-  <!-- HERO / SALDO -->
+  <!-- HERO -->
   <div class="hero">
     <div class="hero-left">
       <div style="display:flex;align-items:center;gap:10px">
         <div class="hero-icon"><i class="fas fa-table-list"></i></div>
         <div>
-          <!-- FIX 1: versión actualizada a v.4.024 -->
           <div class="hero-title">RAW <span style="color:var(--p)">Entry</span></div>
           <div class="hero-sub">v.4.024 · Trello · Sheets</div>
         </div>
@@ -108,6 +105,9 @@
       <button class="btn-flip" id="btn-activity" onclick="irAActivity()" title="Activity Check">
         ⚡ Activity
       </button>
+      <button class="btn-flip" id="btn-sheets" onclick="irASheets('raw')" title="RAW Sheet">
+        📄 RAW
+      </button>
       <button class="btn-refresh" id="btn-rf" onclick="refreshTodo()" title="Actualizar">
         <i class="fas fa-arrows-rotate" id="rf-ico"></i>
       </button>
@@ -120,39 +120,12 @@
 
   <!-- ANVERSO -->
   <div class="board-face anverso" id="board-anverso">
-  <!-- Tablero móvil — solo visible en .mob -->
-  <div class="mob-tablero" id="mob-tablero" style="display:none">
-    <div class="mob-modulo" onclick="mobTab('entrada')">
-      <div class="mob-modulo-icon">📋</div>
-      <div class="mob-modulo-label">Nueva Entrada</div>
-      <div class="mob-modulo-sub">Registrar gasto</div>
-    </div>
-    <div class="mob-modulo" onclick="abrirSeccionMob('bancos')">
-      <div class="mob-modulo-icon">🏦</div>
-      <div class="mob-modulo-label">Bancos</div>
-      <div class="mob-modulo-sub" id="mob-mod-saldo">—</div>
-    </div>
-    <div class="mob-modulo" onclick="abrirSeccionMob('flujo')">
-      <div class="mob-modulo-icon">📊</div>
-      <div class="mob-modulo-label">Flujo</div>
-      <div class="mob-modulo-sub">Mensual</div>
-    </div>
-    <div class="mob-modulo" onclick="irALogros()">
-      <div class="mob-modulo-icon">🏆</div>
-      <div class="mob-modulo-label">Logros</div>
-      <div class="mob-modulo-sub" id="mob-mod-logros">—</div>
-    </div>
-    <div class="mob-modulo" onclick="irAMaslow()" style="grid-column:span 2">
-      <div class="mob-modulo-icon">🧠</div>
-      <div class="mob-modulo-label">Maslow</div>
-      <div class="mob-modulo-sub">Necesidades</div>
-    </div>
-  </div>
+  <div class="mob-tablero" id="mob-tablero" style="display:none"></div>
 
   <div class="sections" id="mob-sections">
 
     <div id="col1-wrap" style="display:flex;flex-direction:column;gap:12px;align-self:start">
-    <!-- ① NUEVA ENTRADA -->
+    <!-- NUEVA ENTRADA -->
     <div class="section" id="sec-entrada">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-entrada-hdr">
         <div class="sec-hdr-left">
@@ -274,7 +247,7 @@
       </div>
     </div>
 
-    <!-- ② ENTES -->
+    <!-- BANCOS -->
     <div class="section" id="sec-entes">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-entes-hdr">
         <div class="sec-hdr-left">
@@ -290,8 +263,6 @@
         <div id="entes-list" style="text-align:center;padding:20px;color:var(--m)">
           <i class="fas fa-circle-notch fa-spin" style="color:var(--p)"></i>
         </div>
-
-        <!-- Form agregar en Bancos -->
         <div id="form-banco-wrap" style="padding:12px var(--pad);border-top:1px solid rgba(255,255,255,.06)">
           <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:10px">
             <i class="fas fa-plus" style="margin-right:4px"></i>Nuevo registro
@@ -307,7 +278,8 @@
         </div>
       </div>
     </div>
-    <!-- ⑤ FLUJO MENSUAL -->
+
+    <!-- FLUJO MENSUAL -->
     <div class="section" id="sec-flujo">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-flujo-hdr">
         <div class="sec-hdr-left">
@@ -328,16 +300,14 @@
     </div>
     </div><!-- /col1-wrap -->
 
-    <!-- ③ VARIABLES -->
+    <!-- VARIABLES -->
     <div class="section" id="sec-gastos">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-gastos-hdr">
         <div class="sec-hdr-left">
           <div class="sec-hdr-icon green"><i class="fas fa-calendar-days"></i></div>
           <span class="sec-hdr-title">Variables</span>
         </div>
-        <div class="sec-hdr-right">
-          <i class="fas fa-chevron-down sec-chevron"></i>
-        </div>
+        <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
       </div>
       <div class="sec-body" id="sec-gastos-body" style="display:flex;flex-direction:column">
         <div id="gastos-body" style="text-align:center;padding:20px;color:var(--m)">
@@ -345,17 +315,13 @@
         </div>
         <div style="border-top:1px solid var(--border)">
           <div style="display:flex;align-items:center;gap:8px;padding:10px 14px 6px">
-            <div style="width:24px;height:24px;border-radius:7px;background:rgba(139,92,246,.15);
-              display:flex;align-items:center;justify-content:center;font-size:12px;color:#8B5CF6">
-              <i class="fas fa-chart-line"></i>
-            </div>
+            <div style="width:24px;height:24px;border-radius:7px;background:rgba(139,92,246,.15);display:flex;align-items:center;justify-content:center;font-size:12px;color:#8B5CF6"><i class="fas fa-chart-line"></i></div>
             <span style="font-size:13px;font-weight:700;color:var(--m);letter-spacing:-.01em">Gráfica Variables</span>
           </div>
           <div id="sec-graficas-body" style="display:flex;flex-direction:column">
             <div style="padding:0 14px 6px">
               <div id="graf-loading" style="text-align:center;padding:24px;color:var(--m);font-size:13px">
-                <i class="fas fa-circle-notch fa-spin" style="color:var(--p);font-size:16px;display:block;margin-bottom:8px"></i>
-                Cargando gráfica…
+                <i class="fas fa-circle-notch fa-spin" style="color:var(--p);font-size:16px;display:block;margin-bottom:8px"></i>Cargando gráfica…
               </div>
               <canvas id="graf-canvas" style="display:none;width:100%;height:260px"></canvas>
             </div>
@@ -364,16 +330,15 @@
         </div>
       </div>
     </div>
-    <!-- ④ FIJOS -->
+
+    <!-- FIJOS -->
     <div class="section" id="sec-anualidad">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-anualidad-hdr">
         <div class="sec-hdr-left">
           <div class="sec-hdr-icon cyan"><i class="fas fa-receipt"></i></div>
           <span class="sec-hdr-title">Fijos</span>
         </div>
-        <div class="sec-hdr-right">
-          <i class="fas fa-chevron-down sec-chevron"></i>
-        </div>
+        <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
       </div>
       <div class="sec-body" id="sec-anualidad-body" style="display:flex;flex-direction:column">
         <div id="anualidad-body" style="text-align:center;padding:20px;color:var(--m)">
@@ -381,17 +346,13 @@
         </div>
         <div style="border-top:1px solid var(--border)">
           <div style="display:flex;align-items:center;gap:8px;padding:10px 14px 6px">
-            <div style="width:24px;height:24px;border-radius:7px;background:rgba(6,182,212,.15);
-              display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--s)">
-              <i class="fas fa-chart-line"></i>
-            </div>
+            <div style="width:24px;height:24px;border-radius:7px;background:rgba(6,182,212,.15);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--s)"><i class="fas fa-chart-line"></i></div>
             <span style="font-size:13px;font-weight:700;color:var(--m);letter-spacing:-.01em">Gráfica Fijos</span>
           </div>
           <div style="display:flex;flex-direction:column">
             <div style="padding:0 14px 6px">
               <div id="graf-fijos-loading" style="text-align:center;padding:24px;color:var(--m);font-size:13px">
-                <i class="fas fa-circle-notch fa-spin" style="color:var(--s);font-size:16px;display:block;margin-bottom:8px"></i>
-                Cargando gráfica…
+                <i class="fas fa-circle-notch fa-spin" style="color:var(--s);font-size:16px;display:block;margin-bottom:8px"></i>Cargando gráfica…
               </div>
               <canvas id="graf-fijos-canvas" style="display:none;width:100%;height:260px"></canvas>
             </div>
@@ -408,61 +369,33 @@
   <div class="board-face panel-logros" id="board-logros">
     <div class="reverso-header">
       <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:32px;height:32px;border-radius:10px;
-          background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(251,191,36,.05));
-          border:1px solid rgba(251,191,36,.2);
-          display:flex;align-items:center;justify-content:center;font-size:14px">🏆</div>
+        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(251,191,36,.05));border:1px solid rgba(251,191,36,.2);display:flex;align-items:center;justify-content:center;font-size:14px">🏆</div>
         <div>
           <div class="reverso-title">Logros</div>
           <div style="font-size:10px;color:var(--m);font-weight:500" id="reverso-count"></div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <!-- Filtros Proyecto / Contacto -->
-        <select id="reverso-fil-proyecto" onchange="pintarReverso()"
-          style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-          border-radius:20px;color:var(--m);font-family:inherit;font-size:11px;
-          padding:4px 10px;outline:none;cursor:pointer;max-width:110px">
-          <option value="">Proyecto</option>
-        </select>
-        <select id="reverso-fil-grupo" onchange="pintarReverso()"
-          style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-          border-radius:20px;color:var(--m);font-family:inherit;font-size:11px;
-          padding:4px 10px;outline:none;cursor:pointer;max-width:110px">
-          <option value="">Contacto</option>
-        </select>
-        <!-- Orden A–Z / $ -->
+        <select id="reverso-fil-proyecto" onchange="pintarReverso()" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;color:var(--m);font-family:inherit;font-size:11px;padding:4px 10px;outline:none;cursor:pointer;max-width:110px"><option value="">Proyecto</option></select>
+        <select id="reverso-fil-grupo" onchange="pintarReverso()" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;color:var(--m);font-family:inherit;font-size:11px;padding:4px 10px;outline:none;cursor:pointer;max-width:110px"><option value="">Contacto</option></select>
         <div style="display:flex;gap:4px;background:rgba(255,255,255,.04);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,.06)">
-          <button onclick="setOrdenLogros('az')" id="lord-az"
-            class="rev-pill on" style="border:none;border-radius:16px;padding:3px 10px">A–Z</button>
-          <button onclick="setOrdenLogros('monto-desc')" id="lord-desc"
-            class="rev-pill" style="border:none;border-radius:16px;padding:3px 10px">$ ↓</button>
-          <button onclick="setOrdenLogros('monto')" id="lord-asc"
-            class="rev-pill" style="border:none;border-radius:16px;padding:3px 10px">$ ↑</button>
+          <button onclick="setOrdenLogros('az')" id="lord-az" class="rev-pill on" style="border:none;border-radius:16px;padding:3px 10px">A–Z</button>
+          <button onclick="setOrdenLogros('monto-desc')" id="lord-desc" class="rev-pill" style="border:none;border-radius:16px;padding:3px 10px">$ ↓</button>
+          <button onclick="setOrdenLogros('monto')" id="lord-asc" class="rev-pill" style="border:none;border-radius:16px;padding:3px 10px">$ ↑</button>
         </div>
-        <button id="reverso-tog-done" onclick="toggleReversoMostrarDone()"
-          class="rev-pill">
-          <i class="fas fa-eye-slash" style="font-size:10px"></i> Completados
-        </button>
-        <button onclick="resetReverso()" class="rev-pill" title="Resetear filtros">
-          <i class="fas fa-rotate-left" style="font-size:10px"></i>
-        </button>
-        <button class="btn-flip active" onclick="volverAlAnverso()">
-          <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
-        </button>
+        <button id="reverso-tog-done" onclick="toggleReversoMostrarDone()" class="rev-pill"><i class="fas fa-eye-slash" style="font-size:10px"></i> Completados</button>
+        <button onclick="resetReverso()" class="rev-pill" title="Resetear filtros"><i class="fas fa-rotate-left" style="font-size:10px"></i></button>
+        <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
       </div>
     </div>
     <div id="inv-grid-full"></div>
-  </div><!-- /board-logros -->
+  </div>
 
   <!-- PANEL MASLOW -->
   <div class="board-face panel-maslow" id="board-maslow">
     <div class="reverso-header">
       <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:32px;height:32px;border-radius:10px;
-          background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(139,92,246,.08));
-          border:1px solid rgba(139,92,246,.3);
-          display:flex;align-items:center;justify-content:center;font-size:14px">🧠</div>
+        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(139,92,246,.08));border:1px solid rgba(139,92,246,.3);display:flex;align-items:center;justify-content:center;font-size:14px">🧠</div>
         <div>
           <div class="reverso-title">Necesidades</div>
           <div style="font-size:10px;color:var(--m)">Pirámide de Maslow</div>
@@ -470,42 +403,26 @@
       </div>
       <div style="display:flex;align-items:center;gap:6px">
         <div style="display:flex;gap:3px;background:rgba(0,0,0,.4);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,.06)">
-          <button id="nec-btn-piramide" onclick="switchVistaNec('piramide')"
-            style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:700;
-            background:rgba(139,92,246,.25);border:1px solid rgba(139,92,246,.4);color:#C4B5FD;
-            cursor:pointer;font-family:inherit;transition:all .2s">▲ Pirámide</button>
-          <button id="nec-btn-radar" onclick="switchVistaNec('radar')"
-            style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:500;
-            background:none;border:none;color:var(--m);
-            cursor:pointer;font-family:inherit;transition:all .2s">◈ Radar</button>
+          <button id="nec-btn-piramide" onclick="switchVistaNec('piramide')" style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:700;background:rgba(139,92,246,.25);border:1px solid rgba(139,92,246,.4);color:#C4B5FD;cursor:pointer;font-family:inherit;transition:all .2s">▲ Pirámide</button>
+          <button id="nec-btn-radar" onclick="switchVistaNec('radar')" style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:500;background:none;border:none;color:var(--m);cursor:pointer;font-family:inherit;transition:all .2s">◈ Radar</button>
         </div>
         <div id="nec-filtros-mes" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center"></div>
         <button onclick="resetFiltrosMes()" class="rev-pill" style="font-size:9px">Todo</button>
         <span id="nec-periodo" style="font-size:10px;color:var(--m);margin:0 4px"></span>
-        <button class="btn-flip active" onclick="volverAlAnverso()">
-          <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
-        </button>
+        <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
       <div id="nec-container"></div>
-      <div id="nec-tabla"
-        style="background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
-        border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px;
-        backdrop-filter:blur(12px)">
-      </div>
+      <div id="nec-tabla" style="background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px;backdrop-filter:blur(12px)"></div>
     </div>
-  </div><!-- /board-maslow -->
-
+  </div>
 
   <!-- PANEL ACTIVITY CHECK -->
   <div class="board-face panel-activity" id="board-activity">
     <div class="reverso-header">
       <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:32px;height:32px;border-radius:10px;
-          background:linear-gradient(135deg,rgba(59,130,246,.2),rgba(59,130,246,.05));
-          border:1px solid rgba(59,130,246,.2);
-          display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div>
+        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(59,130,246,.2),rgba(59,130,246,.05));border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div>
         <div>
           <div class="reverso-title">Activity Check</div>
           <div style="font-size:10px;color:var(--m)" id="act-semana-lbl"></div>
@@ -513,29 +430,50 @@
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
         <div style="display:flex;gap:3px;background:rgba(0,0,0,.4);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,.06)">
-          <button id="act-btn-habitos" onclick="switchVistaAct('habitos')"
-            style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:700;
-            background:rgba(59,130,246,.25);border:1px solid rgba(59,130,246,.6);color:#93C5FD;
-            cursor:pointer;font-family:inherit;transition:all .2s">✓ Hábitos</button>
-          <button id="act-btn-media" onclick="switchVistaAct('media')"
-            style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:500;
-            background:none;border:none;color:var(--m);
-            cursor:pointer;font-family:inherit;transition:all .2s">📚 Media</button>
-          <button id="act-btn-historial" onclick="switchVistaAct('historial')"
-            style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:500;
-            background:none;border:none;color:var(--m);
-            cursor:pointer;font-family:inherit;transition:all .2s">📊 Historial</button>
+          <button id="act-btn-habitos" onclick="switchVistaAct('habitos')" style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:700;background:rgba(59,130,246,.25);border:1px solid rgba(59,130,246,.6);color:#93C5FD;cursor:pointer;font-family:inherit;transition:all .2s">✓ Hábitos</button>
+          <button id="act-btn-media" onclick="switchVistaAct('media')" style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:500;background:none;border:none;color:var(--m);cursor:pointer;font-family:inherit;transition:all .2s">📚 Media</button>
+          <button id="act-btn-historial" onclick="switchVistaAct('historial')" style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:500;background:none;border:none;color:var(--m);cursor:pointer;font-family:inherit;transition:all .2s">📊 Historial</button>
         </div>
+        <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
+      </div>
+    </div>
+    <div id="act-container" style="padding:4px 0"></div>
+  </div>
+
+  <!-- PANEL SHEETS -->
+  <div class="board-face panel-sheets" id="board-sheets">
+    <div class="reverso-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(34,197,94,.2),rgba(34,197,94,.05));border:1px solid rgba(34,197,94,.2);display:flex;align-items:center;justify-content:center;font-size:14px">📄</div>
+        <div>
+          <div class="reverso-title" id="sheets-panel-label">RAW</div>
+          <div style="font-size:10px;color:var(--m)">Google Sheets</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <a id="sheets-open-btn"
+          href="https://docs.google.com/spreadsheets/d/15T14Hb7tvmv24ZAaC3su1NRtDwVS6-dWbJGxQYUGP1o/edit#gid=0"
+          target="_blank" rel="noopener"
+          style="display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:999px;
+          font-size:11px;font-weight:600;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);
+          color:#4ADE80;text-decoration:none;transition:all .2s">
+          <i class="fas fa-arrow-up-right-from-square" style="font-size:10px"></i> Abrir
+        </a>
         <button class="btn-flip active" onclick="volverAlAnverso()">
           <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
         </button>
       </div>
     </div>
-    <div id="act-container" style="padding:4px 0"></div>
-  </div><!-- /board-activity -->
+    <div id="sheets-iframe-cont" style="flex:1;position:relative;border-radius:0 0 12px 12px;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--m);font-size:13px">
+        <i class="fas fa-circle-notch fa-spin" style="margin-right:8px"></i> Cargando…
+      </div>
+    </div>
+  </div>
 
   </div><!-- /board-wrap -->
 </div><!-- /app -->
+
 <!-- Tab Bar Móvil -->
 <nav class="mob-tabbar" id="mob-tabbar">
   <button class="mob-tab active" data-tab="entrada" onclick="mobTab('entrada')">
@@ -554,13 +492,12 @@
     <span class="mob-tab-icon">⚡</span>
     <span class="mob-tab-label">Activity</span>
   </button>
-  <button class="mob-tab" data-tab="maslow" onclick="mobTab('maslow')">
-    <span class="mob-tab-icon">🧠</span>
-    <span class="mob-tab-label">Maslow</span>
+  <button class="mob-tab" data-tab="sheets" onclick="mobTab('sheets')">
+    <span class="mob-tab-icon">📄</span>
+    <span class="mob-tab-label">RAW</span>
   </button>
 </nav>
 
-<!-- RAW Entry scripts — carga en orden: core → dashboard → logros -->
 <script src="raw-core.js"></script>
 <script src="raw-dashboard.js"></script>
 <script src="raw-logros.js"></script>
