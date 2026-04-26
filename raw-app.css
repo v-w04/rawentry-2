@@ -290,32 +290,24 @@ html,body{
   .hero{width:100%;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:24px}
   .saldo-label{justify-content:center}
   .saldo-val{font-size:32px}
+  /* Sections: 4 columnas flex independientes — sin grid-row fijo */
   .sections{
     display:grid !important;
-    grid-template-columns:minmax(300px,1fr) minmax(320px,1.1fr) minmax(400px,1.4fr) minmax(400px,1.4fr);
-    grid-auto-rows:auto;
+    grid-template-columns:minmax(280px,1fr) minmax(300px,1.1fr) minmax(380px,1.4fr) minmax(380px,1.4fr);
+    grid-template-rows:1fr;
     gap:12px;
     padding:12px 20px;
     align-items:start;
     overflow-y:auto;
     flex:1;
-    min-width:0;
     width:100%;
     box-sizing:border-box;
   }
-  /* Col 1 — Revisión · Financiero · Flujo */
-  #sec-revision    { grid-column:1; grid-row:1; align-self:start; }
-  #sec-financiero  { grid-column:1; grid-row:2; align-self:start; }
-  #sec-flujo       { grid-column:1; grid-row:3; align-self:start; }
-  /* Col 2 — Nueva Entrada · Bancos · Apartados */
-  #col1-wrap       { grid-column:2; grid-row:1 / span 3; display:flex; flex-direction:column; gap:12px; min-width:0; max-width:100%; align-self:start; }
-  /* Col 3 — Variables · Fijos */
-  #sec-gastos      { grid-column:3; grid-row:1; align-self:start; }
-  #sec-anualidad   { grid-column:3; grid-row:2; align-self:start; }
-  /* Col 4 — Pensamientos · Relaciones · Salud */
-  #sec-pensamientos{ grid-column:4; grid-row:1; align-self:start; }
-  #sec-relaciones  { grid-column:4; grid-row:2; align-self:start; }
-  #sec-salud       { grid-column:4; grid-row:3; align-self:start; }
+  /* Cada columna es un wrapper flex que apila sus secciones sin huecos */
+  #col-1{ grid-column:1; display:flex; flex-direction:column; gap:12px; align-self:start; min-width:0; }
+  #col1-wrap{ grid-column:2; display:flex; flex-direction:column; gap:12px; align-self:start; min-width:0; }
+  #col-3{ grid-column:3; display:flex; flex-direction:column; gap:12px; align-self:start; min-width:0; }
+  #col-4{ grid-column:4; display:flex; flex-direction:column; gap:12px; align-self:start; min-width:0; }
   .sec-hdr{cursor:default}
   .sec-chevron{display:none}
   .sec-body{display:block!important}
@@ -333,8 +325,8 @@ html,body{
 @media(max-width:899px){
   .tbl-wrap{display:none!important}
   .cards-grid{display:grid!important}
-  .sections{grid-template-columns:1fr !important}
-  #sec-revision,#sec-financiero,#sec-flujo,#col1-wrap,#sec-gastos,#sec-anualidad,#sec-pensamientos,#sec-relaciones,#sec-salud{grid-column:1!important;grid-row:auto!important;width:100%!important}
+  .sections{display:flex!important;flex-direction:column!important;grid-template-columns:none!important}
+  #col-1,#col1-wrap,#col-3,#col-4{grid-column:1!important;display:flex!important;flex-direction:column!important;width:100%!important;gap:8px!important}
   .reverso > div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
   #inv-grid-full{grid-template-columns:repeat(2,1fr) !important}
   .board-face.panel-sheets{padding:0 !important}
