@@ -36,6 +36,8 @@ function _setPantalla(p){
   if(maslow) maslow.classList.remove('active');
   if(act)    act.classList.remove('active');
   if(sheets) sheets.classList.remove('active');
+  const scoreP = document.getElementById('board-score');
+  if(scoreP) scoreP.classList.remove('active');
 
   if(p === 'logros'){
     anv.classList.add('slide-left');
@@ -49,16 +51,22 @@ function _setPantalla(p){
   } else if(p.startsWith('sheets_')){
     anv.classList.add('slide-right');
     if(sheets) sheets.classList.add('active');
+  } else if(p === 'score'){
+    anv.classList.add('slide-right');
+    const scorePanel = document.getElementById('board-score');
+    if(scorePanel) scorePanel.classList.add('active');
   }
 
   const bL = document.getElementById('btn-logros');
   const bM = document.getElementById('btn-maslow');
   const bA = document.getElementById('btn-activity');
-  const bS = document.getElementById('btn-sheets');
-  if(bL) bL.classList.toggle('active', p==='logros');
-  if(bM) bM.classList.toggle('active', p==='maslow');
-  if(bA) bA.classList.toggle('active', p==='activity');
-  if(bS) bS.classList.toggle('active', p.startsWith('sheets_'));
+  const bS  = document.getElementById('btn-sheets');
+  const bSc = document.getElementById('btn-score');
+  if(bL)  bL.classList.toggle('active', p==='logros');
+  if(bM)  bM.classList.toggle('active', p==='maslow');
+  if(bA)  bA.classList.toggle('active', p==='activity');
+  if(bS)  bS.classList.toggle('active', p.startsWith('sheets_'));
+  if(bSc) bSc.classList.toggle('active', p==='score');
   if(typeof _syncMobTab==='function') _syncMobTab(p);
 }
 
@@ -84,6 +92,12 @@ function irAActivity(){
     if(grid) grid.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px"></i></div>';
     api.getActivityCheck().then(d=>{ _actData=d; renderActivity(); }).catch(()=>{});
   }
+}
+
+function irAScore(){
+  if(_pantalla==='score'){ volverAlAnverso(); return; }
+  _setPantalla('score');
+  cargarScore();
 }
 
 function volverAlAnverso(){
@@ -506,6 +520,7 @@ function mobTab(tab){
   if(tab==='logros'){ irALogros(); return; }
   if(tab==='maslow'){ irAMaslow(); return; }
   if(tab==='activity'){ irAActivity(); return; }
+  if(tab==='score'){ irAScore(); return; }
   if(tab==='sheets'){ irASheets('raw'); return; }
   if(_pantalla!=='anverso') volverAlAnverso();
   const ids = { entrada:'col1-wrap', flujo:'sec-flujo' };
@@ -527,7 +542,7 @@ function mobTab(tab){
 }
 
 function _syncMobTab(p){
-  const map = {anverso:'entrada', logros:'logros', maslow:'maslow', activity:'activity'};
+  const map = {anverso:'entrada', logros:'logros', maslow:'maslow', activity:'activity', score:'score'};
   const t = p.startsWith('sheets_') ? 'sheets' : (map[p]||'entrada');
   document.querySelectorAll('.mob-tab').forEach(b=>{
     b.classList.toggle('active', b.dataset.tab===t);
