@@ -321,6 +321,10 @@ html,body{
   .tbl-wrap{display:block!important}
   .panel{width:380px}
   .prog-wrap{display:none}
+  /* On desktop: board-wrap and board-face use flex/block instead of abs positioning */
+  .board-wrap{overflow-y:auto;overflow-x:hidden;flex:1;position:relative}
+  .board-face.anverso{position:relative;width:100%;height:auto;overflow:visible}
+  .sections{width:100%;box-sizing:border-box}
   /* col1-wrap no excede su columna */
   
   #sheets-iframe-cont{height:calc(100vh - 120px)}
