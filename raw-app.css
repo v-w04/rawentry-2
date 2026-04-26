@@ -293,22 +293,20 @@ html,body{
   .sections{
     display:grid;
     grid-template-columns:380px 420px 520px 520px;
+    grid-auto-rows:auto;
     gap:12px;
     padding:12px 20px;
     align-items:start;
-    align-content:start;
     overflow-y:auto;
     flex:1;
-    justify-content:center;
-    width:fit-content;
-    margin:0 auto;
+    min-width:0;
   }
   /* Col 1 — Revisión · Financiero · Flujo */
   #sec-revision    { grid-column:1; grid-row:1; align-self:start; }
   #sec-financiero  { grid-column:1; grid-row:2; align-self:start; }
   #sec-flujo       { grid-column:1; grid-row:3; align-self:start; }
   /* Col 2 — Nueva Entrada · Bancos · Apartados */
-  #col1-wrap       { grid-column:2; grid-row:1 / span 3; align-self:start; }
+  #col1-wrap       { grid-column:2; grid-row:1 / span 3; display:flex; flex-direction:column; gap:12px; min-width:0; align-self:start; }
   /* Col 3 — Variables · Fijos */
   #sec-gastos      { grid-column:3; grid-row:1; align-self:start; }
   #sec-anualidad   { grid-column:3; grid-row:2; align-self:start; }
@@ -324,14 +322,14 @@ html,body{
   .panel{width:380px}
   .prog-wrap{display:none}
   /* col1-wrap no excede su columna */
-  #col1-wrap{width:420px;min-width:0;max-width:420px;}
+  
   #sheets-iframe-cont{height:calc(100vh - 120px)}
 }
 @media(max-width:899px){
   .tbl-wrap{display:none!important}
   .cards-grid{display:grid!important}
   .sections{grid-template-columns:1fr !important}
-  #col1-wrap,#sec-gastos,#sec-anualidad,#sec-revision,#sec-financiero,#sec-flujo,#sec-pensamientos,#sec-relaciones,#sec-salud{grid-column:1 !important;grid-row:auto !important}
+  #sec-revision,#sec-financiero,#sec-flujo,#col1-wrap,#sec-gastos,#sec-anualidad,#sec-pensamientos,#sec-relaciones,#sec-salud{grid-column:1!important;grid-row:auto!important;width:100%!important}
   .reverso > div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
   #inv-grid-full{grid-template-columns:repeat(2,1fr) !important}
   .board-face.panel-sheets{padding:0 !important}
