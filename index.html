@@ -105,6 +105,10 @@
       <button class="btn-flip" id="btn-activity" onclick="irAActivity()" title="Activity Check">
         ⚡ Activity
       </button>
+      <button id="btn-sos" onclick="activarSOS()" title="SOS">🚨 SOS</button>
+      <button class="btn-flip" id="btn-score" onclick="irAScore()" title="Score de Vida">
+        ⚡ Score
+      </button>
       <button class="btn-flip" id="btn-sheets" onclick="irASheets('raw')" title="RAW Sheet">
         📄 RAW
       </button>
@@ -298,6 +302,42 @@
         </div>
       </div>
     </div>
+
+    <!-- FINANCIERO AVANZADO -->
+    <div class="section" id="sec-financiero">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-financiero-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon" style="background:rgba(74,222,128,.12);color:var(--ok)"><i class="fas fa-chart-line"></i></div>
+          <span class="sec-hdr-title">Financiero</span>
+        </div>
+        <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+      </div>
+      <div class="sec-body" id="sec-financiero-body">
+        <div id="fin-avanzado-body" style="text-align:center;padding:20px;color:var(--m)">
+          <i class="fas fa-circle-notch fa-spin" style="color:var(--ok)"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- APARTADOS -->
+    <div class="section" id="sec-apartados">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-apartados-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon" style="background:rgba(251,191,36,.12);color:var(--warn)"><i class="fas fa-piggy-bank"></i></div>
+          <span class="sec-hdr-title">Apartados</span>
+        </div>
+        <div class="sec-hdr-right">
+          <span class="sec-hdr-val muted" id="apartados-total"></span>
+          <i class="fas fa-chevron-down sec-chevron"></i>
+        </div>
+      </div>
+      <div class="sec-body" id="sec-apartados-body">
+        <div id="apartados-body" style="text-align:center;padding:20px;color:var(--m)">
+          <i class="fas fa-circle-notch fa-spin" style="color:var(--warn)"></i>
+        </div>
+      </div>
+    </div>
+
     </div><!-- /col1-wrap -->
 
     <!-- VARIABLES -->
@@ -358,6 +398,84 @@
             </div>
             <div id="graf-fijos-leyenda" style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 14px 14px"></div>
           </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- REVISIÓN -->
+    <div class="section" id="sec-revision">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-revision-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon" style="background:rgba(139,92,246,.12);color:#C4B5FD"><i class="fas fa-brain"></i></div>
+          <span class="sec-hdr-title">Revisión</span>
+        </div>
+        <div class="sec-hdr-right">
+          <div style="display:flex;gap:4px">
+            <button onclick="event.stopPropagation();cargarRevision('semanal')" id="rev-btn-sem"
+              style="padding:3px 10px;border-radius:var(--rad-pill);font-size:10px;font-weight:600;
+              background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.4);color:#C4B5FD;
+              cursor:pointer;font-family:inherit">Semana</button>
+            <button onclick="event.stopPropagation();cargarRevision('mensual')" id="rev-btn-mes"
+              style="padding:3px 10px;border-radius:var(--rad-pill);font-size:10px;font-weight:500;
+              background:none;border:1px solid rgba(255,255,255,.1);color:var(--m);
+              cursor:pointer;font-family:inherit">Mes</button>
+          </div>
+          <i class="fas fa-chevron-down sec-chevron"></i>
+        </div>
+      </div>
+      <div class="sec-body" id="sec-revision-body">
+        <div id="revision-body" style="text-align:center;padding:20px;color:var(--m)">
+          <i class="fas fa-circle-notch fa-spin" style="color:#C4B5FD"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- PENSAMIENTOS -->
+    <div class="section" id="sec-pensamientos">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-pensamientos-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon" style="background:rgba(236,72,153,.12);color:#F9A8D4"><i class="fas fa-comment-dots"></i></div>
+          <span class="sec-hdr-title">Pensamientos</span>
+        </div>
+        <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+      </div>
+      <div class="sec-body" id="sec-pensamientos-body">
+        <div id="pensamientos-body" style="text-align:center;padding:20px;color:var(--m)">
+          <i class="fas fa-circle-notch fa-spin" style="color:#F9A8D4"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- RELACIONES -->
+    <div class="section" id="sec-relaciones">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-relaciones-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon" style="background:rgba(59,130,246,.12);color:#93C5FD"><i class="fas fa-users"></i></div>
+          <span class="sec-hdr-title">Relaciones</span>
+        </div>
+        <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+      </div>
+      <div class="sec-body" id="sec-relaciones-body">
+        <div id="relaciones-body" style="text-align:center;padding:20px;color:var(--m)">
+          <i class="fas fa-circle-notch fa-spin" style="color:#93C5FD"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- SALUD -->
+    <div class="section" id="sec-salud">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-salud-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon" style="background:rgba(239,68,68,.12);color:#FCA5A5"><i class="fas fa-heart-pulse"></i></div>
+          <span class="sec-hdr-title">Salud</span>
+        </div>
+        <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+      </div>
+      <div class="sec-body" id="sec-salud-body">
+        <div id="salud-proximas"></div>
+        <div id="salud-body" style="text-align:center;padding:20px;color:var(--m)">
+          <i class="fas fa-circle-notch fa-spin" style="color:#FCA5A5"></i>
         </div>
       </div>
     </div>
@@ -440,6 +558,35 @@
     <div id="act-container" style="padding:4px 0"></div>
   </div>
 
+  <!-- PANEL SCORE DE VIDA -->
+  <div class="board-face panel-score" id="board-score">
+    <div class="reverso-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:10px;
+          background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(74,222,128,.1));
+          border:1px solid rgba(139,92,246,.3);
+          display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div>
+        <div>
+          <div class="reverso-title">Score de Vida</div>
+          <div style="font-size:10px;color:var(--m)" id="score-fecha"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button onclick="cargarScore()" class="rev-pill">
+          <i class="fas fa-arrows-rotate" style="font-size:10px"></i> Recalcular
+        </button>
+        <button class="btn-flip active" onclick="volverAlAnverso()">
+          <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
+        </button>
+      </div>
+    </div>
+    <div id="score-body" style="padding:4px 0">
+      <div style="text-align:center;padding:40px;color:var(--m)">
+        <i class="fas fa-circle-notch fa-spin" style="font-size:20px;color:#8B5CF6"></i>
+      </div>
+    </div>
+  </div>
+
   <!-- PANEL SHEETS -->
   <div class="board-face panel-sheets" id="board-sheets">
     <div class="reverso-header">
@@ -491,6 +638,10 @@
   <button class="mob-tab" data-tab="activity" onclick="mobTab('activity')">
     <span class="mob-tab-icon">⚡</span>
     <span class="mob-tab-label">Activity</span>
+  </button>
+  <button class="mob-tab" data-tab="score" onclick="mobTab('score')">
+    <span class="mob-tab-icon">⚡</span>
+    <span class="mob-tab-label">Score</span>
   </button>
   <button class="mob-tab" data-tab="sheets" onclick="mobTab('sheets')">
     <span class="mob-tab-icon">📄</span>
