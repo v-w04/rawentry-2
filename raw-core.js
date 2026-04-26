@@ -80,6 +80,14 @@ const api = {
   getFinancieroAvanzado:() => EN_GAS ? gasRun('getFinancieroAvanzado') : apiGet('getFinancieroAvanzado'),
   getRevision:          (tipo, anio, mes, semana) => EN_GAS ? gasRun('getRevision', tipo, anio, mes, semana) : apiGet('getRevision', { tipo, anio, mes, semana }),
   enviarSOS:            (d) => EN_GAS ? gasRun('enviarSOS', d) : apiPost('enviarSOS', { datos: d }),
+  // ── Patrimonio ──
+  getPatrimonio:        () => EN_GAS ? gasRun('getPatrimonio') : apiGet('getPatrimonio'),
+  getAhorro:            () => EN_GAS ? gasRun('getAhorro') : apiGet('getAhorro'),
+  getEfectivo:          () => EN_GAS ? gasRun('getEfectivo') : apiGet('getEfectivo'),
+  getInversion:         () => EN_GAS ? gasRun('getInversion') : apiGet('getInversion'),
+  guardarAhorro:        (d) => EN_GAS ? gasRun('guardarAhorro', d) : apiPost('guardarAhorro', { datos: d }),
+  guardarEfectivo:      (d) => EN_GAS ? gasRun('guardarEfectivo', d) : apiPost('guardarEfectivo', { datos: d }),
+  guardarInversion:     (d) => EN_GAS ? gasRun('guardarInversion', d) : apiPost('guardarInversion', { datos: d }),
 };
 
 // ══════════════════════════════════════════
@@ -578,7 +586,8 @@ function _inyectarToggleModo(){
     <button id="btn-tab-pensamiento" onclick="setModoEntrada('pensamiento')" class="tab-entrada">💭</button>
     <button id="btn-tab-persona"     onclick="setModoEntrada('persona')"     class="tab-entrada">👥</button>
     <button id="btn-tab-salud"       onclick="setModoEntrada('salud')"       class="tab-entrada">🏥</button>
-    <button id="btn-tab-apartado"    onclick="setModoEntrada('apartado')"    class="tab-entrada">💰</button>`;
+    <button id="btn-tab-apartado"    onclick="setModoEntrada('apartado')"    class="tab-entrada">💰</button>
+    <button id="btn-tab-patrimonio"  onclick="setModoEntrada('patrimonio')"  class="tab-entrada">🏦</button>`;
   const body = document.getElementById('sec-entrada-body');
   if(body) body.insertBefore(wrap, body.firstChild);
 
@@ -601,7 +610,7 @@ function _inyectarToggleModo(){
   if(body) body.insertBefore(idWrap, wrap.nextSibling);
 
   // Wraps para tabs alternativos
-  ['pensamiento','persona','salud','apartado'].forEach(tab=>{
+  ['pensamiento','persona','salud','apartado','patrimonio'].forEach(tab=>{
     const tw = document.createElement('div');
     tw.id = tab+'-wrap';
     tw.style.display = 'none';
@@ -614,7 +623,7 @@ function setModoEntrada(modo){
   _modoEditar  = (modo === 'editar');
 
   // Actualizar tabs
-  ['nueva','editar','pensamiento','persona','salud','apartado'].forEach(t=>{
+  ['nueva','editar','pensamiento','persona','salud','apartado','patrimonio'].forEach(t=>{
     const btn = document.getElementById('btn-tab-'+t);
     if(btn) btn.classList.toggle('on', t===modo);
   });
@@ -666,6 +675,99 @@ function _renderTabEntrada(tab){
   else if(tab==='persona') _renderPersonaForm(wrap);
   else if(tab==='salud')   _renderSaludForm(wrap);
   else if(tab==='apartado') _renderApartadoForm(wrap);
+  else if(tab==='patrimonio') _renderPatrimonioForm(wrap);
+}
+
+// ── Formulario Patrimonio ──
+function _renderPatrimonioForm(wrap){
+  wrap.innerHTML=`
+    <div style="padding:16px var(--pad);display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Registrar movimiento</div>
+      <div>
+        <div style="font-size:10px;color:var(--m);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Tipo</div>
+        <div class="opts" id="pat-tipo-opts">
+          <button class="opt" onclick="event.stopPropagation();_selOpt(this,'pat-tipo-opts');document.getElementById('pat-tipo').value='ahorro';_onPatTipoChange()">💳 Banco</button>
+          <button class="opt" onclick="event.stopPropagation();_selOpt(this,'pat-tipo-opts');document.getElementById('pat-tipo').value='efectivo';_onPatTipoChange()">💵 Efectivo</button>
+          <button class="opt" onclick="event.stopPropagation();_selOpt(this,'pat-tipo-opts');document.getElementById('pat-tipo').value='inversion';_onPatTipoChange()">📈 Inversión</button>
+        </div>
+        <input type="hidden" id="pat-tipo" value="">
+      </div>
+      <input type="text" id="pat-concepto" class="finput" placeholder="Concepto (ej. Ahorro Mayo)" style="font-size:14px;padding:10px 14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Monto (+depósito / -retiro)</div>
+          <input type="number" id="pat-monto" class="finput" placeholder="0.00" step="0.01" inputmode="decimal" style="font-size:16px;padding:10px 12px">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Fecha</div>
+          <input type="date" id="pat-fecha" class="finput" style="font-size:13px;padding:9px 12px">
+        </div>
+      </div>
+      <div id="pat-extra" style="display:flex;flex-direction:column;gap:8px"></div>
+      <button onclick="_guardarPatrimonio()" class="btn-save" style="border-radius:var(--rad-pill)">
+        <i class="fas fa-floppy-disk"></i> Guardar
+      </button>
+      <div id="pat-res" style="font-size:12px;text-align:center;color:var(--m)"></div>
+    </div>`;
+  document.getElementById('pat-fecha').value = fmtD(new Date());
+}
+
+function _onPatTipoChange(){
+  const tipo  = document.getElementById('pat-tipo').value;
+  const extra = document.getElementById('pat-extra');
+  if(!extra) return;
+  if(tipo==='ahorro'){
+    extra.innerHTML=`<input type="text" id="pat-banco" class="finput" placeholder="Banco (BBVA, BEATS…)" style="font-size:13px;padding:9px 12px">
+      <div class="opts" id="pat-mov-opts">
+        <button class="opt" onclick="event.stopPropagation();_selOpt(this,'pat-mov-opts');document.getElementById('pat-movtipo').value='Depósito'">Depósito</button>
+        <button class="opt" onclick="event.stopPropagation();_selOpt(this,'pat-mov-opts');document.getElementById('pat-movtipo').value='Retiro'">Retiro</button>
+      </div>
+      <input type="hidden" id="pat-movtipo" value="Depósito">`;
+  } else if(tipo==='inversion'){
+    extra.innerHTML=`<input type="text" id="pat-instrumento" class="finput" placeholder="Instrumento (CETES, GBM…)" style="font-size:13px;padding:9px 12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <input type="text" id="pat-plazo" class="finput" placeholder="Plazo (28d, 90d)" style="font-size:13px;padding:9px 12px">
+        <input type="number" id="pat-rendimiento" class="finput" placeholder="Rendimiento $" step="0.01" style="font-size:13px;padding:9px 12px">
+      </div>`;
+  } else {
+    extra.innerHTML='';
+  }
+}
+
+function _guardarPatrimonio(){
+  const tipo     = document.getElementById('pat-tipo').value;
+  const concepto = document.getElementById('pat-concepto').value.trim();
+  const monto    = parseFloat(document.getElementById('pat-monto').value);
+  const fecha    = document.getElementById('pat-fecha').value;
+  const res      = document.getElementById('pat-res');
+  if(!tipo){ res.textContent='Selecciona un tipo'; res.style.color='var(--err)'; return; }
+  if(!concepto||isNaN(monto)){ res.textContent='Concepto y monto requeridos'; res.style.color='var(--err)'; return; }
+  res.textContent='Guardando…'; res.style.color='var(--m)';
+
+  let datos = { concepto, monto, fecha };
+  let promise;
+  if(tipo==='ahorro'){
+    datos.banco   = document.getElementById('pat-banco')?.value.trim()||'';
+    datos.tipo    = document.getElementById('pat-movtipo')?.value||'Depósito';
+    promise = api.guardarAhorro(datos);
+  } else if(tipo==='efectivo'){
+    promise = api.guardarEfectivo(datos);
+  } else {
+    datos.instrumento  = document.getElementById('pat-instrumento')?.value.trim()||'CETES';
+    datos.plazo        = document.getElementById('pat-plazo')?.value.trim()||'';
+    datos.rendimiento  = parseFloat(document.getElementById('pat-rendimiento')?.value)||0;
+    promise = api.guardarInversion(datos);
+  }
+
+  promise.then(r=>{
+    res.textContent = r.ok ? '✓ Guardado — Saldo: $'+r.saldo.toLocaleString('es-MX') : '✗ '+r.mensaje;
+    res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
+    if(r.ok){
+      document.getElementById('pat-concepto').value='';
+      document.getElementById('pat-monto').value='';
+      api.getPatrimonio().then(renderPatrimonio).catch(()=>{});
+    }
+  }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
 }
 
 // ── Formulario Pensamiento ──
