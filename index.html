@@ -128,6 +128,54 @@
 
   <div class="sections" id="mob-sections">
 
+
+    <!-- COL 1: REVISIÓN already below, FINANCIERO + FLUJO here -->
+    <!-- REVISIÓN -->
+    <div class="section" id="sec-revision">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-revision-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon" style="background:rgba(139,92,246,.12);color:#C4B5FD"><i class="fas fa-brain"></i></div>
+          <span class="sec-hdr-title">Revisión</span>
+        </div>
+        <div class="sec-hdr-right">
+          <div style="display:flex;gap:4px">
+            <button onclick="event.stopPropagation();cargarRevision('semanal')" id="rev-btn-sem"
+              style="padding:3px 10px;border-radius:var(--rad-pill);font-size:10px;font-weight:600;
+              background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.4);color:#C4B5FD;
+              cursor:pointer;font-family:inherit">Semana</button>
+            <button onclick="event.stopPropagation();cargarRevision('mensual')" id="rev-btn-mes"
+              style="padding:3px 10px;border-radius:var(--rad-pill);font-size:10px;font-weight:500;
+              background:none;border:1px solid rgba(255,255,255,.1);color:var(--m);
+              cursor:pointer;font-family:inherit">Mes</button>
+          </div>
+          <i class="fas fa-chevron-down sec-chevron"></i>
+        </div>
+      </div>
+      <div class="sec-body" id="sec-revision-body">
+        <div id="revision-body" style="text-align:center;padding:20px;color:var(--m)">
+          <i class="fas fa-circle-notch fa-spin" style="color:#C4B5FD"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINANCIERO AVANZADO -->
+    <div class="section" id="sec-financiero">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-financiero-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon" style="background:rgba(74,222,128,.12);color:var(--ok)"><i class="fas fa-chart-line"></i></div>
+          <span class="sec-hdr-title">Financiero</span>
+        </div>
+        <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+
+    <!-- FLUJO MENSUAL -->
+    <div class="section" id="sec-flujo">
+      <div class="sec-hdr" onclick="togSec(this)" id="sec-flujo-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon" style="background:rgba(34,197,94,.15);color:#22C55E">
+            <i class="fas fa-arrow-right-arrow-left"></i>
+          </div>
+          <span class="sec-hdr-title">Flujo Mensual</span>
+
     <div id="col1-wrap" style="display:flex;flex-direction:column;gap:12px;align-self:start">
     <!-- NUEVA ENTRADA -->
     <div class="section" id="sec-entrada">
@@ -283,14 +331,6 @@
       </div>
     </div>
 
-    <!-- FLUJO MENSUAL -->
-    <div class="section" id="sec-flujo">
-      <div class="sec-hdr" onclick="togSec(this)" id="sec-flujo-hdr">
-        <div class="sec-hdr-left">
-          <div class="sec-hdr-icon" style="background:rgba(34,197,94,.15);color:#22C55E">
-            <i class="fas fa-arrow-right-arrow-left"></i>
-          </div>
-          <span class="sec-hdr-title">Flujo Mensual</span>
         </div>
         <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
       </div>
@@ -303,14 +343,6 @@
       </div>
     </div>
 
-    <!-- FINANCIERO AVANZADO -->
-    <div class="section" id="sec-financiero">
-      <div class="sec-hdr" onclick="togSec(this)" id="sec-financiero-hdr">
-        <div class="sec-hdr-left">
-          <div class="sec-hdr-icon" style="background:rgba(74,222,128,.12);color:var(--ok)"><i class="fas fa-chart-line"></i></div>
-          <span class="sec-hdr-title">Financiero</span>
-        </div>
-        <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
       </div>
       <div class="sec-body" id="sec-financiero-body">
         <div id="fin-avanzado-body" style="text-align:center;padding:20px;color:var(--m)">
@@ -403,33 +435,6 @@
     </div>
 
 
-    <!-- REVISIÓN -->
-    <div class="section" id="sec-revision">
-      <div class="sec-hdr" onclick="togSec(this)" id="sec-revision-hdr">
-        <div class="sec-hdr-left">
-          <div class="sec-hdr-icon" style="background:rgba(139,92,246,.12);color:#C4B5FD"><i class="fas fa-brain"></i></div>
-          <span class="sec-hdr-title">Revisión</span>
-        </div>
-        <div class="sec-hdr-right">
-          <div style="display:flex;gap:4px">
-            <button onclick="event.stopPropagation();cargarRevision('semanal')" id="rev-btn-sem"
-              style="padding:3px 10px;border-radius:var(--rad-pill);font-size:10px;font-weight:600;
-              background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.4);color:#C4B5FD;
-              cursor:pointer;font-family:inherit">Semana</button>
-            <button onclick="event.stopPropagation();cargarRevision('mensual')" id="rev-btn-mes"
-              style="padding:3px 10px;border-radius:var(--rad-pill);font-size:10px;font-weight:500;
-              background:none;border:1px solid rgba(255,255,255,.1);color:var(--m);
-              cursor:pointer;font-family:inherit">Mes</button>
-          </div>
-          <i class="fas fa-chevron-down sec-chevron"></i>
-        </div>
-      </div>
-      <div class="sec-body" id="sec-revision-body">
-        <div id="revision-body" style="text-align:center;padding:20px;color:var(--m)">
-          <i class="fas fa-circle-notch fa-spin" style="color:#C4B5FD"></i>
-        </div>
-      </div>
-    </div>
 
     <!-- PENSAMIENTOS -->
     <div class="section" id="sec-pensamientos">
