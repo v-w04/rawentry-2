@@ -765,7 +765,13 @@ function _guardarPatrimonio(){
     if(r.ok){
       document.getElementById('pat-concepto').value='';
       document.getElementById('pat-monto').value='';
-      api.getPatrimonio().then(renderPatrimonio).catch(()=>{});
+      api.getPatrimonio()
+        .then(renderPatrimonio)
+        .catch(()=>renderPatrimonio({ok:true,total:0,
+          banco:{saldo:0,pct:0,items:[]},
+          fisico:{saldo:0,pct:0,items:[]},
+          inversion:{saldo:0,pct:0,rendimientoTotal:0,items:[]},
+          fondo:{meta:0,avance:0,meses:0,salud:'err'}}));
     }
   }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
 }
