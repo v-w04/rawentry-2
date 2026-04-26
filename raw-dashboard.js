@@ -809,3 +809,106 @@ function renderScore(data){
     </div>` : ''}
   `;
 }
+
+// ══════════════════════════════════════════
+//  PATRIMONIO
+// ══════════════════════════════════════════
+function renderPatrimonio(data){
+  const body = document.getElementById('patrimonio-body');
+  if(!body) return;
+  if(!data||!data.ok){
+    body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m)">Sin datos — agrega movimientos con el tab 🏦</div>';
+    return;
+  }
+
+  const fmtMXN = v => '$ ' + Math.abs(v).toLocaleString('es-MX',{minimumFractionDigits:0});
+  const f = data.fondo || {};
+
+  // Salud del fondo
+  const saludColor = f.salud==='ok'?'var(--ok)':f.salud==='warn'?'var(--warn)':'var(--err)';
+  const saludEmoji = f.salud==='ok'?'🟢':f.salud==='warn'?'🟡':'🔴';
+  const saludLbl   = f.salud==='ok'?'Fondo completo':f.salud==='warn'?'Fondo parcial':'Sin fondo';
+
+  // Barras de distribución
+  const bloques = [
+    { label:'💳 Banco',     val:data.banco?.saldo||0,     pct:data.banco?.pct||0,     color:'#4ADE80' },
+    { label:'💵 Efectivo',  val:data.fisico?.saldo||0,    pct:data.fisico?.pct||0,    color:'#FBBF24' },
+    { label:'📈 Inversión', val:data.inversion?.saldo||0, pct:data.inversion?.pct||0, color:'#8B5CF6' },
+  ];
+
+  const totalHtml = `
+    <div style="padding:16px var(--pad) 8px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:6px">Patrimonio total</div>
+      <div style="font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.03em;color:#fff">
+        ${fmtMXN(data.total||0)}
+      </div>
+      <div style="font-size:11px;margin-top:4px">
+        <span style="color:${saludColor}">${saludEmoji} ${saludLbl}</span>
+        <span style="color:var(--m);margin-left:8px">${f.meses||0} meses cubiertos</span>
+      </div>
+    </div>`;
+
+  // Barra de distribución visual
+  const barHtml = data.total > 0 ? `
+    <div style="margin:0 var(--pad) 12px;height:8px;border-radius:4px;overflow:hidden;display:flex;gap:2px">
+      ${bloques.map(b=>b.pct>0?`<div style="width:${b.pct}%;background:${b.color};border-radius:4px;transition:width .6s ease"></div>`:'').join('')}
+    </div>` : '';
+
+  // Cards por tipo
+  const cardsHtml = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 var(--pad) 12px">
+      ${bloques.map(b=>`
+        <div style="background:var(--card2);border-radius:var(--rad);padding:12px;text-align:center">
+          <div style="font-size:18px;margin-bottom:4px">${b.label.split(' ')[0]}</div>
+          <div style="font-size:11px;font-weight:600;color:var(--m);margin-bottom:6px">${b.label.split(' ')[1]}</div>
+          <div style="font-size:16px;font-weight:700;color:${b.color};font-variant-numeric:tabular-nums">${fmtMXN(b.val)}</div>
+          <div style="font-size:10px;color:var(--m);margin-top:2px">${b.pct}% del total</div>
+        </div>`).join('')}
+    </div>`;
+
+  // Meta fondo emergencia
+  const metaHtml = f.meta > 0 ? `
+    <div style="margin:0 var(--pad) 12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--rad)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:600;color:var(--m)">🎯 Fondo de emergencia (3 meses)</div>
+        <div style="font-size:11px;font-weight:700;color:${saludColor}">${f.avance||0}%</div>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${Math.min(100,f.avance||0)}%;background:${saludColor};border-radius:2px;transition:width .6s ease"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--m)">
+        <span>Actual: ${fmtMXN(data.banco?.saldo||0)}</span>
+        <span>Meta: ${fmtMXN(f.meta)}</span>
+      </div>
+    </div>` : '';
+
+  // Últimos movimientos combinados
+  const movs = [
+    ...(data.banco?.items||[]).map(i=>({...i,_tipo:'banco'})),
+    ...(data.fisico?.items||[]).map(i=>({...i,_tipo:'efectivo'})),
+    ...(data.inversion?.items||[]).map(i=>({...i,_tipo:'inversion'})),
+  ].sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,8);
+
+  const movsHtml = movs.length ? `
+    <div style="padding:0 var(--pad) 4px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px">Últimos movimientos</div>
+      ${movs.map(m=>{
+        const tipoColor = m._tipo==='banco'?'#4ADE80':m._tipo==='efectivo'?'#FBBF24':'#8B5CF6';
+        const tipoEmoji = m._tipo==='banco'?'💳':m._tipo==='efectivo'?'💵':'📈';
+        const montoColor = (m.monto||0)>=0?'var(--ok)':'var(--err)';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+          <div style="width:28px;height:28px;border-radius:8px;background:${tipoColor}22;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${tipoEmoji}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:500;color:#fff">${m.concepto}</div>
+            <div style="font-size:10px;color:var(--m)">${m.fecha}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:700;color:${montoColor};font-variant-numeric:tabular-nums">${(m.monto||0)>=0?'+':''}${fmtMXN(m.monto||0)}</div>
+            <div style="font-size:10px;color:var(--m)">${fmtMXN(m.saldo||0)}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : '<div style="padding:16px var(--pad);color:var(--m);font-size:13px">Sin movimientos — agrega con el tab 🏦</div>';
+
+  body.innerHTML = totalHtml + barHtml + cardsHtml + metaHtml + movsHtml;
+}
