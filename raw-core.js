@@ -64,9 +64,22 @@ const api = {
   getLogros:         () => EN_GAS ? gasRun('getLogros') : apiGet('getLogros'),
   getActivityCheck:  () => EN_GAS ? gasRun('getActivityCheck') : apiGet('getActivityCheck'),
   guardarActivityChecks: (semana,checks) => EN_GAS ? gasRun('guardarActivityChecks',semana,checks) : apiPost('guardarActivityChecks',{semana,checks}),
-  guardarEnBancos:   (nombre, monto, fecha) => EN_GAS ? gasRun('guardarEnBancos', nombre, monto, fecha) : apiPost('guardarEnBancos', { nombre, monto, fecha }),
-  getFilaPorId:      (id) => EN_GAS ? gasRun('getFilaPorId', id) : apiGet('getFilaPorId', { id }),
-  editarFilaRAW:     (fila, datos) => EN_GAS ? gasRun('editarFilaRAW', fila, datos) : apiPost('editarFilaRAW', { fila, datos }),
+  guardarEnBancos:      (nombre, monto, fecha) => EN_GAS ? gasRun('guardarEnBancos', nombre, monto, fecha) : apiPost('guardarEnBancos', { nombre, monto, fecha }),
+  getFilaPorId:         (id) => EN_GAS ? gasRun('getFilaPorId', id) : apiGet('getFilaPorId', { id }),
+  editarFilaRAW:        (fila, datos) => EN_GAS ? gasRun('editarFilaRAW', fila, datos) : apiPost('editarFilaRAW', { fila, datos }),
+  // ── Módulos nuevos ──
+  getPensamientos:      () => EN_GAS ? gasRun('getPensamientos') : apiGet('getPensamientos'),
+  guardarPensamiento:   (d) => EN_GAS ? gasRun('guardarPensamiento', d) : apiPost('guardarPensamiento', { datos: d }),
+  getRelaciones:        () => EN_GAS ? gasRun('getRelaciones') : apiGet('getRelaciones'),
+  guardarInteraccion:   (d) => EN_GAS ? gasRun('guardarInteraccion', d) : apiPost('guardarInteraccion', { datos: d }),
+  getSalud:             () => EN_GAS ? gasRun('getSalud') : apiGet('getSalud'),
+  guardarSalud:         (d) => EN_GAS ? gasRun('guardarSalud', d) : apiPost('guardarSalud', { datos: d }),
+  getApartados:         () => EN_GAS ? gasRun('getApartados') : apiGet('getApartados'),
+  guardarApartado:      (d) => EN_GAS ? gasRun('guardarApartado', d) : apiPost('guardarApartado', { datos: d }),
+  actualizarApartado:   (fila, estado) => EN_GAS ? gasRun('actualizarApartado', fila, estado) : apiPost('actualizarApartado', { fila, estado }),
+  getFinancieroAvanzado:() => EN_GAS ? gasRun('getFinancieroAvanzado') : apiGet('getFinancieroAvanzado'),
+  getRevision:          (tipo) => EN_GAS ? gasRun('getRevision', tipo) : apiGet('getRevision', { tipo }),
+  enviarSOS:            (d) => EN_GAS ? gasRun('enviarSOS', d) : apiPost('enviarSOS', { datos: d }),
 };
 
 // ══════════════════════════════════════════
@@ -76,6 +89,7 @@ const CAMPOS=['fecha','proyecto','contacto','concepto','monto','recurrencia','ne
 const MESES_ES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 let sign=1, cats={}, proxSel='', contactoSel='', recSel='', necesidadSel='', sheetUrl='';
 let _modoEditar=false, _filaEditar=null, _idEditar=null;
+let _tabEntrada='nueva'; // nueva | editar | salud | pensamiento | persona | apartado
 let datosMes={meses:[],grupos:{}};
 let _toast=null;
 
@@ -172,6 +186,13 @@ window.addEventListener('DOMContentLoaded',()=>{
       renderNecesidades(d.necesidades);
       renderFlujoMensual(d.flujoPorMes);
       if(d.activityCheck){ _actData=d.activityCheck; }
+      if(d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
+      if(d.apartados) renderApartados(d.apartados);
+      // Cargar módulos lazy
+      api.getPensamientos().then(renderPensamientos).catch(()=>{});
+      api.getRelaciones().then(renderRelaciones).catch(()=>{});
+      api.getSalud().then(renderSalud).catch(()=>{});
+      cargarRevision('semanal');
     })
     .catch(err=>{
       setChip('err','Error');
@@ -552,14 +573,12 @@ function _inyectarToggleModo(){
   wrap.id = 'toggle-modo-wrap';
   wrap.style.cssText = 'display:flex;align-items:center;gap:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:3px;margin:10px var(--pad) 0;';
   wrap.innerHTML = `
-    <button id="btn-modo-nueva" onclick="setModoEntrada('nueva')"
-      style="flex:1;padding:7px 18px;border-radius:999px;border:none;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;background:#fff;color:#000">
-      + Nueva
-    </button>
-    <button id="btn-modo-editar" onclick="setModoEntrada('editar')"
-      style="flex:1;padding:7px 18px;border-radius:999px;border:none;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;background:none;color:var(--m)">
-      ✏ Editar
-    </button>`;
+    <button id="btn-tab-nueva"       onclick="setModoEntrada('nueva')"       class="tab-entrada on">+ Nueva</button>
+    <button id="btn-tab-editar"      onclick="setModoEntrada('editar')"      class="tab-entrada">✏ Editar</button>
+    <button id="btn-tab-pensamiento" onclick="setModoEntrada('pensamiento')" class="tab-entrada">💭</button>
+    <button id="btn-tab-persona"     onclick="setModoEntrada('persona')"     class="tab-entrada">👥</button>
+    <button id="btn-tab-salud"       onclick="setModoEntrada('salud')"       class="tab-entrada">🏥</button>
+    <button id="btn-tab-apartado"    onclick="setModoEntrada('apartado')"    class="tab-entrada">💰</button>`;
   const body = document.getElementById('sec-entrada-body');
   if(body) body.insertBefore(wrap, body.firstChild);
 
@@ -580,30 +599,287 @@ function _inyectarToggleModo(){
     </div>
     <div id="editar-id-msg" style="font-size:11px;margin-top:6px;color:var(--m)"></div>`;
   if(body) body.insertBefore(idWrap, wrap.nextSibling);
+
+  // Wraps para tabs alternativos
+  ['pensamiento','persona','salud','apartado'].forEach(tab=>{
+    const tw = document.createElement('div');
+    tw.id = tab+'-wrap';
+    tw.style.display = 'none';
+    if(body) body.insertBefore(tw, idWrap.nextSibling);
+  });
 }
 
 function setModoEntrada(modo){
-  _modoEditar = (modo === 'editar');
-  const btnN = document.getElementById('btn-modo-nueva');
-  const btnE = document.getElementById('btn-modo-editar');
-  const idWrap = document.getElementById('editar-id-wrap');
-  const btnG = document.getElementById('btnG');
+  _tabEntrada  = modo;
+  _modoEditar  = (modo === 'editar');
 
-  if(_modoEditar){
-    btnN.style.background='none'; btnN.style.color='var(--m)'; btnN.style.fontWeight='500';
-    btnE.style.background='#fff'; btnE.style.color='#000'; btnE.style.fontWeight='600';
+  // Actualizar tabs
+  ['nueva','editar','pensamiento','persona','salud','apartado'].forEach(t=>{
+    const btn = document.getElementById('btn-tab-'+t);
+    if(btn) btn.classList.toggle('on', t===modo);
+  });
+
+  // Ocultar todos los wraps especiales
+  const wraps = ['editar-id-wrap','pensamiento-wrap','persona-wrap','salud-wrap','apartado-wrap'];
+  wraps.forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
+
+  // Mostrar/ocultar campos base según tab
+  const camposBase = document.getElementById('sec-entrada-body');
+  const formActions = document.querySelector('.form-actions');
+
+  if(modo==='nueva'){
+    _mostrarCamposBase(true);
+    if(formActions) formActions.style.display='flex';
+    const btnG = document.getElementById('btnG');
+    if(btnG) btnG.innerHTML='<div class="spin-sm" id="spin"></div><i class="fas fa-floppy-disk" id="bico"></i> Guardar';
+    _filaEditar=null; _idEditar=null;
+    limpiar(true);
+  } else if(modo==='editar'){
+    _mostrarCamposBase(true);
+    if(formActions) formActions.style.display='flex';
+    const idWrap=document.getElementById('editar-id-wrap');
     if(idWrap) idWrap.style.display='block';
+    const btnG = document.getElementById('btnG');
     if(btnG) btnG.innerHTML='<div class="spin-sm" id="spin"></div><i class="fas fa-pen" id="bico"></i> Actualizar';
     limpiar(false);
   } else {
-    btnN.style.background='#fff'; btnN.style.color='#000'; btnN.style.fontWeight='600';
-    btnE.style.background='none'; btnE.style.color='var(--m)'; btnE.style.fontWeight='500';
-    if(idWrap) idWrap.style.display='none';
-    if(btnG) btnG.innerHTML='<div class="spin-sm" id="spin"></div><i class="fas fa-floppy-disk" id="bico"></i> Guardar';
-    _filaEditar=null; _idEditar=null;
-    document.getElementById('editar-id-msg').textContent='';
-    limpiar(true);
+    // Tabs de módulos alternativos — ocultar campos base del formulario financiero
+    _mostrarCamposBase(false);
+    if(formActions) formActions.style.display='none';
+    const wrap = document.getElementById(modo+'-wrap');
+    if(wrap) wrap.style.display='block';
+    _renderTabEntrada(modo);
   }
+}
+
+function _mostrarCamposBase(visible){
+  const campos = ['cf-fecha','cf-proyecto','cf-contacto','cf-concepto','cf-monto','cf-recurrencia','cf-necesidad','cf-clave'];
+  campos.forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display=visible?'':'none'; });
+  const saveRes = document.getElementById('save-res');
+  if(saveRes && !visible) saveRes.className='save-res';
+}
+
+function _renderTabEntrada(tab){
+  const wrap = document.getElementById(tab+'-wrap');
+  if(!wrap) return;
+  if(tab==='pensamiento') _renderPensamientoForm(wrap);
+  else if(tab==='persona') _renderPersonaForm(wrap);
+  else if(tab==='salud')   _renderSaludForm(wrap);
+  else if(tab==='apartado') _renderApartadoForm(wrap);
+}
+
+// ── Formulario Pensamiento ──
+function _renderPensamientoForm(wrap){
+  wrap.innerHTML=`
+    <div style="padding:16px var(--pad);display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">¿En qué estás pensando?</div>
+      <textarea id="p-texto" class="finput" rows="4" placeholder="Escribe aquí tu pensamiento, idea o reflexión…"
+        style="resize:none;line-height:1.5;font-size:14px"></textarea>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Categoría</div>
+          <div class="opts" id="p-cat-opts">
+            ${['Emoción','Idea','Reflexión','Decisión','Sueño'].map(c=>
+              `<button class="opt" onclick="event.stopPropagation();_selOpt(this,'p-cat-opts');document.getElementById('p-cat').value='${c}'">${c}</button>`
+            ).join('')}
+          </div>
+          <input type="hidden" id="p-cat" value="">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Energía</div>
+          <div class="opts" id="p-energia-opts">
+            ${[1,2,3,4,5].map(n=>
+              `<button class="opt" onclick="event.stopPropagation();_selOpt(this,'p-energia-opts');document.getElementById('p-energia').value=${n}" style="padding:8px 10px">${n}</button>`
+            ).join('')}
+          </div>
+          <input type="hidden" id="p-energia" value="">
+        </div>
+      </div>
+      <input type="text" id="p-etiquetas" class="finput" placeholder="Etiquetas (trabajo, familia, dinero…)" style="font-size:13px;padding:9px 12px">
+      <button onclick="_guardarPensamiento()" class="btn-save" style="border-radius:var(--rad-pill)">
+        <i class="fas fa-floppy-disk"></i> Guardar pensamiento
+      </button>
+      <div id="p-res" style="font-size:12px;text-align:center;color:var(--m)"></div>
+    </div>`;
+}
+
+function _guardarPensamiento(){
+  const texto     = document.getElementById('p-texto').value.trim();
+  const categoria = document.getElementById('p-cat').value;
+  const energia   = document.getElementById('p-energia').value;
+  const etiquetas = document.getElementById('p-etiquetas').value.trim();
+  const res       = document.getElementById('p-res');
+  if(!texto){ res.textContent='Escribe algo primero'; res.style.color='var(--err)'; return; }
+  res.textContent='Guardando…'; res.style.color='var(--m)';
+  api.guardarPensamiento({ texto, categoria, energia: energia||null, etiquetas, fecha: fmtD(new Date()) })
+    .then(r=>{
+      res.textContent = r.ok ? '✓ Guardado' : '✗ '+r.mensaje;
+      res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
+      if(r.ok){ document.getElementById('p-texto').value=''; document.getElementById('p-etiquetas').value='';
+        document.querySelectorAll('#p-cat-opts .opt,#p-energia-opts .opt').forEach(b=>b.classList.remove('on'));
+        document.getElementById('p-cat').value=''; document.getElementById('p-energia').value=''; }
+    }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
+}
+
+// ── Formulario Persona ──
+function _renderPersonaForm(wrap){
+  wrap.innerHTML=`
+    <div style="padding:16px var(--pad);display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">¿Con quién interactuaste?</div>
+      <input type="text" id="per-nombre" class="finput" placeholder="Nombre" style="font-size:14px;padding:10px 14px">
+      <div>
+        <div style="font-size:10px;color:var(--m);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Tipo</div>
+        <div class="opts" id="per-tipo-opts">
+          ${['Familia','Amigo','Pareja','Trabajo','Médico','Otro'].map(t=>
+            `<button class="opt" onclick="event.stopPropagation();_selOpt(this,'per-tipo-opts');document.getElementById('per-tipo').value='${t}'">${t}</button>`
+          ).join('')}
+        </div>
+        <input type="hidden" id="per-tipo" value="">
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--m);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Energía que te da</div>
+        <div class="opts" id="per-energia-opts">
+          <button class="opt" onclick="event.stopPropagation();_selOpt(this,'per-energia-opts');document.getElementById('per-energia').value=1" style="color:var(--ok)">+ Positiva</button>
+          <button class="opt" onclick="event.stopPropagation();_selOpt(this,'per-energia-opts');document.getElementById('per-energia').value=0">Neutral</button>
+          <button class="opt" onclick="event.stopPropagation();_selOpt(this,'per-energia-opts');document.getElementById('per-energia').value=-1" style="color:var(--err)">− Negativa</button>
+        </div>
+        <input type="hidden" id="per-energia" value="">
+      </div>
+      <textarea id="per-notas" class="finput" rows="2" placeholder="Notas de la interacción…" style="resize:none;font-size:13px"></textarea>
+      <button onclick="_guardarPersona()" class="btn-save" style="border-radius:var(--rad-pill)">
+        <i class="fas fa-floppy-disk"></i> Registrar interacción
+      </button>
+      <div id="per-res" style="font-size:12px;text-align:center;color:var(--m)"></div>
+    </div>`;
+}
+
+function _guardarPersona(){
+  const nombre  = document.getElementById('per-nombre').value.trim();
+  const tipo    = document.getElementById('per-tipo').value;
+  const energia = document.getElementById('per-energia').value;
+  const notas   = document.getElementById('per-notas').value.trim();
+  const res     = document.getElementById('per-res');
+  if(!nombre){ res.textContent='Escribe un nombre'; res.style.color='var(--err)'; return; }
+  res.textContent='Guardando…'; res.style.color='var(--m)';
+  api.guardarInteraccion({ nombre, tipo, energia: energia!==''?Number(energia):0, notas })
+    .then(r=>{
+      res.textContent = r.ok ? '✓ '+r.mensaje : '✗ '+r.mensaje;
+      res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
+      if(r.ok){ document.getElementById('per-nombre').value=''; document.getElementById('per-notas').value='';
+        document.querySelectorAll('#per-tipo-opts .opt,#per-energia-opts .opt').forEach(b=>b.classList.remove('on'));
+        document.getElementById('per-tipo').value=''; document.getElementById('per-energia').value=''; }
+    }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
+}
+
+// ── Formulario Salud ──
+function _renderSaludForm(wrap){
+  wrap.innerHTML=`
+    <div style="padding:16px var(--pad);display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Registro de salud</div>
+      <div>
+        <div style="font-size:10px;color:var(--m);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Tipo</div>
+        <div class="opts" id="sal-tipo-opts">
+          ${['Cita','Síntoma','Medicamento','Resultado','Vacuna','Check-in'].map(t=>
+            `<button class="opt" onclick="event.stopPropagation();_selOpt(this,'sal-tipo-opts');document.getElementById('sal-tipo').value='${t}'">${t}</button>`
+          ).join('')}
+        </div>
+        <input type="hidden" id="sal-tipo" value="">
+      </div>
+      <input type="text" id="sal-desc" class="finput" placeholder="Descripción" style="font-size:14px;padding:10px 14px">
+      <input type="text" id="sal-doctor" class="finput" placeholder="Doctor (opcional)" style="font-size:13px;padding:9px 12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Fecha</div>
+          <input type="date" id="sal-fecha" class="finput" style="font-size:13px;padding:9px 12px">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Próxima cita</div>
+          <input type="date" id="sal-proxima" class="finput" style="font-size:13px;padding:9px 12px">
+        </div>
+      </div>
+      <textarea id="sal-notas" class="finput" rows="2" placeholder="Notas…" style="resize:none;font-size:13px"></textarea>
+      <button onclick="_guardarSalud()" class="btn-save" style="border-radius:var(--rad-pill)">
+        <i class="fas fa-floppy-disk"></i> Guardar registro
+      </button>
+      <div id="sal-res" style="font-size:12px;text-align:center;color:var(--m)"></div>
+    </div>`;
+  document.getElementById('sal-fecha').value = fmtD(new Date());
+}
+
+function _guardarSalud(){
+  const tipo   = document.getElementById('sal-tipo').value;
+  const desc   = document.getElementById('sal-desc').value.trim();
+  const doctor = document.getElementById('sal-doctor').value.trim();
+  const fecha  = document.getElementById('sal-fecha').value;
+  const prox   = document.getElementById('sal-proxima').value;
+  const notas  = document.getElementById('sal-notas').value.trim();
+  const res    = document.getElementById('sal-res');
+  if(!desc){ res.textContent='Agrega una descripción'; res.style.color='var(--err)'; return; }
+  res.textContent='Guardando…'; res.style.color='var(--m)';
+  api.guardarSalud({ tipo, descripcion:desc, doctor, fecha, proxima:prox||null, notas, estado:'Pendiente' })
+    .then(r=>{
+      res.textContent = r.ok ? '✓ Guardado' : '✗ '+r.mensaje;
+      res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
+      if(r.ok){ document.getElementById('sal-desc').value=''; document.getElementById('sal-doctor').value='';
+        document.getElementById('sal-proxima').value=''; document.getElementById('sal-notas').value='';
+        document.querySelectorAll('#sal-tipo-opts .opt').forEach(b=>b.classList.remove('on'));
+        document.getElementById('sal-tipo').value=''; }
+    }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
+}
+
+// ── Formulario Apartado ──
+function _renderApartadoForm(wrap){
+  wrap.innerHTML=`
+    <div style="padding:16px var(--pad);display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Nuevo apartado</div>
+      <input type="text" id="ap-nombre" class="finput" placeholder="Nombre del apartado (ej. Renta Mayo)" style="font-size:14px;padding:10px 14px">
+      <input type="text" id="ap-categoria" class="finput" placeholder="Categoría (Renta, Viaje, Emergencia…)" style="font-size:13px;padding:9px 12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Monto</div>
+          <input type="number" id="ap-monto" class="finput" placeholder="0.00" step="0.01" inputmode="decimal" style="font-size:16px;padding:10px 12px">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Banco</div>
+          <input type="text" id="ap-banco" class="finput" placeholder="BBVA, BEATS…" style="font-size:13px;padding:9px 12px">
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--m);margin-bottom:4px">Fecha meta (para cuándo)</div>
+        <input type="date" id="ap-meta" class="finput" style="font-size:13px;padding:9px 12px">
+      </div>
+      <textarea id="ap-notas" class="finput" rows="2" placeholder="Notas…" style="resize:none;font-size:13px"></textarea>
+      <button onclick="_guardarApartado()" class="btn-save" style="border-radius:var(--rad-pill)">
+        <i class="fas fa-floppy-disk"></i> Guardar apartado
+      </button>
+      <div id="ap-res" style="font-size:12px;text-align:center;color:var(--m)"></div>
+    </div>`;
+}
+
+function _guardarApartado(){
+  const nombre    = document.getElementById('ap-nombre').value.trim();
+  const categoria = document.getElementById('ap-categoria').value.trim();
+  const monto     = parseFloat(document.getElementById('ap-monto').value);
+  const banco     = document.getElementById('ap-banco').value.trim();
+  const meta      = document.getElementById('ap-meta').value;
+  const notas     = document.getElementById('ap-notas').value.trim();
+  const res       = document.getElementById('ap-res');
+  if(!nombre||isNaN(monto)){ res.textContent='Nombre y monto requeridos'; res.style.color='var(--err)'; return; }
+  res.textContent='Guardando…'; res.style.color='var(--m)';
+  api.guardarApartado({ nombre, categoria, monto, banco, meta:meta||null, notas, estado:'Activo' })
+    .then(r=>{
+      res.textContent = r.ok ? '✓ Guardado' : '✗ '+r.mensaje;
+      res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
+      if(r.ok){ document.getElementById('ap-nombre').value=''; document.getElementById('ap-categoria').value='';
+        document.getElementById('ap-monto').value=''; document.getElementById('ap-banco').value='';
+        document.getElementById('ap-meta').value=''; document.getElementById('ap-notas').value=''; }
+    }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
+}
+
+// ── Helper: seleccionar opt ──
+function _selOpt(btn, containerId){
+  document.querySelectorAll('#'+containerId+' .opt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
 }
 
 function buscarFilaId(){
@@ -721,3 +997,54 @@ function guardarEnte(fila){
     })
     .catch(()=>{ico.className='fas fa-check';});
 }
+
+
+// ══════════════════════════════════════════
+//  SOS
+// ══════════════════════════════════════════
+function activarSOS(){
+  const btn = document.getElementById('btn-sos');
+  if(btn){ btn.disabled=true; btn.textContent='Enviando…'; }
+  const msg = '🚨 Necesito ayuda — enviado desde RAW Entry';
+  // Intentar obtener ubicación
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      pos=>{
+        const loc = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+        _doEnviarSOS(msg, loc, btn);
+      },
+      ()=>{ _doEnviarSOS(msg, '', btn); },
+      { timeout: 5000 }
+    );
+  } else {
+    _doEnviarSOS(msg, '', btn);
+  }
+}
+
+function _doEnviarSOS(mensaje, ubicacion, btn){
+  api.enviarSOS({ mensaje, ubicacion })
+    .then(r=>{
+      showToast(r.ok ? '🚨 SOS enviado a '+r.enviados+' contacto(s)' : 'Error: '+r.mensaje, r.ok);
+      if(btn){ btn.disabled=false; btn.textContent='🚨 SOS'; }
+    })
+    .catch(()=>{
+      showToast('Error al enviar SOS', false);
+      if(btn){ btn.disabled=false; btn.textContent='🚨 SOS'; }
+    });
+}
+
+// Update desktop grid for new sections
+(function(){
+  const style = document.createElement('style');
+  style.textContent = `
+    @media(min-width:900px){
+      #sec-financiero  { grid-column:1; grid-row:3; align-self:start; }
+      #sec-apartados   { grid-column:1; grid-row:4; align-self:start; }
+      #sec-revision    { grid-column:2; grid-row:2; align-self:start; }
+      #sec-pensamientos{ grid-column:3; grid-row:2; align-self:start; }
+      #sec-relaciones  { grid-column:2; grid-row:3; align-self:start; }
+      #sec-salud       { grid-column:3; grid-row:3; align-self:start; }
+    }
+  `;
+  document.head.appendChild(style);
+})();
