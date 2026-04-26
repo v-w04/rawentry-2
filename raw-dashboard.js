@@ -296,12 +296,23 @@ function renderFinancieroAvanzado(data){
 let _revData = null;
 let _revTipo = 'semanal';
 
-function cargarRevision(tipo){
-  _revTipo = tipo || 'semanal';
+function onRevSelChange(){
+  // Called when any dropdown changes
+  const anio   = document.getElementById('rev-sel-anio')?.value || '2026';
+  const mes    = document.getElementById('rev-sel-mes')?.value  || '';
+  const semana = document.getElementById('rev-sel-sem')?.value  || '';
+  const tipo   = semana ? 'semanal' : mes ? 'mensual' : 'anual';
+  cargarRevision(tipo, anio, mes||null, semana||null);
+}
+
+function cargarRevision(tipo, anio, mes, semana){
+  _revTipo = tipo || 'mensual';
   const body = document.getElementById('revision-body');
   if(!body) return;
-  body.innerHTML='<div style="padding:24px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:var(--p);font-size:18px"></i></div>';
-  api.getRevision(_revTipo).then(d=>{ _revData=d; renderRevision(d); }).catch(()=>{});
+  body.innerHTML='<div style="padding:24px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:#C4B5FD;font-size:18px"></i></div>';
+  api.getRevision(_revTipo, anio, mes, semana)
+    .then(d=>{ _revData=d; renderRevision(d); })
+    .catch(()=>{});
 }
 
 function renderRevision(data){
@@ -316,8 +327,9 @@ function renderRevision(data){
   const ins  = data.insights || [];
 
   body.innerHTML = `
-    <div style="padding:8px var(--pad) 4px;font-size:11px;color:var(--m)">
-      ${data.periodo.inicio} — ${data.periodo.fin}
+    <div style="padding:8px var(--pad) 4px;font-size:11px;color:var(--m);display:flex;justify-content:space-between;align-items:center">
+      <span>${data.periodo.inicio} — ${data.periodo.fin}</span>
+      <span style="color:#C4B5FD;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em">${data.tipo||''}</span>
     </div>
 
     <div class="rev-score-wrap">
