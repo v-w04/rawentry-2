@@ -290,10 +290,29 @@ html,body{
   .hero{width:100%;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:24px}
   .saldo-label{justify-content:center}
   .saldo-val{font-size:32px}
-  .sections{display:grid;grid-template-columns:420px 749px 749px;grid-template-rows:auto auto;gap:12px;padding:12px 20px;align-items:start;align-content:start;overflow-y:auto;flex:1;justify-content:center;width:fit-content;margin:0 auto}
-  #col1-wrap   {grid-column:1;grid-row:1 / span 2;align-self:start}
-  #sec-gastos  {grid-column:2;grid-row:1;align-self:start}
-  #sec-anualidad{grid-column:3;grid-row:1;align-self:start}
+  .sections{
+    display:grid;
+    grid-template-columns:420px 749px 749px;
+    gap:12px;
+    padding:12px 20px;
+    align-items:start;
+    align-content:start;
+    overflow-y:auto;
+    flex:1;
+    justify-content:center;
+    width:fit-content;
+    margin:0 auto;
+  }
+  /* Col 1 — secciones de entrada y control */
+  #col1-wrap     { grid-column:1; grid-row:1 / span 5; align-self:start; }
+  /* Col 2 — análisis y datos */
+  #sec-gastos    { grid-column:2; grid-row:1; align-self:start; }
+  #sec-revision  { grid-column:2; grid-row:2; align-self:start; }
+  #sec-relaciones{ grid-column:2; grid-row:3; align-self:start; }
+  /* Col 3 — histórico y salud */
+  #sec-anualidad    { grid-column:3; grid-row:1; align-self:start; }
+  #sec-pensamientos { grid-column:3; grid-row:2; align-self:start; }
+  #sec-salud        { grid-column:3; grid-row:3; align-self:start; }
   .sec-hdr{cursor:default}
   .sec-chevron{display:none}
   .sec-body{display:block!important}
@@ -301,17 +320,15 @@ html,body{
   .tbl-wrap{display:block!important}
   .panel{width:380px}
   .prog-wrap{display:none}
-  /* FIX: col1-wrap no excede su columna */
+  /* col1-wrap no excede su columna */
   #col1-wrap{width:420px;min-width:0;max-width:420px}
-  /* FIX: sections grid no colapsa al renderizar */
-  .sections{display:grid!important;grid-template-columns:420px 749px 749px!important}
   #sheets-iframe-cont{height:calc(100vh - 120px)}
 }
 @media(max-width:899px){
   .tbl-wrap{display:none!important}
   .cards-grid{display:grid!important}
   .sections{grid-template-columns:1fr !important}
-  #col1-wrap,#sec-gastos,#sec-anualidad{grid-column:1 !important;grid-row:auto !important}
+  #col1-wrap,#sec-gastos,#sec-anualidad,#sec-revision,#sec-pensamientos,#sec-relaciones,#sec-salud{grid-column:1 !important;grid-row:auto !important}
   .reverso > div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
   #inv-grid-full{grid-template-columns:repeat(2,1fr) !important}
   .board-face.panel-sheets{padding:0 !important}
