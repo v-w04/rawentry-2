@@ -826,6 +826,16 @@ function renderPatrimonio(data){
     body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m)">Sin datos — agrega movimientos con el tab 🏦</div>';
     return;
   }
+  // Hojas vacías = datos válidos con saldo 0
+  const totalPatrimonio = (data.banco?.saldo||0) + (data.fisico?.saldo||0) + (data.inversion?.saldo||0);
+  if(totalPatrimonio === 0 && !(data.banco?.items?.length) && !(data.fisico?.items?.length) && !(data.inversion?.items?.length)){
+    body.innerHTML='<div style="padding:24px;text-align:center;color:var(--m)">' +
+      '<div style="font-size:32px;margin-bottom:12px">🏦</div>' +
+      '<div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:6px">Sin movimientos aún</div>' +
+      '<div style="font-size:12px">Usa el tab 🏦 en Nueva Entrada para registrar tu primer ahorro, efectivo o inversión</div>' +
+      '</div>';
+    return;
+  }
 
   const fmtMXN = v => '$ ' + Math.abs(v).toLocaleString('es-MX',{minimumFractionDigits:0});
   const f = data.fondo || {};
