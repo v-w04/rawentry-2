@@ -127,10 +127,7 @@
   <div class="mob-tablero" id="mob-tablero" style="display:none"></div>
 
   <div class="sections" id="mob-sections">
-
-
-    <!-- COL 1: REVISIÓN already below, FINANCIERO + FLUJO here -->
-    <!-- REVISIÓN -->
+    <!-- ═══ COL 1: Revisión · Financiero · Flujo ═══ -->
     <div class="section" id="sec-revision">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-revision-hdr">
         <div class="sec-hdr-left">
@@ -158,7 +155,6 @@
       </div>
     </div>
 
-    <!-- FINANCIERO AVANZADO -->
     <div class="section" id="sec-financiero">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-financiero-hdr">
         <div class="sec-hdr-left">
@@ -166,8 +162,14 @@
           <span class="sec-hdr-title">Financiero</span>
         </div>
         <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+      </div>
+      <div class="sec-body" id="sec-financiero-body">
+        <div id="fin-avanzado-body" style="text-align:center;padding:20px;color:var(--m)">
+          <i class="fas fa-circle-notch fa-spin" style="color:var(--ok)"></i>
+        </div>
+      </div>
+    </div>
 
-    <!-- FLUJO MENSUAL -->
     <div class="section" id="sec-flujo">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-flujo-hdr">
         <div class="sec-hdr-left">
@@ -175,162 +177,6 @@
             <i class="fas fa-arrow-right-arrow-left"></i>
           </div>
           <span class="sec-hdr-title">Flujo Mensual</span>
-
-    <div id="col1-wrap" style="display:flex;flex-direction:column;gap:12px;align-self:start">
-    <!-- NUEVA ENTRADA -->
-    <div class="section" id="sec-entrada">
-      <div class="sec-hdr" onclick="togSec(this)" id="sec-entrada-hdr">
-        <div class="sec-hdr-left">
-          <div class="sec-hdr-icon blue"><i class="fas fa-table-list"></i></div>
-          <span class="sec-hdr-title">Nueva Entrada</span>
-        </div>
-        <div class="sec-hdr-right">
-          <i class="fas fa-chevron-down sec-chevron"></i>
-        </div>
-      </div>
-      <div class="sec-body" id="sec-entrada-body">
-
-        <div class="field active" id="cf-fecha">
-          <div class="field-bar"></div>
-          <div class="field-lbl">Fecha</div>
-          <input type="date" class="finput" id="fecha" onchange="onFechaChange()"
-            style="max-width:140px;font-size:13px;padding:6px 8px;flex-shrink:0;cursor:pointer"
-            onclick="event.stopPropagation()">
-        </div>
-
-        <div class="field" id="cf-proyecto" onclick="activarCampo('proyecto')">
-          <div class="field-bar"></div>
-          <div class="field-lbl">Proyecto</div>
-          <div class="field-val empty" id="cv-proyecto"></div>
-          <i class="fas fa-chevron-down field-chev"></i>
-          <div class="field-expand">
-            <div class="field-expand-inner">
-              <div class="opts" id="sw-proyecto"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="field" id="cf-contacto" onclick="activarCampo('contacto')">
-          <div class="field-bar"></div>
-          <div class="field-lbl">Contacto</div>
-          <div class="field-val empty" id="cv-contacto"></div>
-          <i class="fas fa-chevron-down field-chev"></i>
-          <div class="field-expand">
-            <div class="field-expand-inner">
-              <div class="opts" id="sw-contacto"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="field" id="cf-concepto" onclick="abrirConcepto()">
-          <div class="field-bar"></div>
-          <div class="field-lbl">Concepto</div>
-          <div class="field-val empty" id="cv-concepto"></div>
-          <i class="fas fa-chevron-down field-chev"></i>
-        </div>
-
-        <div class="field" id="cf-monto" onclick="activarCampo('monto')">
-          <div class="field-bar"></div>
-          <div class="field-lbl">Monto</div>
-          <div class="field-val empty" id="cv-monto">$ 0.00</div>
-          <i class="fas fa-chevron-down field-chev"></i>
-          <div class="field-expand">
-            <div class="field-expand-inner">
-              <div class="monto-wrap">
-                <div class="monto-signs">
-                  <button class="msign pos" id="sbp" onclick="setSign(1);event.stopPropagation()">+</button>
-                  <button class="msign" id="sbn" onclick="setSign(-1);event.stopPropagation()">−</button>
-                </div>
-                <input type="number" class="finput" id="monto" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="upM()">
-              </div>
-              <div class="mprev" id="mprev">$ 0.00</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="field" id="cf-recurrencia" onclick="activarCampo('recurrencia')">
-          <div class="field-bar"></div>
-          <div class="field-lbl">Recurrencia</div>
-          <div class="field-val empty" id="cv-recurrencia"></div>
-          <i class="fas fa-chevron-down field-chev"></i>
-          <div class="field-expand">
-            <div class="field-expand-inner">
-              <div class="opts" id="sw-recurrencia"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="field" id="cf-necesidad" onclick="activarCampo('necesidad')">
-          <div class="field-bar"></div>
-          <div class="field-lbl">Necesidad</div>
-          <div class="field-val empty" id="cv-necesidad"></div>
-          <i class="fas fa-chevron-down field-chev"></i>
-          <div class="field-expand">
-            <div class="field-expand-inner">
-              <div class="opts" id="sw-necesidad"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="field" id="cf-clave" onclick="activarCampo('clave')">
-          <div class="field-bar"></div>
-          <div class="field-lbl">Clave</div>
-          <div class="field-val empty" id="cv-clave"></div>
-          <i class="fas fa-chevron-down field-chev"></i>
-          <div class="field-expand">
-            <div class="field-expand-inner">
-              <input type="text" class="finput" id="clave" placeholder="Renta Enero, CFE E-F…" oninput="onClaveChange()">
-            </div>
-          </div>
-        </div>
-
-        <div class="save-res" id="save-res"><span id="res-ico"></span><span id="res-msg"></span></div>
-
-        <div class="form-actions">
-          <button class="btn-save" id="btnG" onclick="guardar()">
-            <div class="spin-sm" id="spin"></div>
-            <i class="fas fa-floppy-disk" id="bico"></i>
-            Guardar
-          </button>
-          <button class="btn-sm sec" onclick="limpiar()" title="Limpiar"><i class="fas fa-rotate-left"></i></button>
-          <button class="btn-sm suc" onclick="oPanel()" title="Gestionar Lista"><i class="fas fa-list-check"></i></button>
-          <button class="btn-sm lnk" onclick="irASheet()" title="Abrir Sheet"><i class="fas fa-table-cells"></i></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- BANCOS -->
-    <div class="section" id="sec-entes">
-      <div class="sec-hdr" onclick="togSec(this)" id="sec-entes-hdr">
-        <div class="sec-hdr-left">
-          <div class="sec-hdr-icon amber"><i class="fas fa-building-columns"></i></div>
-          <span class="sec-hdr-title">Bancos</span>
-        </div>
-        <div class="sec-hdr-right">
-          <span class="sec-hdr-val muted" id="entes-total"></span>
-          <i class="fas fa-chevron-down sec-chevron"></i>
-        </div>
-      </div>
-      <div class="sec-body" id="sec-entes-body">
-        <div id="entes-list" style="text-align:center;padding:20px;color:var(--m)">
-          <i class="fas fa-circle-notch fa-spin" style="color:var(--p)"></i>
-        </div>
-        <div id="form-banco-wrap" style="padding:12px var(--pad);border-top:1px solid rgba(255,255,255,.06)">
-          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:10px">
-            <i class="fas fa-plus" style="margin-right:4px"></i>Nuevo registro
-          </div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <input type="text" id="banco-nombre" class="finput" placeholder="Nombre del banco" style="font-size:13px;padding:9px 12px">
-            <input type="number" id="banco-monto" class="finput" placeholder="Monto" step="0.01" inputmode="decimal" style="font-size:13px;padding:9px 12px">
-            <input type="date" id="banco-fecha" class="finput" style="font-size:13px;padding:9px 12px">
-            <button onclick="guardarBanco()" class="btn-save" style="padding:11px;font-size:13px">
-              <i class="fas fa-floppy-disk"></i> Guardar en Bancos
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
         </div>
         <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
       </div>
@@ -343,36 +189,154 @@
       </div>
     </div>
 
-      </div>
-      <div class="sec-body" id="sec-financiero-body">
-        <div id="fin-avanzado-body" style="text-align:center;padding:20px;color:var(--m)">
-          <i class="fas fa-circle-notch fa-spin" style="color:var(--ok)"></i>
-        </div>
-      </div>
-    </div>
+    <!-- ═══ COL 2: Nueva Entrada · Bancos · Apartados ═══ -->
+    <div id="col1-wrap">
 
-    <!-- APARTADOS -->
-    <div class="section" id="sec-apartados">
-      <div class="sec-hdr" onclick="togSec(this)" id="sec-apartados-hdr">
-        <div class="sec-hdr-left">
-          <div class="sec-hdr-icon" style="background:rgba(251,191,36,.12);color:var(--warn)"><i class="fas fa-piggy-bank"></i></div>
-          <span class="sec-hdr-title">Apartados</span>
+      <div class="section" id="sec-entrada">
+        <div class="sec-hdr" onclick="togSec(this)" id="sec-entrada-hdr">
+          <div class="sec-hdr-left">
+            <div class="sec-hdr-icon blue"><i class="fas fa-table-list"></i></div>
+            <span class="sec-hdr-title">Nueva Entrada</span>
+          </div>
+          <div class="sec-hdr-right">
+            <i class="fas fa-chevron-down sec-chevron"></i>
+          </div>
         </div>
-        <div class="sec-hdr-right">
-          <span class="sec-hdr-val muted" id="apartados-total"></span>
-          <i class="fas fa-chevron-down sec-chevron"></i>
+        <div class="sec-body" id="sec-entrada-body">
+          <div class="field active" id="cf-fecha">
+            <div class="field-bar"></div>
+            <div class="field-lbl">Fecha</div>
+            <input type="date" class="finput" id="fecha" onchange="onFechaChange()"
+              style="max-width:140px;font-size:13px;padding:6px 8px;flex-shrink:0;cursor:pointer"
+              onclick="event.stopPropagation()">
+          </div>
+          <div class="field" id="cf-proyecto" onclick="activarCampo('proyecto')">
+            <div class="field-bar"></div>
+            <div class="field-lbl">Proyecto</div>
+            <div class="field-val empty" id="cv-proyecto"></div>
+            <i class="fas fa-chevron-down field-chev"></i>
+            <div class="field-expand"><div class="field-expand-inner"><div class="opts" id="sw-proyecto"></div></div></div>
+          </div>
+          <div class="field" id="cf-contacto" onclick="activarCampo('contacto')">
+            <div class="field-bar"></div>
+            <div class="field-lbl">Contacto</div>
+            <div class="field-val empty" id="cv-contacto"></div>
+            <i class="fas fa-chevron-down field-chev"></i>
+            <div class="field-expand"><div class="field-expand-inner"><div class="opts" id="sw-contacto"></div></div></div>
+          </div>
+          <div class="field" id="cf-concepto" onclick="abrirConcepto()">
+            <div class="field-bar"></div>
+            <div class="field-lbl">Concepto</div>
+            <div class="field-val empty" id="cv-concepto"></div>
+            <i class="fas fa-chevron-down field-chev"></i>
+          </div>
+          <div class="field" id="cf-monto" onclick="activarCampo('monto')">
+            <div class="field-bar"></div>
+            <div class="field-lbl">Monto</div>
+            <div class="field-val empty" id="cv-monto">$ 0.00</div>
+            <i class="fas fa-chevron-down field-chev"></i>
+            <div class="field-expand">
+              <div class="field-expand-inner">
+                <div class="monto-wrap">
+                  <div class="monto-signs">
+                    <button class="msign pos" id="sbp" onclick="setSign(1);event.stopPropagation()">+</button>
+                    <button class="msign" id="sbn" onclick="setSign(-1);event.stopPropagation()">−</button>
+                  </div>
+                  <input type="number" class="finput" id="monto" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="upM()">
+                </div>
+                <div class="mprev" id="mprev">$ 0.00</div>
+              </div>
+            </div>
+          </div>
+          <div class="field" id="cf-recurrencia" onclick="activarCampo('recurrencia')">
+            <div class="field-bar"></div>
+            <div class="field-lbl">Recurrencia</div>
+            <div class="field-val empty" id="cv-recurrencia"></div>
+            <i class="fas fa-chevron-down field-chev"></i>
+            <div class="field-expand"><div class="field-expand-inner"><div class="opts" id="sw-recurrencia"></div></div></div>
+          </div>
+          <div class="field" id="cf-necesidad" onclick="activarCampo('necesidad')">
+            <div class="field-bar"></div>
+            <div class="field-lbl">Necesidad</div>
+            <div class="field-val empty" id="cv-necesidad"></div>
+            <i class="fas fa-chevron-down field-chev"></i>
+            <div class="field-expand"><div class="field-expand-inner"><div class="opts" id="sw-necesidad"></div></div></div>
+          </div>
+          <div class="field" id="cf-clave" onclick="activarCampo('clave')">
+            <div class="field-bar"></div>
+            <div class="field-lbl">Clave</div>
+            <div class="field-val empty" id="cv-clave"></div>
+            <i class="fas fa-chevron-down field-chev"></i>
+            <div class="field-expand"><div class="field-expand-inner">
+              <input type="text" class="finput" id="clave" placeholder="Renta Enero, CFE E-F…" oninput="onClaveChange()">
+            </div></div>
+          </div>
+          <div class="save-res" id="save-res"><span id="res-ico"></span><span id="res-msg"></span></div>
+          <div class="form-actions">
+            <button class="btn-save" id="btnG" onclick="guardar()">
+              <div class="spin-sm" id="spin"></div>
+              <i class="fas fa-floppy-disk" id="bico"></i>
+              Guardar
+            </button>
+            <button class="btn-sm sec" onclick="limpiar()" title="Limpiar"><i class="fas fa-rotate-left"></i></button>
+            <button class="btn-sm suc" onclick="oPanel()" title="Gestionar Lista"><i class="fas fa-list-check"></i></button>
+            <button class="btn-sm lnk" onclick="irASheet()" title="Abrir Sheet"><i class="fas fa-table-cells"></i></button>
+          </div>
         </div>
       </div>
-      <div class="sec-body" id="sec-apartados-body">
-        <div id="apartados-body" style="text-align:center;padding:20px;color:var(--m)">
-          <i class="fas fa-circle-notch fa-spin" style="color:var(--warn)"></i>
+
+      <div class="section" id="sec-entes">
+        <div class="sec-hdr" onclick="togSec(this)" id="sec-entes-hdr">
+          <div class="sec-hdr-left">
+            <div class="sec-hdr-icon amber"><i class="fas fa-building-columns"></i></div>
+            <span class="sec-hdr-title">Bancos</span>
+          </div>
+          <div class="sec-hdr-right">
+            <span class="sec-hdr-val muted" id="entes-total"></span>
+            <i class="fas fa-chevron-down sec-chevron"></i>
+          </div>
+        </div>
+        <div class="sec-body" id="sec-entes-body">
+          <div id="entes-list" style="text-align:center;padding:20px;color:var(--m)">
+            <i class="fas fa-circle-notch fa-spin" style="color:var(--p)"></i>
+          </div>
+          <div id="form-banco-wrap" style="padding:12px var(--pad);border-top:1px solid rgba(255,255,255,.06)">
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:10px">
+              <i class="fas fa-plus" style="margin-right:4px"></i>Nuevo registro
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <input type="text" id="banco-nombre" class="finput" placeholder="Nombre del banco" style="font-size:13px;padding:9px 12px">
+              <input type="number" id="banco-monto" class="finput" placeholder="Monto" step="0.01" inputmode="decimal" style="font-size:13px;padding:9px 12px">
+              <input type="date" id="banco-fecha" class="finput" style="font-size:13px;padding:9px 12px">
+              <button onclick="guardarBanco()" class="btn-save" style="padding:11px;font-size:13px">
+                <i class="fas fa-floppy-disk"></i> Guardar en Bancos
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+
+      <div class="section" id="sec-apartados">
+        <div class="sec-hdr" onclick="togSec(this)" id="sec-apartados-hdr">
+          <div class="sec-hdr-left">
+            <div class="sec-hdr-icon" style="background:rgba(251,191,36,.12);color:var(--warn)"><i class="fas fa-piggy-bank"></i></div>
+            <span class="sec-hdr-title">Apartados</span>
+          </div>
+          <div class="sec-hdr-right">
+            <span class="sec-hdr-val muted" id="apartados-total"></span>
+            <i class="fas fa-chevron-down sec-chevron"></i>
+          </div>
+        </div>
+        <div class="sec-body" id="sec-apartados-body">
+          <div id="apartados-body" style="text-align:center;padding:20px;color:var(--m)">
+            <i class="fas fa-circle-notch fa-spin" style="color:var(--warn)"></i>
+          </div>
+        </div>
+      </div>
 
     </div><!-- /col1-wrap -->
 
-    <!-- VARIABLES -->
+    <!-- ═══ COL 3: Variables · Fijos ═══ -->
     <div class="section" id="sec-gastos">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-gastos-hdr">
         <div class="sec-hdr-left">
@@ -388,7 +352,7 @@
         <div style="border-top:1px solid var(--border)">
           <div style="display:flex;align-items:center;gap:8px;padding:10px 14px 6px">
             <div style="width:24px;height:24px;border-radius:7px;background:rgba(139,92,246,.15);display:flex;align-items:center;justify-content:center;font-size:12px;color:#8B5CF6"><i class="fas fa-chart-line"></i></div>
-            <span style="font-size:13px;font-weight:700;color:var(--m);letter-spacing:-.01em">Gráfica Variables</span>
+            <span style="font-size:13px;font-weight:700;color:var(--m)">Gráfica Variables</span>
           </div>
           <div id="sec-graficas-body" style="display:flex;flex-direction:column">
             <div style="padding:0 14px 6px">
@@ -403,7 +367,6 @@
       </div>
     </div>
 
-    <!-- FIJOS -->
     <div class="section" id="sec-anualidad">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-anualidad-hdr">
         <div class="sec-hdr-left">
@@ -419,7 +382,7 @@
         <div style="border-top:1px solid var(--border)">
           <div style="display:flex;align-items:center;gap:8px;padding:10px 14px 6px">
             <div style="width:24px;height:24px;border-radius:7px;background:rgba(6,182,212,.15);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--s)"><i class="fas fa-chart-line"></i></div>
-            <span style="font-size:13px;font-weight:700;color:var(--m);letter-spacing:-.01em">Gráfica Fijos</span>
+            <span style="font-size:13px;font-weight:700;color:var(--m)">Gráfica Fijos</span>
           </div>
           <div style="display:flex;flex-direction:column">
             <div style="padding:0 14px 6px">
@@ -434,9 +397,7 @@
       </div>
     </div>
 
-
-
-    <!-- PENSAMIENTOS -->
+    <!-- ═══ COL 4: Pensamientos · Relaciones · Salud ═══ -->
     <div class="section" id="sec-pensamientos">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-pensamientos-hdr">
         <div class="sec-hdr-left">
@@ -452,7 +413,6 @@
       </div>
     </div>
 
-    <!-- RELACIONES -->
     <div class="section" id="sec-relaciones">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-relaciones-hdr">
         <div class="sec-hdr-left">
@@ -468,7 +428,6 @@
       </div>
     </div>
 
-    <!-- SALUD -->
     <div class="section" id="sec-salud">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-salud-hdr">
         <div class="sec-hdr-left">
