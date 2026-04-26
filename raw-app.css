@@ -292,7 +292,7 @@ html,body{
   .saldo-val{font-size:32px}
   .sections{
     display:grid !important;
-    grid-template-columns:380px 420px 520px 520px;
+    grid-template-columns:minmax(300px,1fr) minmax(320px,1.1fr) minmax(400px,1.4fr) minmax(400px,1.4fr);
     grid-auto-rows:auto;
     gap:12px;
     padding:12px 20px;
@@ -300,13 +300,15 @@ html,body{
     overflow-y:auto;
     flex:1;
     min-width:0;
+    width:100%;
+    box-sizing:border-box;
   }
   /* Col 1 — Revisión · Financiero · Flujo */
   #sec-revision    { grid-column:1; grid-row:1; align-self:start; }
   #sec-financiero  { grid-column:1; grid-row:2; align-self:start; }
   #sec-flujo       { grid-column:1; grid-row:3; align-self:start; }
   /* Col 2 — Nueva Entrada · Bancos · Apartados */
-  #col1-wrap       { grid-column:2; grid-row:1 / span 3; display:flex; flex-direction:column; gap:12px; min-width:0; align-self:start; }
+  #col1-wrap       { grid-column:2; grid-row:1 / span 3; display:flex; flex-direction:column; gap:12px; min-width:0; max-width:100%; align-self:start; }
   /* Col 3 — Variables · Fijos */
   #sec-gastos      { grid-column:3; grid-row:1; align-self:start; }
   #sec-anualidad   { grid-column:3; grid-row:2; align-self:start; }
