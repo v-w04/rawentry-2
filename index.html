@@ -135,17 +135,34 @@
           <div class="sec-hdr-icon" style="background:rgba(139,92,246,.12);color:#C4B5FD"><i class="fas fa-brain"></i></div>
           <span class="sec-hdr-title">Revisión</span>
         </div>
-        <div class="sec-hdr-right">
-          <div style="display:flex;gap:4px">
-            <button onclick="event.stopPropagation();cargarRevision('semanal')" id="rev-btn-sem"
-              style="padding:3px 10px;border-radius:var(--rad-pill);font-size:10px;font-weight:600;
-              background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.4);color:#C4B5FD;
-              cursor:pointer;font-family:inherit">Semana</button>
-            <button onclick="event.stopPropagation();cargarRevision('mensual')" id="rev-btn-mes"
-              style="padding:3px 10px;border-radius:var(--rad-pill);font-size:10px;font-weight:500;
-              background:none;border:1px solid rgba(255,255,255,.1);color:var(--m);
-              cursor:pointer;font-family:inherit">Mes</button>
-          </div>
+        <div class="sec-hdr-right" onclick="event.stopPropagation()" style="gap:6px">
+          <select id="rev-sel-anio" onchange="onRevSelChange()"
+            style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+            border-radius:var(--rad-pill);color:rgba(255,255,255,.7);font-family:inherit;
+            font-size:10px;font-weight:600;padding:4px 8px;outline:none;cursor:pointer">
+            <option value="2026">2026</option>
+          </select>
+          <select id="rev-sel-mes" onchange="onRevSelChange()"
+            style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+            border-radius:var(--rad-pill);color:rgba(255,255,255,.7);font-family:inherit;
+            font-size:10px;font-weight:600;padding:4px 8px;outline:none;cursor:pointer">
+            <option value="">Mes</option>
+            <option value="1">Enero</option><option value="2">Febrero</option>
+            <option value="3">Marzo</option><option value="4">Abril</option>
+            <option value="5">Mayo</option><option value="6">Junio</option>
+            <option value="7">Julio</option><option value="8">Agosto</option>
+            <option value="9">Septiembre</option><option value="10">Octubre</option>
+            <option value="11">Noviembre</option><option value="12">Diciembre</option>
+          </select>
+          <select id="rev-sel-sem" onchange="onRevSelChange()"
+            style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+            border-radius:var(--rad-pill);color:rgba(255,255,255,.7);font-family:inherit;
+            font-size:10px;font-weight:600;padding:4px 8px;outline:none;cursor:pointer">
+            <option value="">Semana</option>
+            <option value="1">Semana 1</option><option value="2">Semana 2</option>
+            <option value="3">Semana 3</option><option value="4">Semana 4</option>
+            <option value="5">Semana 5</option>
+          </select>
           <i class="fas fa-chevron-down sec-chevron"></i>
         </div>
       </div>
