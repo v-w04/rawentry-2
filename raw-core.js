@@ -1032,19 +1032,3 @@ function _doEnviarSOS(mensaje, ubicacion, btn){
       if(btn){ btn.disabled=false; btn.textContent='🚨 SOS'; }
     });
 }
-
-// Update desktop grid for new sections
-(function(){
-  const style = document.createElement('style');
-  style.textContent = `
-    @media(min-width:900px){
-      #sec-financiero  { grid-column:1; grid-row:3; align-self:start; }
-      #sec-apartados   { grid-column:1; grid-row:4; align-self:start; }
-      #sec-revision    { grid-column:2; grid-row:2; align-self:start; }
-      #sec-pensamientos{ grid-column:3; grid-row:2; align-self:start; }
-      #sec-relaciones  { grid-column:2; grid-row:3; align-self:start; }
-      #sec-salud       { grid-column:3; grid-row:3; align-self:start; }
-    }
-  `;
-  document.head.appendChild(style);
-})();
