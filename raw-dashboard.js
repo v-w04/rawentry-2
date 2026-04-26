@@ -374,12 +374,18 @@ function renderRevision(data){
       </div>
     </div>` : ''}
 
-    ${data.maslow?.nivelDominante ? `
-    <div style="margin:0 var(--pad) 12px;padding:10px 14px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:var(--rad);font-size:12px">
-      <span style="color:var(--m)">Nivel Maslow dominante: </span>
-      <span style="color:#C4B5FD;font-weight:600">${data.maslow.nivelDominante.key}. ${['','Fisiológicas','Seguridad','Afiliación','Reconocimiento','Autorrealización'][data.maslow.nivelDominante.key]||''}</span>
-      <span style="color:var(--m);margin-left:6px">$ ${Math.abs(data.maslow.nivelDominante.total||0).toLocaleString('es-MX')}</span>
-    </div>` : ''}
+    ${(function(){
+      var nd = data.maslow && data.maslow.nivelDominante;
+      if(!nd) return '';
+      var key = typeof nd === 'object' ? String(nd.key) : String(nd);
+      var total = typeof nd === 'object' ? (nd.total||0) : 0;
+      var NMS = ['','Fisiológicas','Seguridad','Afiliación','Reconocimiento','Autorrealización'];
+      return '<div style="margin:0 var(--pad) 12px;padding:10px 14px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:var(--rad);font-size:12px">'
+        + '<span style="color:var(--m)">Nivel Maslow dominante: </span>'
+        + '<span style="color:#C4B5FD;font-weight:600">' + key + '. ' + (NMS[parseInt(key)]||'') + '</span>'
+        + (total ? '<span style="color:var(--m);margin-left:6px">$ ' + Math.abs(total).toLocaleString('es-MX') + '</span>' : '')
+        + '</div>';
+    })()}
   `;
 }
 
