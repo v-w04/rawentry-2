@@ -1,4 +1,4 @@
-/* RAW Entry — Dashboard v.4.025
+/* RAW Entry — Dashboard v.5.001
    Tablas Variables/Fijos · Flujo Mensual · Gráficas
    + Financiero Avanzado · Revisión · Relaciones · Salud · Apartados · Pensamientos
 */
@@ -234,7 +234,7 @@ function renderFinancieroAvanzado(data){
       </div>
       <div class="fin-card">
         <div class="fin-card-label">Runway</div>
-        <div class="fin-card-val" style="color:${runwayColor}">
+        <div class="fin-card-val runway-val ${runway===null?'':''}${runway!==null&&runway<=7?'low':runway!==null&&runway<=30?'mid':'ok'}" style="color:${runwayColor};font-size:${runway!==null&&runway<=30?'36px':'28px'} !important">
           ${runway!==null?runway+' días':'—'}
         </div>
         <div class="fin-card-sub">al ritmo actual</div>
