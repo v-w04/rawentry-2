@@ -377,7 +377,7 @@ html.mob .panel-overlay.show{display:block !important}
 .hero-chip.load .chip-dot{background:var(--m);animation:chipPulse 1s ease-in-out infinite}
 @keyframes chipPulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.4)}50%{box-shadow:0 0 0 5px rgba(74,222,128,0)}}
 
-.board-wrap{position:relative;width:100%;flex:1;overflow:hidden;overflow-y:auto}
+.board-wrap{position:relative;width:100%;flex:1;overflow-y:auto}
 .board-face{position:absolute;top:0;left:0;width:100%;height:100%;transition:opacity .2s ease;backface-visibility:hidden;overflow:hidden}
 .board-face.anverso{transform:none;opacity:1;pointer-events:all;padding:0;background:transparent}
 .board-face.anverso.slide-right{transform:none;opacity:0;pointer-events:none}
@@ -860,3 +860,111 @@ html.mob .hero-right{display:none !important}
 @media(max-width:899px){
   .hero-hamburger{display:flex;align-items:center;justify-content:center}
 }
+
+/* ══════════════════════════════════════════
+   DROPDOWN NUEVA ENTRADA
+══════════════════════════════════════════ */
+.entrada-dropdown{
+  position:fixed;
+  top:56px;
+  left:0;
+  right:0;
+  z-index:150;
+  display:none;
+  justify-content:center;
+  padding:0 20px;
+  animation:slideDown .2s ease;
+}
+.entrada-dropdown.show{display:flex}
+.entrada-dropdown-inner{
+  background:#111;
+  border:1px solid rgba(255,255,255,.1);
+  border-top:none;
+  border-radius:0 0 var(--rad-lg) var(--rad-lg);
+  width:100%;
+  max-width:520px;
+  box-shadow:0 20px 60px rgba(0,0,0,.8);
+  overflow:hidden;
+}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══════════════════════════════════════════
+   FORMATO UNIFICADO — CF rows
+══════════════════════════════════════════ */
+.cf{
+  display:flex;align-items:center;
+  padding:10px 16px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  cursor:pointer;position:relative;
+  transition:background .15s;
+  gap:0;
+}
+.cf:hover{background:rgba(255,255,255,.02)}
+.cf-label{
+  font-size:10px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em;
+  color:var(--m);width:96px;flex-shrink:0;
+}
+.cf-val-wrap{flex:1;min-width:0}
+.cf-val{font-size:14px;font-weight:500;color:var(--t);letter-spacing:-.02em}
+.cf-val.empty{color:var(--dim);font-weight:400}
+.cf-date{
+  background:none;border:none;color:var(--t);
+  font-family:inherit;font-size:14px;font-weight:500;
+  outline:none;cursor:pointer;-webkit-appearance:none;
+  letter-spacing:-.02em;width:100%;
+}
+.cf-date::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:pointer}
+.cf-text{
+  background:none;border:none;color:var(--t);
+  font-family:inherit;font-size:14px;width:100%;outline:none;
+  letter-spacing:-.02em;
+}
+.monto-input{
+  background:transparent;border:none;
+  color:var(--t);font-family:inherit;
+  font-size:22px;font-weight:700;
+  letter-spacing:-.03em;outline:none;
+  padding-left:90px;width:100%;
+}
+.sw{max-height:0;overflow:hidden;transition:max-height .25s ease;width:100%}
+.cf.active .sw{max-height:320px}
+.cf.active{background:rgba(255,255,255,.03)}
+
+/* Form actions dentro del dropdown */
+.entrada-dropdown-inner .form-actions{
+  padding:12px 16px;
+  border-top:1px solid rgba(255,255,255,.06);
+  gap:8px;
+}
+
+/* ══════════════════════════════════════════
+   SECCIONES — diseño unificado
+══════════════════════════════════════════ */
+.section{
+  background:rgba(18,18,18,.9);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 2px 12px rgba(0,0,0,.2);
+}
+.sec-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;
+  border-bottom:1px solid transparent;
+  transition:border-color .2s;
+}
+.sec-hdr.open{border-bottom-color:rgba(255,255,255,.06)}
+.sec-hdr-title{font-size:14px;font-weight:600;letter-spacing:-.02em;color:#fff}
+.sec-hdr-icon{
+  width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;
+}
+
+/* Toggle tabs compacto */
+#toggle-modo-wrap{
+  margin:8px 16px;
+  grid-template-columns:repeat(9,1fr);
+}
+.tab-entrada{font-size:10px;padding:5px 2px}
