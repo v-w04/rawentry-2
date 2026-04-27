@@ -219,19 +219,61 @@ function refreshTodo(){
 //  FINANCIERO AVANZADO
 // ══════════════════════════════════════════
 function renderFinancieroAvanzado(data){
+  // Called from getAll with financieroAvanzado data
+  // Merge into the unified CFO section
+  if(data && data.ok) _finData = data;
+  _renderCFO();
+}
+
+// ══════════════════════════════════════════
+//  CFO — Financiero + Revisión fusionados
+// ══════════════════════════════════════════
+var _finData = null;
+var _revData = null;
+var _revTipo = 'mensual';
+
+function onRevSelChange(){
+  const anio   = document.getElementById('rev-sel-anio')?.value || '2026';
+  const mes    = document.getElementById('rev-sel-mes')?.value  || '';
+  const semana = document.getElementById('rev-sel-sem')?.value  || '';
+  const tipo   = semana ? 'semanal' : mes ? 'mensual' : 'anual';
+  cargarRevision(tipo, anio, mes||null, semana||null);
+}
+
+function cargarRevision(tipo, anio, mes, semana){
+  _revTipo = tipo || 'mensual';
+  const body = document.getElementById('revision-body');
+  if(body) body.innerHTML='<div style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:#C4B5FD"></i></div>';
+  api.getRevision(_revTipo, anio, mes, semana)
+    .then(d=>{ _revData=d; _renderCFO(); })
+    .catch(()=>{});
+}
+
+function renderRevision(data){
+  _revData = data;
+  _renderCFO();
+}
+
+function _renderCFO(){
+  const fin  = _finData || {};
+  const m    = fin.metricas || {};
+  const mes  = fin.mes || {};
+  const rev  = _revData || {};
+  const id   = rev.identidad || {};
+  const ins  = rev.insights || [];
+  const log  = rev.logros || {};
+  const fin2 = rev.financiero || {};
+
   const body = document.getElementById('fin-avanzado-body');
   if(!body) return;
-  if(!data||!data.ok){ body.innerHTML='<div style="padding:16px;color:var(--m);text-align:center">Sin datos</div>'; return; }
 
-  const m  = data.metricas || {};
-  const mes = data.mes || {};
-  const hoy = data.hoy || {};
-
-  const runway = m.runwayDias;
+  const runway      = m.runwayDias;
   const runwayColor = runway===null?'var(--m)':runway<7?'var(--err)':runway<30?'var(--warn)':'var(--ok)';
   const ahorroColor = (m.porcentajeAhorro||0)<10?'var(--err)':(m.porcentajeAhorro||0)>=20?'var(--ok)':'var(--warn)';
+  const fmtM = v => '$ '+(Math.abs(v)||0).toLocaleString('es-MX',{minimumFractionDigits:0});
 
-  body.innerHTML = `
+  // ── Métricas vitales ──
+  const vitales = `
     <div class="fin-grid">
       <div class="fin-card">
         <div class="fin-card-label">Saldo actual</div>
@@ -241,7 +283,8 @@ function renderFinancieroAvanzado(data){
       </div>
       <div class="fin-card">
         <div class="fin-card-label">Runway</div>
-        <div class="fin-card-val runway-val ${runway===null?'':''}${runway!==null&&runway<=7?'low':runway!==null&&runway<=30?'mid':'ok'}" style="color:${runwayColor};font-size:${runway!==null&&runway<=30?'36px':'28px'} !important">
+        <div class="fin-card-val runway-val ${runway!==null&&runway<=7?'low':runway!==null&&runway<=30?'mid':'ok'}"
+          style="color:${runwayColor};font-size:${runway!==null&&runway<=30?'36px':'28px'} !important">
           ${runway!==null?runway+' días':'—'}
         </div>
         <div class="fin-card-sub">al ritmo actual</div>
@@ -256,8 +299,10 @@ function renderFinancieroAvanzado(data){
         <div class="fin-card-val" style="color:${ahorroColor}">${m.porcentajeAhorro||0}%</div>
         <div class="fin-card-sub">meta: ≥20%</div>
       </div>
-    </div>
+    </div>`;
 
+  // ── Este mes ──
+  const esteMes = `
     <div style="padding:0 var(--pad) 8px">
       <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px">Este mes</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
@@ -276,124 +321,65 @@ function renderFinancieroAvanzado(data){
           </div>
         </div>
       </div>
-    </div>
+    </div>`;
 
-    ${mes.proyeccion ? `
-    <div style="margin:0 var(--pad) 12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--rad)">
-      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px">
+  // ── Proyección ──
+  const proyeccion = mes.proyeccion ? `
+    <div style="margin:0 var(--pad) 8px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--rad)">
+      <div style="font-size:10px;font-weight:600;color:var(--m);margin-bottom:6px">
         📈 Proyección fin de mes (${mes.proyeccion.diasRestantes} días restantes)
       </div>
       <div style="display:flex;justify-content:space-between;font-size:13px">
         <span style="color:var(--m)">Egresos proyectados</span>
         <span style="color:var(--err);font-weight:600">$ ${(mes.proyeccion.egresos||0).toLocaleString('es-MX')}</span>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:6px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:4px">
         <span style="color:var(--m)">Excedente proyectado</span>
         <span style="color:${(mes.proyeccion.excedente||0)>=0?'var(--ok)':'var(--err)'};font-weight:700">
           ${fmtMoneda(mes.proyeccion.excedente).txt}
         </span>
       </div>
-    </div>` : ''}
-  `;
-}
+    </div>` : '';
 
-// ══════════════════════════════════════════
-//  REVISIÓN SEMANAL / MENSUAL
-// ══════════════════════════════════════════
-let _revData = null;
-let _revTipo = 'semanal';
-
-function onRevSelChange(){
-  // Called when any dropdown changes
-  const anio   = document.getElementById('rev-sel-anio')?.value || '2026';
-  const mes    = document.getElementById('rev-sel-mes')?.value  || '';
-  const semana = document.getElementById('rev-sel-sem')?.value  || '';
-  const tipo   = semana ? 'semanal' : mes ? 'mensual' : 'anual';
-  cargarRevision(tipo, anio, mes||null, semana||null);
-}
-
-function cargarRevision(tipo, anio, mes, semana){
-  _revTipo = tipo || 'mensual';
-  const body = document.getElementById('revision-body');
-  if(!body) return;
-  body.innerHTML='<div style="padding:24px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:#C4B5FD;font-size:18px"></i></div>';
-  api.getRevision(_revTipo, anio, mes, semana)
-    .then(d=>{ _revData=d; renderRevision(d); })
-    .catch(()=>{});
-}
-
-function renderRevision(data){
-  const body = document.getElementById('revision-body');
-  if(!body) return;
-  if(!data||!data.ok){ body.innerHTML='<div style="padding:16px;color:var(--m);text-align:center">Sin datos</div>'; return; }
-
-  const fin  = data.financiero || {};
-  const met  = data.metricas || {};
-  const id   = data.identidad || {};
-  const log  = data.logros || {};
-  const ins  = data.insights || [];
-
-  body.innerHTML = `
-    <div style="padding:8px var(--pad) 4px;font-size:11px;color:var(--m);display:flex;justify-content:space-between;align-items:center">
-      <span>${data.periodo.inicio} — ${data.periodo.fin}</span>
-      <span style="color:#C4B5FD;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em">${data.tipo||''}</span>
-    </div>
-
-    <div class="rev-score-wrap">
-      <div class="rev-score inv">
-        <div class="rev-score-num">${id.scoreInversionista||0}%</div>
-        <div class="rev-score-lbl">Inversionista</div>
+  // ── Análisis del período (Revisión) ──
+  var revHtml = '';
+  if(rev.ok){
+    const scoreInv = id.scoreInversionista||0;
+    const scoreCon = id.scoreConsumidor||0;
+    revHtml = `
+    <div id="revision-body" style="padding:0 var(--pad) 8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:11px;color:var(--m)">${rev.periodo?rev.periodo.inicio+' — '+rev.periodo.fin:''}</div>
+        <div style="font-size:10px;color:#C4B5FD;font-weight:600;text-transform:uppercase">${rev.tipo||''}</div>
       </div>
-      <div class="rev-score con">
-        <div class="rev-score-num">${id.scoreConsumidor||0}%</div>
-        <div class="rev-score-lbl">Consumidor</div>
-      </div>
-    </div>
-
-    <div style="padding:0 var(--pad) 12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-      <div class="fin-card" style="text-align:center">
-        <div class="fin-card-label">Ahorro</div>
-        <div class="fin-card-val" style="font-size:15px;color:${(met.porcentajeAhorro||0)>=20?'var(--ok)':'var(--warn)'}">
-          ${met.porcentajeAhorro||0}%
+      <div class="rev-score-wrap">
+        <div class="rev-score inv">
+          <div class="rev-score-num">${scoreInv}%</div>
+          <div class="rev-score-lbl">Inversionista</div>
+        </div>
+        <div class="rev-score con">
+          <div class="rev-score-num">${scoreCon}%</div>
+          <div class="rev-score-lbl">Consumidor</div>
         </div>
       </div>
-      <div class="fin-card" style="text-align:center">
-        <div class="fin-card-label">Logros ✓</div>
-        <div class="fin-card-val" style="font-size:15px;color:var(--ok)">${log.completados||0}</div>
-      </div>
-      <div class="fin-card" style="text-align:center">
-        <div class="fin-card-label">Runway</div>
-        <div class="fin-card-val" style="font-size:15px">${met.runwayDias!==null?(met.runwayDias+'d'):'—'}</div>
-      </div>
-    </div>
-
-    ${ins.length ? `
-    <div style="padding:0 var(--pad) 6px">
-      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:6px">💡 Insights</div>
-      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--rad);overflow:hidden">
-        ${ins.map(i=>`
-          <div class="insight-item">
+      ${ins.length ? `
+      <div style="margin-top:8px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:6px">💡 Insights</div>
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--rad);overflow:hidden">
+          ${ins.map(i=>`<div class="insight-item">
             <div class="insight-dot ${i.tipo}"></div>
             <span style="color:${i.tipo==='alerta'?'var(--err)':i.tipo==='positivo'?'var(--ok)':i.tipo==='identidad'?'#C4B5FD':'var(--m)'}">
               ${i.msg}
             </span>
           </div>`).join('')}
-      </div>
-    </div>` : ''}
+        </div>
+      </div>` : ''}
+    </div>`;
+  } else {
+    revHtml = '<div id="revision-body" style="padding:8px var(--pad);color:var(--m);font-size:12px;text-align:center">Selecciona período para ver análisis</div>';
+  }
 
-    ${(function(){
-      var nd = data.maslow && data.maslow.nivelDominante;
-      if(!nd) return '';
-      var key = typeof nd === 'object' ? String(nd.key) : String(nd);
-      var total = typeof nd === 'object' ? (nd.total||0) : 0;
-      var NMS = ['','Fisiológicas','Seguridad','Afiliación','Reconocimiento','Autorrealización'];
-      return '<div style="margin:0 var(--pad) 12px;padding:10px 14px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:var(--rad);font-size:12px">'
-        + '<span style="color:var(--m)">Nivel Maslow dominante: </span>'
-        + '<span style="color:#C4B5FD;font-weight:600">' + key + '. ' + (NMS[parseInt(key)]||'') + '</span>'
-        + (total ? '<span style="color:var(--m);margin-left:6px">$ ' + Math.abs(total).toLocaleString('es-MX') + '</span>' : '')
-        + '</div>';
-    })()}
-  `;
+  body.innerHTML = vitales + esteMes + proyeccion + revHtml;
 }
 
 // ══════════════════════════════════════════
