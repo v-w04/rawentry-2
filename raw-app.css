@@ -287,7 +287,7 @@ html,body{
 @media(min-width:900px){
   body{height:100vh;overflow:hidden}
   .app{max-width:100%;flex-direction:column;min-height:100vh}
-  .hero{width:100%;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+  .hero{width:100%;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:nowrap;height:56px}
   .saldo-label{justify-content:center}
   .saldo-val{font-size:32px}
   /* Sections: 4 columnas flex independientes — sin grid-row fijo */
@@ -324,6 +324,10 @@ html,body{
   .board-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
   .board-wrap::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.25)}
   #sheets-iframe-cont{height:calc(100vh - 120px)}
+  .hero-hamburger{display:none}
+  .hero-right{flex-wrap:nowrap;white-space:nowrap}
+  .saldo-date-input{white-space:nowrap}
+  #saldo-clock{white-space:nowrap}
 }
 @media(max-width:899px){
   .tbl-wrap{display:none!important}
