@@ -547,8 +547,6 @@ let _actData    = null;
 let _actVista   = 'habitos';
 let _actChecks  = {};
 
-  switchVistaAct('habitos');
-}
 
 function switchVistaAct(vista){
   _actVista = vista;
