@@ -125,58 +125,7 @@
 
   <div class="sections" id="mob-sections">
 
-    <!-- ═══ COL 1: Score · Revisión · Financiero ═══ -->
-    <div id="col-1">
-  <div class="section" id="sec-score-inline">
-    <div class="sec-hdr" onclick="togSec(this)" id="sec-score-inline-hdr">
-      <div class="sec-hdr-left">
-        <div class="sec-hdr-icon" style="background:rgba(139,92,246,.1);color:#C4B5FD"><i class="fas fa-star"></i></div>
-        <span class="sec-hdr-title">Score de Vida</span>
-      </div>
-      <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
-    </div>
-    <div class="sec-body" id="sec-score-inline-body"><div id="score-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
-  </div>
-  <div class="section" id="sec-financiero">
-    <div class="sec-hdr" onclick="togSec(this)" id="sec-financiero-hdr">
-      <div class="sec-hdr-left">
-        <div class="sec-hdr-icon" style="background:rgba(74,222,128,.12);color:var(--ok)"><i class="fas fa-chart-line"></i></div>
-        <span class="sec-hdr-title">Financiero</span>
-      </div>
-      <div class="sec-hdr-right" onclick="event.stopPropagation()" style="gap:6px">
-        <select id="rev-sel-anio" onchange="onRevSelChange()" style="background:#1a1a1a !important;color:#fff !important;border:1px solid rgba(255,255,255,.15) !important;border-radius:var(--rad-pill);font-family:inherit;font-size:10px;font-weight:600;padding:4px 20px 4px 8px;outline:none;cursor:pointer;max-width:64px;-webkit-appearance:none;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'8\' height=\'5\'%3E%3Cpath d=\'M0 0l4 5 4-5z\' fill=\'%23999\'/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 6px center">
-          <option value="2026">2026</option>
-        </select>
-        <select id="rev-sel-mes" onchange="onRevSelChange()" style="background:#1a1a1a !important;color:#fff !important;border:1px solid rgba(255,255,255,.15) !important;border-radius:var(--rad-pill);font-family:inherit;font-size:10px;font-weight:600;padding:4px 20px 4px 8px;outline:none;cursor:pointer;max-width:90px;-webkit-appearance:none;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'8\' height=\'5\'%3E%3Cpath d=\'M0 0l4 5 4-5z\' fill=\'%23999\'/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 6px center">
-          <option value="">Mes</option>
-          <option value="1">Enero</option><option value="2">Febrero</option>
-          <option value="3">Marzo</option><option value="4">Abril</option>
-          <option value="5">Mayo</option><option value="6">Junio</option>
-          <option value="7">Julio</option><option value="8">Agosto</option>
-          <option value="9">Septiembre</option><option value="10">Octubre</option>
-          <option value="11">Noviembre</option><option value="12">Diciembre</option>
-        </select>
-        <select id="rev-sel-sem" onchange="onRevSelChange()" style="background:#1a1a1a !important;color:#fff !important;border:1px solid rgba(255,255,255,.15) !important;border-radius:var(--rad-pill);font-family:inherit;font-size:10px;font-weight:600;padding:4px 20px 4px 8px;outline:none;cursor:pointer;max-width:90px;-webkit-appearance:none;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'8\' height=\'5\'%3E%3Cpath d=\'M0 0l4 5 4-5z\' fill=\'%23999\'/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 6px center">
-          <option value="">Semana</option>
-          <option value="1">Semana 1</option><option value="2">Semana 2</option>
-          <option value="3">Semana 3</option><option value="4">Semana 4</option>
-          <option value="5">Semana 5</option>
-        </select>
-        <i class="fas fa-chevron-down sec-chevron"></i>
-      </div>
-    </div>
-    <div class="sec-body" id="sec-financiero-body">
-      <div id="fin-avanzado-body">
-        <div style="padding:24px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:var(--ok)"></i></div>
-      </div>
-    </div><!-- /fin-avanzado -->
-    <div style="border-top:1px solid rgba(255,255,255,.06);margin-top:4px">
-      <div id="flujo-mensual-body" style="padding:8px 0"></div>
-    </div>
-    </div>
-  </div>
-
-    <!-- ═══ COL 2: Nueva Entrada · Bancos · Flujo ═══ -->
+    <!-- ═══ COL 1: Nueva Entrada · Score ═══ -->
     <div id="col1-wrap">
  <div class="section" id="sec-entrada">
  <div class="sec-hdr" onclick="togSec(this)" id="sec-entrada-hdr">
@@ -270,6 +219,57 @@
  </div>
  </div>
  </div>
+  <div class="section" id="sec-score-inline">
+    <div class="sec-hdr" onclick="togSec(this)" id="sec-score-inline-hdr">
+      <div class="sec-hdr-left">
+        <div class="sec-hdr-icon" style="background:rgba(139,92,246,.1);color:#C4B5FD"><i class="fas fa-star"></i></div>
+        <span class="sec-hdr-title">Score de Vida</span>
+      </div>
+      <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+    </div>
+    <div class="sec-body" id="sec-score-inline-body"><div id="score-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
+  </div>
+    </div>
+
+    <!-- ═══ COL 2: Financiero · Bancos ═══ -->
+    <div id="col-1">
+  <div class="section" id="sec-financiero">
+    <div class="sec-hdr" onclick="togSec(this)" id="sec-financiero-hdr">
+      <div class="sec-hdr-left">
+        <div class="sec-hdr-icon" style="background:rgba(74,222,128,.12);color:var(--ok)"><i class="fas fa-chart-line"></i></div>
+        <span class="sec-hdr-title">Financiero</span>
+      </div>
+      <div class="sec-hdr-right" onclick="event.stopPropagation()" style="gap:6px">
+        <select id="rev-sel-anio" onchange="onRevSelChange()" style="background:#1a1a1a !important;color:#fff !important;border:1px solid rgba(255,255,255,.15) !important;border-radius:var(--rad-pill);font-family:inherit;font-size:10px;font-weight:600;padding:4px 20px 4px 8px;outline:none;cursor:pointer;max-width:64px;-webkit-appearance:none;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'8\' height=\'5\'%3E%3Cpath d=\'M0 0l4 5 4-5z\' fill=\'%23999\'/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 6px center">
+          <option value="2026">2026</option>
+        </select>
+        <select id="rev-sel-mes" onchange="onRevSelChange()" style="background:#1a1a1a !important;color:#fff !important;border:1px solid rgba(255,255,255,.15) !important;border-radius:var(--rad-pill);font-family:inherit;font-size:10px;font-weight:600;padding:4px 20px 4px 8px;outline:none;cursor:pointer;max-width:90px;-webkit-appearance:none;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'8\' height=\'5\'%3E%3Cpath d=\'M0 0l4 5 4-5z\' fill=\'%23999\'/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 6px center">
+          <option value="">Mes</option>
+          <option value="1">Enero</option><option value="2">Febrero</option>
+          <option value="3">Marzo</option><option value="4">Abril</option>
+          <option value="5">Mayo</option><option value="6">Junio</option>
+          <option value="7">Julio</option><option value="8">Agosto</option>
+          <option value="9">Septiembre</option><option value="10">Octubre</option>
+          <option value="11">Noviembre</option><option value="12">Diciembre</option>
+        </select>
+        <select id="rev-sel-sem" onchange="onRevSelChange()" style="background:#1a1a1a !important;color:#fff !important;border:1px solid rgba(255,255,255,.15) !important;border-radius:var(--rad-pill);font-family:inherit;font-size:10px;font-weight:600;padding:4px 20px 4px 8px;outline:none;cursor:pointer;max-width:90px;-webkit-appearance:none;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'8\' height=\'5\'%3E%3Cpath d=\'M0 0l4 5 4-5z\' fill=\'%23999\'/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 6px center">
+          <option value="">Semana</option>
+          <option value="1">Semana 1</option><option value="2">Semana 2</option>
+          <option value="3">Semana 3</option><option value="4">Semana 4</option>
+          <option value="5">Semana 5</option>
+        </select>
+        <i class="fas fa-chevron-down sec-chevron"></i>
+      </div>
+    </div>
+    <div class="sec-body" id="sec-financiero-body">
+      <div id="fin-avanzado-body">
+        <div style="padding:24px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:var(--ok)"></i></div>
+      </div>
+    </div><!-- /fin-avanzado -->
+    <div style="border-top:1px solid rgba(255,255,255,.06);margin-top:4px">
+      <div id="flujo-mensual-body" style="padding:8px 0"></div>
+    </div>
+    </div>
   <div class="section" id="sec-entes">
     <div class="sec-hdr" onclick="togSec(this)" id="sec-entes-hdr">
       <div class="sec-hdr-left">
@@ -365,7 +365,7 @@
  </div>
     </div>
 
-    <!-- ═══ COL 4: Patrimonio · Apartados ═══ -->
+    <!-- ═══ COL 4: Patrimonio ═══ -->
     <div id="col-4">
     <div class="section" id="sec-patrimonio">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-patrimonio-hdr">
