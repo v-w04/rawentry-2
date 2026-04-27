@@ -810,3 +810,53 @@ html.mob .hero-right{display:none !important}
 .cf.active .sw{max-height:300px}
 .sec-add-btn{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:var(--m);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:all .2s;line-height:1}
 .sec-add-btn:hover{background:rgba(255,255,255,.15);color:#fff}
+
+/* ══════════════════════════════════════════
+   DISEÑO UNIFORME — todos los módulos
+══════════════════════════════════════════ */
+/* CF rows (form Nueva Entrada) — mismo estilo que .field */
+.cf{
+  display:flex;align-items:center;
+  padding:12px var(--pad);
+  border-bottom:1px solid rgba(255,255,255,.04);
+  cursor:pointer;position:relative;gap:8px;
+  min-height:48px;
+}
+.cf:last-of-type{border-bottom:none}
+.cf-label{
+  font-size:10px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em;
+  color:var(--m);width:90px;flex-shrink:0;
+}
+.cf-val-wrap{flex:1}
+.cf-val{font-size:15px;font-weight:500;color:var(--t);letter-spacing:-.02em}
+.cf-val.empty{color:var(--dim);font-weight:400}
+.cf-date{
+  background:none;border:none;color:var(--t);
+  font-family:inherit;font-size:15px;font-weight:500;
+  outline:none;cursor:pointer;-webkit-appearance:none;
+  letter-spacing:-.02em;
+}
+.cf-date::-webkit-calendar-picker-indicator{filter:invert(.5);cursor:pointer}
+.cf-text{
+  background:none;border:none;color:var(--t);
+  font-family:inherit;font-size:15px;width:100%;outline:none;
+  letter-spacing:-.02em;
+}
+/* Monto input unificado */
+.monto-input{
+  width:100%;background:transparent;border:none;
+  color:var(--t);font-family:inherit;font-size:22px;
+  font-weight:700;letter-spacing:-.03em;outline:none;
+  padding-left:90px;
+}
+/* sec-entrada mismo card que el resto */
+#sec-entrada{background:rgba(22,22,22,.75);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.06);border-radius:var(--rad);overflow:hidden;box-shadow:var(--shadow)}
+/* Toggle tabs — más compacto */
+#toggle-modo-wrap{margin:8px var(--pad);grid-template-columns:repeat(9,1fr)}
+.tab-entrada{font-size:10px;padding:6px 2px}
+/* Hamburger visible solo en móvil */
+.hero-hamburger{display:none;background:none;border:none;color:var(--m);cursor:pointer;font-size:16px;padding:4px}
+@media(max-width:899px){
+  .hero-hamburger{display:flex;align-items:center;justify-content:center}
+}
