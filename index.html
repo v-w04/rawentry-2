@@ -59,7 +59,7 @@
  <div class="hero-icon"><i class="fas fa-table-list"></i></div>
  <div>
  <div class="hero-title">Life<span style="color:var(--p)">OS</span></div>
- <div class="hero-sub">v.4.050 · Trello · Sheets</div>
+ <div class="hero-sub">v.5.001 · Trello · Sheets</div>
  </div>
  </div>
  <div class="hero-right-mob" style="display:none">
@@ -106,9 +106,7 @@
  ⚡ Activity
  </button>
  <button id="btn-sos" onclick="activarSOS()" title="SOS">🚨 SOS</button>
- <button class="btn-flip" id="btn-score" onclick="irAScore()" title="Score de Vida">
- ⚡ Score
- </button>
+ 
  <button class="btn-flip" id="btn-sheets" onclick="irASheets('raw')" title="RAW Sheet">
  📄 RAW
  </button>
@@ -460,7 +458,7 @@
  </div>
 
  <!-- PANEL MASLOW -->
- <div class="board-face panel-maslow" id="board-maslow">
+ <div class="board-face panel-maslow" id="board-maslow" style="overflow-y:auto;overflow-x:hidden;">
  <div class="reverso-header">
  <div style="display:flex;align-items:center;gap:10px">
  <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(139,92,246,.08));border:1px solid rgba(139,92,246,.3);display:flex;align-items:center;justify-content:center;font-size:14px">🧠</div>
