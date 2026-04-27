@@ -11,7 +11,7 @@
 // ══════════════════════════════════════════
 //  API HÍBRIDA
 // ══════════════════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycbytz5U_TaaE61H85pBdAsk_UUpMIfuKYopYH0kTzANJmCy8YYEfYO36uDRHhL6wI0maxw/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbz-yPy4aE1bqmNzAy6I4MIZRycIrTWaju-3xa7gk1nG1oLLgLP3YQCKPeY21SKzOX1N/exec';
 
 const EN_GAS = (function(){
   try {
