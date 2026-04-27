@@ -88,6 +88,7 @@ const api = {
   guardarAhorro:        (d) => EN_GAS ? gasRun('guardarAhorro', d) : apiPost('guardarAhorro', { datos: d }),
   guardarEfectivo:      (d) => EN_GAS ? gasRun('guardarEfectivo', d) : apiPost('guardarEfectivo', { datos: d }),
   guardarInversion:     (d) => EN_GAS ? gasRun('guardarInversion', d) : apiPost('guardarInversion', { datos: d }),
+  marcarActivityItem:   (tipo, fila, valor) => EN_GAS ? gasRun('marcarActivityItem', tipo, fila, valor) : apiPost('marcarActivityItem', { tipo, fila, valor }),
 };
 
 // ══════════════════════════════════════════
