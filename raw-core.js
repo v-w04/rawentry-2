@@ -93,6 +93,7 @@ const api = {
   guardarInversion:     (d) => EN_GAS ? gasRun('guardarInversion', d) : apiPost('guardarInversion', { datos: d }),
   marcarActivityItem:   (tipo, fila, valor) => EN_GAS ? gasRun('marcarActivityItem', tipo, fila, valor) : apiPost('marcarActivityItem', { tipo, fila, valor }),
   getNutricion:         () => EN_GAS ? gasRun('getNutricion') : apiGet('getNutricion'),
+  getMetasNutricion:    () => EN_GAS ? gasRun('getMetasNutricion') : apiGet('getMetasNutricion'),
   guardarNutricion:     (d) => EN_GAS ? gasRun('guardarNutricion', d) : apiPost('guardarNutricion', { datos: d }),
   getEntrenamiento:     () => EN_GAS ? gasRun('getEntrenamiento') : apiGet('getEntrenamiento'),
   guardarEntrenamiento: (d) => EN_GAS ? gasRun('guardarEntrenamiento', d) : apiPost('guardarEntrenamiento', { datos: d }),
