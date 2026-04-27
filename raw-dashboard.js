@@ -634,11 +634,7 @@ function renderChart(labels,datasets,titulo){
   ley.innerHTML=datasets.map(d=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:${d.borderColor};font-weight:${d.label==='Final'?'700':'400'}"><div style="width:16px;height:2px;background:${d.borderColor};border-radius:1px"></div>${d.label}</div>`).join('');
 }
 function syncFijosHeight(){
-  if(window.innerWidth<900)return;
-  const entrada=document.getElementById('sec-entrada');
-  if(!entrada)return;
-  const h=entrada.offsetHeight;
-  if(h>0)document.documentElement.style.setProperty('--entrada-h',h+'px');
+  // sec-entrada moved to popup, no sync needed
 }
 window.addEventListener('DOMContentLoaded',()=>{setTimeout(syncFijosHeight,300);});
 window.addEventListener('resize',syncFijosHeight);
