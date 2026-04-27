@@ -276,20 +276,7 @@ function _renderCFO(){
   // ── Métricas vitales ──
   const vitales = `
     <div class="fin-grid">
-      <div class="fin-card fin-card-saldo">
-        <div class="fin-card-label" style="display:flex;align-items:center;gap:6px">
-          <i class="fas fa-circle-dot" style="font-size:7px;color:var(--ok)"></i>SALDO ACTUAL
-        </div>
-        <div class="fin-card-val" style="color:${(m.saldoActual||0)>=0?'var(--ok)':'var(--err)'};font-size:24px">
-          ${fmtMoneda(m.saldoActual).txt}
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-          <input type="date" id="saldo-fecha" class="saldo-date-input" onchange="consultarSaldo()"
-            style="background:none;border:none;color:var(--m);font-family:inherit;font-size:11px;outline:none;-webkit-appearance:none;cursor:pointer;flex:1">
-          <button onclick="consultarSaldo()" class="saldo-refresh-btn" title="Actualizar saldo"><i class="fas fa-arrows-rotate"></i></button>
-          <button onclick="irASheet()" class="saldo-refresh-btn" title="Ver Sheet"><i class="fas fa-table-cells"></i></button>
-        </div>
-      </div>
+
       <div class="fin-card">
         <div class="fin-card-label">Runway</div>
         <div class="fin-card-val runway-val ${runway!==null&&runway<=7?'low':runway!==null&&runway<=30?'mid':'ok'}"
@@ -389,14 +376,7 @@ function _renderCFO(){
   }
 
   body.innerHTML = vitales + esteMes + proyeccion + revHtml;
-  // Inicializar fecha de saldo después de renderizar la tarjeta
-  const saldoFechaEl = document.getElementById('saldo-fecha');
-  if(saldoFechaEl){
-    const hoy = new Date();
-    const hoyStr = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
-    if(!saldoFechaEl.value) saldoFechaEl.value = hoyStr;
-    if(typeof consultarSaldo === 'function') consultarSaldo();
-  }
+
 }
 
 // ══════════════════════════════════════════
