@@ -380,8 +380,7 @@ html.mob .panel-overlay.show{display:block !important}
 .board-face.anverso.slide-left{transform:none;opacity:0;pointer-events:none}
 .board-face.panel-logros{transform:none;opacity:0;pointer-events:none;padding:12px 20px 24px}
 .board-face.panel-logros.active{transform:none;opacity:1;pointer-events:all}
-.board-face.panel-maslow{transform:none;opacity:0;pointer-events:none;padding:12px 20px 24px}
-.board-face.panel-maslow.active{transform:none;opacity:1;pointer-events:all}
+
 
 .btn-flip{display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:var(--rad-pill);font-size:11px;font-weight:600;letter-spacing:-.01em;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);cursor:pointer;font-family:inherit;transition:all .2s;white-space:nowrap}
 .btn-flip:hover{background:rgba(255,255,255,.13);color:#fff}
@@ -497,8 +496,7 @@ html.mob .hero-right{display:none !important}
   .mob-modulo-sub{font-size:11px;color:var(--m)}
 }
 
-.board-face.panel-activity{transform:none;opacity:0;pointer-events:none;padding:12px 20px 24px}
-.board-face.panel-activity.active{transform:none;opacity:1;pointer-events:all}
+
 
 /* ── PANEL SHEETS ── */
 .board-face.panel-sheets{transform:none;opacity:0;pointer-events:none;padding:0;display:flex;flex-direction:column;height:100%;overflow:hidden}
@@ -717,3 +715,19 @@ html.mob .hero-right{display:none !important}
   border-color:rgba(139,92,246,.5) !important;
   background-color:#222 !important;
 }
+
+.board-face.panel-maslow{transform:none;opacity:0;pointer-events:none;padding:0;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
+.board-face.panel-maslow.active{transform:none;opacity:1;pointer-events:all}
+.board-face.panel-maslow .reverso-header{flex-shrink:0}
+.board-face.panel-maslow .panel-body{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;padding:16px 20px;overflow-y:visible}
+.board-face.panel-maslow::-webkit-scrollbar{width:5px}
+.board-face.panel-maslow::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+.board-face.panel-activity{transform:none;opacity:0;pointer-events:none;padding:0;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
+.board-face.panel-activity.active{transform:none;opacity:1;pointer-events:all}
+.board-face.panel-activity::-webkit-scrollbar{width:5px}
+.board-face.panel-activity::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+/* ── Runway highlight ── */
+.runway-val{font-size:32px !important;font-weight:800 !important;letter-spacing:-.04em}
+.runway-val.low{color:#EF4444 !important;text-shadow:0 0 20px rgba(239,68,68,.4)}
+.runway-val.mid{color:#F59E0B !important;text-shadow:0 0 20px rgba(245,158,11,.3)}
+.runway-val.ok{color:#4ADE80 !important;text-shadow:0 0 20px rgba(74,222,128,.3)}
