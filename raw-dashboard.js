@@ -952,7 +952,8 @@ var _nutVista = 'hoy'; // hoy | semana
 function renderNutricion(data, metas){
   _nutData  = data  || _nutData;
   _nutMetas = metas || _nutMetas || { calorias:1800, proteina:150, carbos:180, grasa:60, agua:2.5 };
-  var body = document.getElementById('nutricion-body');
+  // Escribir en el panel activo: panel nutricion o sección en maslow
+  var body = document.getElementById('nut-panel-body') || document.getElementById('nutricion-body');
   if(!body) return;
   if(!_nutData||!_nutData.ok){
     body.innerHTML='<div style="padding:24px;text-align:center;color:var(--m)">Sin datos — agrega desde Nueva Entrada 🥗</div>';
