@@ -37,6 +37,7 @@
     <div class="hero-right">
       <span id="saldo-clock" style="font-size:11px;color:var(--m);margin-right:8px"></span>
       <div id="chip" class="hero-chip load"><span id="chip-txt">Cargando</span></div>
+      <button class="btn-flip" id="btn-nueva-entrada" onclick="abrirEntrada()" title="Nueva Entrada" style="background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#A5B4FC"><i class="fas fa-plus"></i> Nueva</button>
       <button class="btn-flip" id="btn-logros" onclick="irALogros()" title="Logros"><i class="fas fa-trophy"></i> Logros</button>
       <button class="btn-flip" id="btn-maslow" onclick="irAMaslow()" title="Maslow">⬡ Maslow</button>
       <button class="btn-flip" id="btn-activity" onclick="irAActivity()" title="Activity Check">⚡ Activity</button>
@@ -458,6 +459,74 @@
 
 <div id="gtip" class="gtip"></div>
 <div id="toast" class="toast"><i></i><span id="toast-msg"></span></div>
+
+<div id="popup-entrada" class="popup-overlay" onclick="cerrarEntrada(event)" style="display:none;z-index:200">
+  <div class="popup-box" style="max-width:480px;width:95%;max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">
+    <div class="popup-hdr">
+      <span class="popup-title">Nueva Entrada</span>
+      <button onclick="cerrarEntrada()" class="popup-close">✕</button>
+    </div>
+    <div id="popup-entrada-body">
+      <div id="tab-bar-entrada" style="padding:8px 12px 4px"></div>
+      <div id="wrap-entrada">
+        <div id="cf-fecha" class="cf done">
+          <div class="cf-label">Fecha</div>
+          <div class="cf-val-wrap"><input type="date" id="fecha" class="cf-date" onchange="onFechaChange()"></div>
+        </div>
+        <div id="cf-proyecto" class="cf" onclick="activarCampo('proyecto')">
+          <div class="cf-label">Proyecto</div>
+          <div class="cf-val-wrap"><span id="cv-proyecto" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-proyecto"></div>
+        </div>
+        <div id="cf-contacto" class="cf" onclick="activarCampo('contacto')">
+          <div class="cf-label">Contacto</div>
+          <div class="cf-val-wrap"><span id="cv-contacto" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-contacto"></div>
+        </div>
+        <div id="cf-concepto" class="cf" onclick="abrirConcepto()">
+          <div class="cf-label">Concepto</div>
+          <div class="cf-val-wrap"><span id="cv-concepto" class="cf-val empty">—</span></div>
+        </div>
+        <div id="cf-monto" class="cf" onclick="activarCampo('monto')">
+          <div class="cf-label">Monto</div>
+          <div class="cf-val-wrap">
+            <div class="monto-wrap">
+              <button id="sbp" class="msign pos" onclick="event.stopPropagation();setSign(1)">+</button>
+              <input type="number" id="monto" class="monto-input" step="0.01" inputmode="decimal" oninput="upM()" placeholder="0.00">
+              <button id="sbn" class="msign" onclick="event.stopPropagation();setSign(-1)">−</button>
+              <span id="mprev" class="mprev">$ 0.00</span>
+            </div>
+          </div>
+        </div>
+        <div id="cf-recurrencia" class="cf" onclick="activarCampo('recurrencia')">
+          <div class="cf-label">Recurrencia</div>
+          <div class="cf-val-wrap"><span id="cv-recurrencia" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-recurrencia"></div>
+        </div>
+        <div id="cf-necesidad" class="cf" onclick="activarCampo('necesidad')">
+          <div class="cf-label">Necesidad</div>
+          <div class="cf-val-wrap"><span id="cv-necesidad" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-necesidad"></div>
+        </div>
+        <div id="cf-clave" class="cf" onclick="activarCampo('clave')">
+          <div class="cf-label">Clave</div>
+          <div class="cf-val-wrap"><input type="text" id="clave" class="cf-text" placeholder="Opcional" onchange="onClaveChange()"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-save" id="btnG" onclick="guardar()">
+            <div class="spin-sm" id="spin" style="display:none"></div>
+            <i class="fas fa-floppy-disk" id="bico"></i> Guardar
+          </button>
+          <button class="btn-sm sec" onclick="limpiar()" title="Limpiar"><i class="fas fa-rotate-left"></i></button>
+          <button class="btn-sm sec" onclick="irASheets('raw')" title="RAW"><i class="fas fa-expand"></i></button>
+        </div>
+        <div id="save-res" class="save-res">
+          <span id="res-ico"></span> <span id="res-msg"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="popup-concepto" class="popup-overlay" onclick="cerrarConcepto(event)">
   <div class="popup-box">
     <div class="popup-hdr">
