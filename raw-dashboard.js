@@ -278,6 +278,19 @@ function _renderCFO(){
     <div class="fin-grid">
 
       <div class="fin-card">
+        <div class="fin-card-label" style="display:flex;align-items:center;gap:5px">
+          <i class="fas fa-circle-dot" style="font-size:7px;color:var(--ok)"></i> SALDO
+          <input type="date" id="saldo-fecha" class="saldo-date-input" onchange="consultarSaldo()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;color:var(--t);font-family:inherit;font-size:10px;padding:2px 6px;outline:none;cursor:pointer;-webkit-appearance:none;margin-left:4px">
+        </div>
+        <div id="saldo-val" class="fin-card-val" style="color:${(m.saldoActual||0)>=0?'var(--ok)':'var(--err)'};font-size:22px;margin:4px 0">
+          ${fmtMoneda(m.saldoActual).txt}
+        </div>
+        <div style="display:flex;gap:6px;margin-top:2px">
+          <button onclick="consultarSaldo()" class="saldo-refresh-btn" title="Actualizar" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:20px;color:var(--m);cursor:pointer;font-size:10px;padding:3px 8px;font-family:inherit"><i class="fas fa-arrows-rotate"></i> Actualizar</button>
+          <button onclick="irASheet()" class="saldo-refresh-btn" title="Ver Sheet" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:20px;color:var(--m);cursor:pointer;font-size:10px;padding:3px 8px;font-family:inherit"><i class="fas fa-table-cells"></i> Sheet</button>
+        </div>
+      </div>
+      <div class="fin-card">
         <div class="fin-card-label">Runway</div>
         <div class="fin-card-val runway-val ${runway!==null&&runway<=7?'low':runway!==null&&runway<=30?'mid':'ok'}"
           style="color:${runwayColor};font-size:${runway!==null&&runway<=30?'36px':'28px'} !important">
@@ -376,6 +389,15 @@ function _renderCFO(){
   }
 
   body.innerHTML = vitales + esteMes + proyeccion + revHtml;
+  // Inicializar saldo después de renderizar
+  setTimeout(function(){
+    const sf = document.getElementById('saldo-fecha');
+    if(sf && !sf.value){
+      const h = new Date();
+      sf.value = h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');
+    }
+    if(typeof consultarSaldo==='function') consultarSaldo();
+  }, 50);
 
 }
 
