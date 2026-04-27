@@ -210,30 +210,17 @@ function _guardarEntrenamiento(){
 }
 
 
-// ── Popup Nueva Entrada ──
+// ── Nueva Entrada — form en col1, sin popup ──
 function abrirEntrada(){
-  const p = document.getElementById('popup-entrada');
-  if(!p) return;
-  p.classList.add('show');
-  p.style.display = 'flex';
-  // Init tabs and date
+  // El form vive en col1-wrap visible en el grid — solo inicializar tabs y fecha
   if(typeof _inyectarToggleModo === 'function') _inyectarToggleModo();
   const fechaEl = document.getElementById('fecha');
   if(fechaEl && !fechaEl.value) fechaEl.value = fmtD(new Date());
-  // Focus
-  setTimeout(function(){ const m = document.getElementById('monto'); if(m) m.focus(); }, 100);
 }
 
-function cerrarEntrada(e){
-  if(e && e.target !== document.getElementById('popup-entrada')) return;
-  const p = document.getElementById('popup-entrada');
-  if(p){ p.classList.remove('show'); p.style.display = 'none'; }
+function cerrarEntrada(){
+  // No-op: sin popup
 }
-
-// Also close on Escape
-document.addEventListener('keydown', function(e){
-  if(e.key === 'Escape') cerrarEntrada();
-});
 
 // ══════════════════════════════════════════
 //  GUARDAR BANCO
