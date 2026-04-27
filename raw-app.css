@@ -292,16 +292,20 @@ html,body{
     display:flex;align-items:center;justify-content:space-between;
     gap:20px;flex-wrap:nowrap;height:52px;
   }
-  .hero-left{flex:0 0 auto;gap:12px}
-  .hero-center{flex:0 0 auto}
-  .hero-right{flex:0 0 auto;gap:8px}
-  .hero-title{font-size:15px;font-weight:700;letter-spacing:-.03em}
-  .hero-sub{font-size:10px;color:var(--m);letter-spacing:.01em;margin-top:0}
-  .saldo-val{font-size:28px;font-weight:700;letter-spacing:-.04em;line-height:1}
-  .hero-chip{font-size:11px;padding:4px 12px}
-  .btn-flip{font-size:11px;padding:4px 10px;gap:4px}
-  #btn-sos{font-size:11px;padding:4px 10px}
-  .saldo-date-input{font-size:11px}
+  .hero-left{flex:0 0 auto;gap:10px}
+  .hero-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .hero-right{flex:0 0 auto;gap:6px;flex-wrap:nowrap}
+  .hero-saldo-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
+  .hero-title{font-size:15px;font-weight:700;letter-spacing:-.03em;white-space:nowrap}
+  .hero-sub{font-size:10px;color:var(--m);letter-spacing:.01em;margin-top:0;white-space:nowrap}
+  .saldo-val{font-size:26px;font-weight:700;letter-spacing:-.04em;line-height:1}
+  .hero-chip{font-size:11px;padding:4px 10px;white-space:nowrap}
+  .btn-flip{font-size:11px;padding:4px 10px;gap:4px;white-space:nowrap}
+  #btn-sos{font-size:11px;padding:4px 10px;white-space:nowrap}
+  .saldo-date-input{font-size:11px;white-space:nowrap}
+  #saldo-clock{font-size:11px;white-space:nowrap}
+  /* Saldo controls en una línea */
+  .hero-saldo-wrap > div:first-child{display:flex;align-items:center;gap:4px;flex-wrap:nowrap}
   .saldo-label{justify-content:center}
   .saldo-val{font-size:32px}
   /* Sections: 4 columnas flex independientes — sin grid-row fijo */
