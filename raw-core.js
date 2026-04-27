@@ -204,6 +204,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       api.getPensamientos().then(renderPensamientos).catch(()=>{});
       api.getRelaciones().then(renderRelaciones).catch(()=>{});
       api.getSalud().then(renderSalud).catch(()=>{});
+      if(typeof cargarScore==='function') cargarScore();
       api.getPatrimonio().then(renderPatrimonio).catch(()=>renderPatrimonio({ok:true,total:0,
         banco:{saldo:0,pct:0,items:[]},fisico:{saldo:0,pct:0,items:[]},
         inversion:{saldo:0,pct:0,rendimientoTotal:0,items:[]},
