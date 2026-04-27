@@ -692,7 +692,7 @@ function _inyectarToggleModo(){
     <button id="btn-tab-patrimonio"  onclick="setModoEntrada('patrimonio')"  class="tab-entrada">🏦</button>
     <button id="btn-tab-nutricion"   onclick="setModoEntrada('nutricion')"   class="tab-entrada">🥗</button>
     <button id="btn-tab-entrenamiento" onclick="setModoEntrada('entrenamiento')" class="tab-entrada">💪</button>`;
-  const body = document.getElementById('sec-entrada-body') || document.getElementById('wrap-entrada');
+  const body = document.getElementById('wrap-entrada');
   if(body) body.insertBefore(wrap, body.firstChild);
 
   // ID input (hidden by default)
@@ -737,7 +737,7 @@ function setModoEntrada(modo){
   wraps.forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
 
   // Mostrar/ocultar campos base según tab
-  const camposBase = document.getElementById('sec-entrada-body');
+  const camposBase = document.getElementById('wrap-entrada');
   const formActions = document.querySelector('.form-actions');
 
   if(modo==='nueva'){
