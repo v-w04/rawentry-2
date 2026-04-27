@@ -43,7 +43,7 @@ html,body{
    PARTÍCULAS — FIX #13: sin duplicados
 ═══════════════════════════════════════════ */
 #bg{position:fixed;inset:0;background:#0a0a0a;z-index:0}
-#pts{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden}
+#pts{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .pt{position:absolute;width:3px;height:3px;border-radius:50%}
 .pt.blue{background:rgba(59,130,246,1);box-shadow:0 0 10px 4px rgba(59,130,246,.96),0 0 20px rgba(59,130,246,.72)}
 .pt.cyan{background:rgba(6,182,212,1);box-shadow:0 0 10px 4px rgba(6,182,212,.96),0 0 20px rgba(6,182,212,.72)}
@@ -53,7 +53,7 @@ html,body{
 /* ═══════════════════════════════════════════
    LAYOUT
 ═══════════════════════════════════════════ */
-.app{position:relative;z-index:1;width:100%;height:100vh;display:flex;flex-direction:column;background:transparent;overflow:hidden}
+.app{position:relative;z-index:2;width:100%;height:100vh;display:flex;flex-direction:column;background:transparent;overflow:hidden}
 
 .hero{
   background:rgba(0,0,0,.55);
