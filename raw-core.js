@@ -210,12 +210,45 @@ function _guardarEntrenamiento(){
 }
 
 
+
+// ══════════════════════════════════════════
+//  DROPDOWN NUEVA ENTRADA
+// ══════════════════════════════════════════
+function toggleEntradaDropdown(){
+  const dd = document.getElementById('entrada-dropdown');
+  const btn = document.getElementById('btn-nueva-entrada');
+  if(!dd) return;
+  const isOpen = dd.classList.contains('show');
+  if(isOpen){
+    dd.classList.remove('show');
+    dd.style.display = 'none';
+    if(btn) btn.classList.remove('active');
+  } else {
+    dd.classList.add('show');
+    dd.style.display = 'flex';
+    if(btn) btn.classList.add('active');
+    if(typeof _inyectarToggleModo === 'function') _inyectarToggleModo();
+    const fechaEl = document.getElementById('fecha');
+    if(fechaEl && !fechaEl.value) fechaEl.value = fmtD(new Date());
+    setTimeout(()=>{ const m=document.getElementById('monto'); if(m) m.focus(); }, 100);
+  }
+}
+
+// Cerrar dropdown al hacer click fuera
+document.addEventListener('click', function(e){
+  const dd = document.getElementById('entrada-dropdown');
+  const btn = document.getElementById('btn-nueva-entrada');
+  if(!dd || !dd.classList.contains('show')) return;
+  if(!dd.contains(e.target) && e.target !== btn && !btn?.contains(e.target)){
+    dd.classList.remove('show');
+    dd.style.display = 'none';
+    if(btn) btn.classList.remove('active');
+  }
+});
+
 // ── Nueva Entrada — form en col1, sin popup ──
 function abrirEntrada(){
-  // El form vive en col1-wrap visible en el grid — solo inicializar tabs y fecha
-  if(typeof _inyectarToggleModo === 'function') _inyectarToggleModo();
-  const fechaEl = document.getElementById('fecha');
-  if(fechaEl && !fechaEl.value) fechaEl.value = fmtD(new Date());
+  toggleEntradaDropdown();
 }
 
 function cerrarEntrada(){
