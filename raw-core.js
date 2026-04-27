@@ -292,10 +292,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   const fechaEl=document.getElementById('fecha');
   if(fechaEl) fechaEl.value=hoy;
   _inyectarToggleModo();
-  const saldoFechaEl=document.getElementById('saldo-fecha');
-  if(saldoFechaEl) saldoFechaEl.value=hoy;
-  actualizarResumenFecha(hoy);
-  consultarSaldo();
+  // saldo se inicializa desde _renderCFO
 
   setChip('load','Cargando');
   api.getAll()
