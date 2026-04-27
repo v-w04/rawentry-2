@@ -532,4 +532,26 @@
     </div>
     <div class="sec-body" id="sec-score-inline-body"><div id="score-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
   </div>
- </div>
+</div><!-- /board-maslow -->
+
+</div><!-- /board-wrap -->
+</div><!-- /app -->
+
+<div id="gtip" class="gtip"></div>
+<div id="toast" class="toast"><i></i><span id="toast-msg"></span></div>
+<div id="popup-concepto" class="popup-overlay" onclick="cerrarConcepto(event)">
+  <div class="popup-box">
+    <div class="popup-hdr">
+      <span class="popup-title">Concepto</span>
+      <button onclick="document.getElementById('popup-concepto').classList.remove('show')" class="popup-close">✕</button>
+    </div>
+    <input id="pop-search" class="pop-search" type="text" placeholder="Buscar…" oninput="filtrarConcepto()">
+    <div id="pop-body" class="popup-body"></div>
+  </div>
+</div>
+
+<script src="raw-core.js"></script>
+<script src="raw-dashboard.js"></script>
+<script src="raw-logros.js"></script>
+</body>
+</html>
