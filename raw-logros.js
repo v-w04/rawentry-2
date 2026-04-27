@@ -613,7 +613,7 @@ function dibujarHabitos(cont, habitos, esElectronics){
   var dias   = _getDiasEstaSemanaMX();
   var hoy    = new Date().toISOString().slice(0,10);
   var color  = esElectronics ? '#3B82F6' : '#4ADE80';
-  var thead = '<div style="display:grid;grid-template-columns:1fr '+dias.map(function(){return '36px';}).join(' ')+';gap:6px;align-items:center;padding:0 0 8px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:8px">' +
+  var thead = '<div style="display:grid;grid-template-columns:minmax(160px,1fr) '+dias.map(function(){return '36px';}).join(' ')+';gap:6px;align-items:center;padding:0 0 8px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:8px">' +
     '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Hábito</div>' +
     dias.map(function(d){ return '<div style="text-align:center;font-size:9px;font-weight:600;color:'+(d.date===hoy?'var(--ok)':'var(--m)')+';letter-spacing:.04em">'+d.label+'</div>'; }).join('') +
   '</div>';
@@ -632,12 +632,13 @@ function dibujarHabitos(cont, habitos, esElectronics){
     }).join('');
     var total = dias.filter(function(d){ return !!_actChecks[hab.nombre+'_'+semana+'_'+d.date]; }).length;
     var pct   = Math.round(total/7*100);
-    return '<div style="display:grid;grid-template-columns:1fr '+dias.map(function(){return '36px';}).join(' ')+';gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
+    return '<div style="display:grid;grid-template-columns:minmax(160px,1fr) '+dias.map(function(){return '36px';}).join(' ')+';gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
       '<div><div style="font-size:13px;font-weight:500;color:var(--t)">'+hab.nombre+'</div>' +
       '<div style="font-size:10px;color:var(--m);margin-top:2px">'+(hab.recurrencia||'Eventual')+' · '+total+'/7 días</div>' +
       '<div style="height:2px;background:rgba(255,255,255,.06);border-radius:1px;margin-top:4px;overflow:hidden">' +
       '<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:1px;opacity:.7"></div></div></div>'+checks+'</div>';
   }).join('');
+  cont.style.maxWidth = '860px';
   cont.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">' +
     '<div style="font-size:11px;color:var(--m)">Semana '+semana+'</div>' +
     '<button onclick="guardarChecks()" style="padding:6px 14px;border-radius:var(--rad-pill);background:'+color+';color:#000;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">' +
