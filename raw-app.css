@@ -987,51 +987,32 @@ html.mob .hero-right{display:none !important}
 }
 .tab-entrada{font-size:10px;padding:5px 2px}
 
-/* ══════════════════════════════════════════
-   HERO — layout final compacto
-══════════════════════════════════════════ */
+
+/* ══ HERO FINAL — una sola línea ══ */
 @media(min-width:900px){
-  .hero{height:52px;padding:0 20px;gap:0}
-  .hero-left{flex:0 0 auto;padding-right:20px;border-right:1px solid rgba(255,255,255,.06)}
-  .hero-center{flex:1;display:flex;align-items:center;justify-content:center}
-  .hero-right{flex:0 0 auto;padding-left:16px;gap:6px}
-  .hero-saldo-wrap{display:flex;align-items:baseline;gap:16px}
-  .saldo-label{
-    display:flex;align-items:center;gap:5px;
-    font-size:10px;font-weight:600;text-transform:uppercase;
-    letter-spacing:.06em;color:var(--m);
-    white-space:nowrap;margin-bottom:0;
+  .hero{
+    height:48px !important;
+    padding:0 20px !important;
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    flex-wrap:nowrap !important;
+    gap:16px !important;
   }
-  .saldo-date-input{
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.1);
-    border-radius:var(--rad-pill);
-    color:var(--t);font-family:inherit;
-    font-size:10px;font-weight:500;
-    padding:2px 8px;outline:none;
-    cursor:pointer;letter-spacing:.02em;
-    -webkit-appearance:none;
-  }
-  .saldo-date-input::-webkit-calendar-picker-indicator{
-    filter:invert(.5);cursor:pointer;width:10px;height:10px;
-  }
-  .saldo-val{
-    font-size:28px;font-weight:700;
-    letter-spacing:-.04em;line-height:1;
-    margin-bottom:0;
-  }
-  .saldo-refresh-btn{
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:var(--rad-pill);
-    color:var(--m);cursor:pointer;
-    font-size:10px;padding:3px 7px;
-    transition:all .2s;
-  }
-  .saldo-refresh-btn:hover{color:#fff;background:rgba(255,255,255,.12)}
-  .hero-title{font-size:14px}
-  .hero-sub{font-size:9px}
-  .btn-flip{font-size:10px;padding:4px 9px}
-  #btn-sos{font-size:10px;padding:4px 9px}
-  .hero-chip{font-size:10px;padding:4px 9px}
+  .hero-left{flex:0 0 auto !important;display:flex;align-items:center;gap:8px}
+  .hero-center{flex:1 !important;display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:center !important;gap:8px !important}
+  .hero-right{flex:0 0 auto !important;display:flex !important;align-items:center !important;gap:6px !important;flex-wrap:nowrap !important}
+  .hero-saldo-wrap{display:flex !important;flex-direction:row !important;align-items:center !important;gap:8px !important}
+  .saldo-label{display:flex !important;align-items:center !important;gap:4px !important;font-size:10px !important;font-weight:600 !important;text-transform:uppercase !important;letter-spacing:.06em !important;color:var(--m) !important;white-space:nowrap !important;margin:0 !important}
+  .saldo-val{font-size:22px !important;font-weight:700 !important;letter-spacing:-.04em !important;line-height:1 !important;white-space:nowrap !important;margin:0 !important}
+  .saldo-date-input{font-size:10px !important;padding:2px 6px !important;background:rgba(255,255,255,.06) !important;border:1px solid rgba(255,255,255,.1) !important;border-radius:20px !important;color:var(--t) !important;font-family:inherit !important;outline:none !important;cursor:pointer !important;-webkit-appearance:none !important;white-space:nowrap !important}
+  .saldo-date-input::-webkit-calendar-picker-indicator{filter:invert(.5);width:10px;height:10px}
+  .saldo-refresh-btn{font-size:10px !important;padding:3px 7px !important;background:rgba(255,255,255,.06) !important;border:1px solid rgba(255,255,255,.08) !important;border-radius:20px !important;color:var(--m) !important;cursor:pointer !important;line-height:1 !important}
+  .hero-title{font-size:14px !important;white-space:nowrap !important}
+  .hero-sub{font-size:9px !important;white-space:nowrap !important}
+  .hero-brand{gap:6px !important}
+  .btn-flip{font-size:10px !important;padding:4px 9px !important;white-space:nowrap !important}
+  #btn-sos{font-size:10px !important;padding:4px 9px !important;white-space:nowrap !important}
+  .hero-chip{font-size:10px !important;padding:4px 9px !important;white-space:nowrap !important}
+  .hero-hamburger{display:none !important}
 }
