@@ -986,3 +986,52 @@ html.mob .hero-right{display:none !important}
   grid-template-columns:repeat(9,1fr);
 }
 .tab-entrada{font-size:10px;padding:5px 2px}
+
+/* ══════════════════════════════════════════
+   HERO — layout final compacto
+══════════════════════════════════════════ */
+@media(min-width:900px){
+  .hero{height:52px;padding:0 20px;gap:0}
+  .hero-left{flex:0 0 auto;padding-right:20px;border-right:1px solid rgba(255,255,255,.06)}
+  .hero-center{flex:1;display:flex;align-items:center;justify-content:center}
+  .hero-right{flex:0 0 auto;padding-left:16px;gap:6px}
+  .hero-saldo-wrap{display:flex;align-items:baseline;gap:16px}
+  .saldo-label{
+    display:flex;align-items:center;gap:5px;
+    font-size:10px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.06em;color:var(--m);
+    white-space:nowrap;margin-bottom:0;
+  }
+  .saldo-date-input{
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:var(--rad-pill);
+    color:var(--t);font-family:inherit;
+    font-size:10px;font-weight:500;
+    padding:2px 8px;outline:none;
+    cursor:pointer;letter-spacing:.02em;
+    -webkit-appearance:none;
+  }
+  .saldo-date-input::-webkit-calendar-picker-indicator{
+    filter:invert(.5);cursor:pointer;width:10px;height:10px;
+  }
+  .saldo-val{
+    font-size:28px;font-weight:700;
+    letter-spacing:-.04em;line-height:1;
+    margin-bottom:0;
+  }
+  .saldo-refresh-btn{
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:var(--rad-pill);
+    color:var(--m);cursor:pointer;
+    font-size:10px;padding:3px 7px;
+    transition:all .2s;
+  }
+  .saldo-refresh-btn:hover{color:#fff;background:rgba(255,255,255,.12)}
+  .hero-title{font-size:14px}
+  .hero-sub{font-size:9px}
+  .btn-flip{font-size:10px;padding:4px 9px}
+  #btn-sos{font-size:10px;padding:4px 9px}
+  .hero-chip{font-size:10px;padding:4px 9px}
+}
