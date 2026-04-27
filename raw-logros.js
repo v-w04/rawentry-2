@@ -1,3 +1,12 @@
+// RAW Entry — Logros + Activity + Maslow
+// ══════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════
+let _pantalla       = 'anverso';
+let _boardFlipped   = false;
+let _ordenLogros    = 'az';
+let _reversoMostrarDone = false;
+
 function setOrdenLogros(orden) {
   _ordenLogros = orden;
   ['az','desc','asc'].forEach(k => {
@@ -13,13 +22,11 @@ function setOrdenLogros(orden) {
 function _setPantalla(p){
   _pantalla = p;
   _boardFlipped = (p !== 'anverso');
-
   const anv    = document.getElementById('board-anverso');
   const logros = document.getElementById('board-logros');
   const maslow = document.getElementById('board-maslow');
   const act    = document.getElementById('board-activity');
   const sheets = document.getElementById('board-sheets');
-
   anv.classList.remove('slide-left','slide-right');
   if(logros) logros.classList.remove('active');
   if(maslow) maslow.classList.remove('active');
@@ -27,25 +34,15 @@ function _setPantalla(p){
   if(sheets) sheets.classList.remove('active');
   const scoreP = document.getElementById('board-score');
   if(scoreP) scoreP.classList.remove('active');
-
-  if(p === 'logros'){
-    anv.classList.add('slide-left');
-    if(logros) logros.classList.add('active');
-  } else if(p === 'maslow'){
-    anv.classList.add('slide-right');
-    if(maslow) maslow.classList.add('active');
-  } else if(p === 'activity'){
-    anv.classList.add('slide-right');
-    if(act) act.classList.add('active');
-  } else if(p.startsWith('sheets_')){
-    anv.classList.add('slide-right');
-    if(sheets) sheets.classList.add('active');
-  } else if(p === 'score'){
+  if(p === 'logros'){ anv.classList.add('slide-left'); if(logros) logros.classList.add('active'); }
+  else if(p === 'maslow'){ anv.classList.add('slide-right'); if(maslow) maslow.classList.add('active'); }
+  else if(p === 'activity'){ anv.classList.add('slide-right'); if(act) act.classList.add('active'); }
+  else if(p.startsWith('sheets_')){ anv.classList.add('slide-right'); if(sheets) sheets.classList.add('active'); }
+  else if(p === 'score'){
     anv.classList.add('slide-right');
     const scorePanel = document.getElementById('board-score');
     if(scorePanel) scorePanel.classList.add('active');
   }
-
   const bL = document.getElementById('btn-logros');
   const bM = document.getElementById('btn-maslow');
   const bA = document.getElementById('btn-activity');
@@ -59,19 +56,8 @@ function _setPantalla(p){
   if(typeof _syncMobTab==='function') _syncMobTab(p);
 }
 
-function irALogros(){
-  if(_pantalla==='logros'){ volverAlAnverso(); return; }
-  _setPantalla('logros');
-  pintarReverso();
-}
-
-function irAMaslow(){
-  if(_pantalla==='maslow'){ volverAlAnverso(); return; }
-  _setPantalla('maslow');
-  poblarFiltrosMes();
-  dibujarNecesidades();
-}
-
+function irALogros(){ if(_pantalla==='logros'){ volverAlAnverso(); return; } _setPantalla('logros'); pintarReverso(); }
+function irAMaslow(){ if(_pantalla==='maslow'){ volverAlAnverso(); return; } _setPantalla('maslow'); poblarFiltrosMes(); dibujarNecesidades(); }
 function irAActivity(){
   if(_pantalla==='activity'){ volverAlAnverso(); return; }
   _setPantalla('activity');
@@ -82,21 +68,9 @@ function irAActivity(){
     api.getActivityCheck().then(function(d){ _actData=d; renderActivity(); }).catch(function(){});
   }
 }
-
-function irAScore(){
-  if(_pantalla==='score'){ volverAlAnverso(); return; }
-  _setPantalla('score');
-  cargarScore();
-}
-
-function volverAlAnverso(){
-  _setPantalla('anverso');
-}
-
-function flipBoard(){
-  if(_pantalla==='anverso') irALogros();
-  else volverAlAnverso();
-}
+function irAScore(){ if(_pantalla==='score'){ volverAlAnverso(); return; } _setPantalla('score'); cargarScore(); }
+function volverAlAnverso(){ _setPantalla('anverso'); }
+function flipBoard(){ if(_pantalla==='anverso') irALogros(); else volverAlAnverso(); }
 
 function poblarFiltrosReverso(){
   const proyectos = [...new Set(_logrosRaw.map(it=>it.proyecto))].sort();
@@ -111,20 +85,15 @@ function toggleReversoMostrarDone(){
   _reversoMostrarDone = !_reversoMostrarDone;
   const btn = document.getElementById('reverso-tog-done');
   if(btn){
-    btn.innerHTML = _reversoMostrarDone
-      ? '<i class="fas fa-eye"></i> Completados'
-      : '<i class="fas fa-eye-slash"></i> Completados';
+    btn.innerHTML = _reversoMostrarDone ? '<i class="fas fa-eye"></i> Completados' : '<i class="fas fa-eye-slash"></i> Completados';
     btn.style.background = _reversoMostrarDone ? 'rgba(34,197,94,.2)' : 'rgba(34,197,94,.08)';
   }
   pintarReverso();
 }
 
 function resetReverso(){
-  ['reverso-fil-proyecto','reverso-fil-grupo'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.value='';
-  });
-  _ordenLogros = 'az';
-  setOrdenLogros('az');
+  ['reverso-fil-proyecto','reverso-fil-grupo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  _ordenLogros = 'az'; setOrdenLogros('az');
 }
 
 function pintarReverso(){
@@ -133,26 +102,21 @@ function pintarReverso(){
   const filP  = document.getElementById('reverso-fil-proyecto')?.value||'';
   const filG  = document.getElementById('reverso-fil-grupo')?.value||'';
   const orden = _ordenLogros || 'az';
-
   let items = _logrosRaw.filter(it=>{
     if(!_reversoMostrarDone && it.completado) return false;
     if(filP && it.proyecto!==filP) return false;
     if(filG && it.grupo!==filG) return false;
     return true;
   });
-
   if(orden==='az') items.sort((a,b)=>a.concepto.localeCompare(b.concepto,'es'));
   else if(orden==='monto') items.sort((a,b)=>(Math.abs(a.monto||0))-(Math.abs(b.monto||0)));
   else if(orden==='monto-desc') items.sort((a,b)=>(Math.abs(b.monto||0))-(Math.abs(a.monto||0)));
-
   const total = _logrosRaw.length;
   const done  = _logrosRaw.filter(it=>it.completado).length;
   const cnt   = document.getElementById('reverso-count');
   if(cnt) cnt.textContent = `${done} completados · ${total-done} pendientes`;
-
   const grid = document.getElementById('inv-grid-full');
   if(!grid) return;
-
   if(!items.length){
     grid.innerHTML=`<div style="text-align:center;padding:48px;color:var(--m);grid-column:1/-1">
       <div style="font-size:48px;margin-bottom:12px">🏆</div>
@@ -160,7 +124,6 @@ function pintarReverso(){
     </div>`;
     return;
   }
-
   grid.innerHTML = items.map((it,i)=>{
     const icon   = getLogroIcon(it);
     const label  = it.concepto;
@@ -169,7 +132,6 @@ function pintarReverso(){
     const tooltip= [label,monto,it.proyecto,it.fecha].filter(Boolean).join(' · ');
     const isDone = it.completado;
     const isInc  = it.incompleto;
-    // FIX #12: use fila as stable identifier, not grid index
     const uid    = it.fila || ('tmp_'+i);
     return `<div class="inv-item${isDone?' done':''}${isInc?' inc':''}"
       title="${tooltip}" data-uid="${uid}" onclick="toggleLogroReverso('${uid}')">
@@ -177,8 +139,7 @@ function pintarReverso(){
         <i class="fas fa-${isDone?'check':isInc?'exclamation':'lock'}"></i>
       </div>
       <div class="inv-icon" style="opacity:${isDone?.5:1}">${icon}</div>
-      <div class="inv-label" style="color:${isDone?'var(--m)':isInc?'var(--warn)':'var(--t)'};
-        text-decoration:${isDone?'line-through':'none'}">
+      <div class="inv-label" style="color:${isDone?'var(--m)':isInc?'var(--warn)':'var(--t)'};text-decoration:${isDone?'line-through':'none'}">
         ${label.length>28?label.slice(0,27)+'…':label}
       </div>
       ${monto?`<div class="inv-monto" style="opacity:${isDone?.5:1}">${monto}</div>`:''}
@@ -189,7 +150,6 @@ function pintarReverso(){
 }
 
 function toggleLogroReverso(uid){
-  // FIX #12: find by stable uid (fila), not by grid index which shifts with filters
   const item = _logrosRaw.find(it=>{
     const itUid = it.fila ? String(it.fila) : null;
     return itUid === String(uid) || ('tmp_'+_logrosRaw.indexOf(it)) === String(uid);
@@ -269,9 +229,8 @@ function getLogroIcon(it) {
     const kl = k.toLowerCase();
     if(conc.includes(kl)||grupo.includes(kl)||proj.includes(kl)) return LOGROS_ICON_MAP[k];
   }
-  if(conc.includes('serie')||conc.includes('anime')||conc.includes('leveling')||conc.includes('hero')) return LOGROS_ICON_MAP['Movies'];
-  if(conc.includes('leer')||conc.includes('lectura')||conc.includes('pmp')) return LOGROS_ICON_MAP['Lectura'];
-  if(conc.includes('calcet')||conc.includes('playera')) return LOGROS_ICON_MAP['Ropa'];
+  if(conc.includes('serie')||conc.includes('anime')) return LOGROS_ICON_MAP['Movies'];
+  if(conc.includes('leer')||conc.includes('lectura')) return LOGROS_ICON_MAP['Lectura'];
   if(grupo.includes('audio')) return LOGROS_ICON_MAP['Audio'];
   if(grupo.includes('computación')||grupo.includes('computacion')) return LOGROS_ICON_MAP['Computación'];
   if(grupo.includes('consumible')) return LOGROS_ICON_MAP['Consumible'];
@@ -325,10 +284,7 @@ const NEC_NIVELES = [
 
 let _necMesesSeleccionados = new Set();
 
-function renderNecesidades(data){
-  _necData = data;
-  if(_pantalla==='maslow'){ poblarFiltrosMes(); dibujarNecesidades(); }
-}
+function renderNecesidades(data){ _necData = data; if(_pantalla==='maslow'){ poblarFiltrosMes(); dibujarNecesidades(); } }
 
 function poblarFiltrosMes(){
   const cont = document.getElementById('nec-filtros-mes');
@@ -503,9 +459,7 @@ let _mobTabActivo = 'entrada';
 
 function mobTab(tab){
   _mobTabActivo = tab;
-  document.querySelectorAll('.mob-tab').forEach(b=>{
-    b.classList.toggle('active', b.dataset.tab===tab);
-  });
+  document.querySelectorAll('.mob-tab').forEach(b=>{ b.classList.toggle('active', b.dataset.tab===tab); });
   if(tab==='logros'){ irALogros(); return; }
   if(tab==='maslow'){ irAMaslow(); return; }
   if(tab==='activity'){ irAActivity(); return; }
@@ -521,10 +475,7 @@ function mobTab(tab){
       if(tab==='flujo'){
         const hdr = document.getElementById('sec-flujo-hdr');
         const body = document.getElementById('sec-flujo-body');
-        if(body && !body.classList.contains('open')){
-          body.classList.add('open');
-          if(hdr) hdr.classList.add('open');
-        }
+        if(body && !body.classList.contains('open')){ body.classList.add('open'); if(hdr) hdr.classList.add('open'); }
       }
     }, _pantalla!=='anverso' ? 560 : 0);
   }
@@ -533,9 +484,7 @@ function mobTab(tab){
 function _syncMobTab(p){
   const map = {anverso:'entrada', logros:'logros', maslow:'maslow', activity:'activity', score:'score'};
   const t = p.startsWith('sheets_') ? 'sheets' : (map[p]||'entrada');
-  document.querySelectorAll('.mob-tab').forEach(b=>{
-    b.classList.toggle('active', b.dataset.tab===t);
-  });
+  document.querySelectorAll('.mob-tab').forEach(b=>{ b.classList.toggle('active', b.dataset.tab===t); });
 }
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
@@ -546,7 +495,6 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch
 let _actData    = null;
 let _actVista   = 'habitos';
 let _actChecks  = {};
-
 
 function switchVistaAct(vista){
   _actVista = vista;
@@ -561,12 +509,12 @@ function switchVistaAct(vista){
   });
   var cont = document.getElementById('act-container');
   if(!cont) return;
-  if(!_actData) { cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div>'; return; }
-  if(vista==='habitos')     dibujarHabitos(cont, (_actData.habitosPersonal||_actData.habitos||[]));
+  if(!_actData){ cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div>'; return; }
+  if(vista==='habitos')          dibujarHabitos(cont, (_actData.habitosPersonal||_actData.habitos||[]));
   else if(vista==='electronics') dibujarHabitos(cont, _actData.habitosElectronics||[], true);
-  else if(vista==='libros') dibujarMedia(cont, _actData.libros||[], 'Lectura');
-  else if(vista==='movies') dibujarMedia(cont, _actData.movies||[], 'Movie');
-  else if(vista==='norut')  dibujarNoRutinarias(cont, _actData.noRutinarias||[]);
+  else if(vista==='libros')      dibujarMedia(cont, _actData.libros||[], 'Lectura');
+  else if(vista==='movies')      dibujarMedia(cont, _actData.movies||[], 'Movie');
+  else if(vista==='norut')       dibujarNoRutinarias(cont, _actData.noRutinarias||[]);
 }
 
 function renderActivity(){
@@ -575,23 +523,12 @@ function renderActivity(){
   if(tabBar){
     var ts = _actTabStyle();
     tabBar.innerHTML =
-      '<button id="act-btn-habitos" onclick="switchVistaAct(\'habitos\')" style="'+ts+'">Personal</button> ' +
+      '<button id="act-btn-habitos"     onclick="switchVistaAct(\'habitos\')"     style="'+ts+'">Personal</button> ' +
       '<button id="act-btn-electronics" onclick="switchVistaAct(\'electronics\')" style="'+ts+'">Trabajo</button> ' +
-      '<button id="act-btn-libros" onclick="switchVistaAct(\'libros\')" style="'+ts+'">Libros</button> ' +
-      '<button id="act-btn-movies" onclick="switchVistaAct(\'movies\')" style="'+ts+'">Movies</button> ' +
-      '<button id="act-btn-norut" onclick="switchVistaAct(\'norut\')" style="'+ts+'">Pendientes</button>';
+      '<button id="act-btn-libros"      onclick="switchVistaAct(\'libros\')"      style="'+ts+'">Libros</button> ' +
+      '<button id="act-btn-movies"      onclick="switchVistaAct(\'movies\')"      style="'+ts+'">Movies</button> ' +
+      '<button id="act-btn-norut"       onclick="switchVistaAct(\'norut\')"       style="'+ts+'">Pendientes</button>';
   }
-  switchVistaAct('habitos');
-}
-  var cont = document.getElementById('act-container');
-  var tabBar = document.getElementById('act-tabs');
-  if(tabBar){
-    tabBar.innerHTML =
-      '<button id="act-btn-habitos" onclick="switchVistaAct(\'habitos\')" style="'+_actTabStyle()+'">Personal</button> ' +
-      '<button id="act-btn-electronics" onclick="switchVistaAct(\'electronics\')" style="'+_actTabStyle()+'">Trabajo</button> ' +
-      '<button id="act-btn-libros" onclick="switchVistaAct(\'libros\')" style="'+_actTabStyle()+'">Libros</button> ' +
-      '<button id="act-btn-movies" onclick="switchVistaAct(\'movies\')" style="'+_actTabStyle()+'">Movies</button> ' +
-      '<button id="act-btn-norut" onclick="switchVistaAct(\'norut\')" style="'+_actTabStyle()+'">Pendientes</button>';
   switchVistaAct('habitos');
 }
 
@@ -601,112 +538,126 @@ function _actTabStyle(){
     'cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap';
 }
 
-function dibujarHabitos(cont, habitos, esElectronics){
-  if(!habitos||!habitos.length){
-    cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin hábitos</div>';return;
+function _getSemanaKey(){
+  var d = new Date();
+  var jan1 = new Date(d.getFullYear(), 0, 1);
+  var week = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  return d.getFullYear() + '-W' + String(week).padStart(2,'0');
+}
+
+function _getDiasEstaSemanaMX(){
+  var hoy = new Date();
+  var dow = hoy.getDay();
+  var lunes = new Date(hoy);
+  lunes.setDate(hoy.getDate() - (dow === 0 ? 6 : dow - 1));
+  var dias = [];
+  var LABELS = ['Lu','Ma','Mi','Ju','Vi','Sa','Do'];
+  for(var i = 0; i < 7; i++){
+    var d = new Date(lunes);
+    d.setDate(lunes.getDate() + i);
+    var iso = d.toISOString().slice(0,10);
+    var hoyIso = hoy.toISOString().slice(0,10);
+    dias.push({ date: iso, label: LABELS[i], isPast: iso <= hoyIso });
   }
+  return dias;
+}
+
+function toggleHabito(nombre, semana, fecha){
+  var key = nombre + '_' + semana + '_' + fecha;
+  _actChecks[key] = !_actChecks[key];
+  dibujarHabitos(document.getElementById('act-container'),
+    (_actVista==='electronics' ? (_actData.habitosElectronics||[]) : (_actData.habitosPersonal||_actData.habitos||[])),
+    _actVista==='electronics');
+}
+
+function guardarChecks(){
+  var semana = _getSemanaKey();
+  var checks = Object.entries(_actChecks)
+    .filter(function(e){ return e[1] && e[0].includes('_'+semana+'_'); })
+    .map(function(e){ return { nombre: e[0].split('_'+semana+'_')[0], fecha: e[0].split('_'+semana+'_')[1] }; });
+  api.guardarActivityChecks(semana, checks)
+    .then(function(r){ showToast(r.ok ? '✓ Semana guardada' : 'Error: '+r.mensaje, r.ok); })
+    .catch(function(){ showToast('Error al guardar', false); });
+}
+
+function dibujarHabitos(cont, habitos, esElectronics){
+  if(!habitos||!habitos.length){ cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin hábitos</div>'; return; }
   var semana = _getSemanaKey();
   var dias   = _getDiasEstaSemanaMX();
   var hoy    = new Date().toISOString().slice(0,10);
   var color  = esElectronics ? '#3B82F6' : '#4ADE80';
-
   var thead = '<div style="display:grid;grid-template-columns:1fr '+dias.map(function(){return '36px';}).join(' ')+';gap:6px;align-items:center;padding:0 0 8px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:8px">' +
     '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Hábito</div>' +
     dias.map(function(d){ return '<div style="text-align:center;font-size:9px;font-weight:600;color:'+(d.date===hoy?'var(--ok)':'var(--m)')+';letter-spacing:.04em">'+d.label+'</div>'; }).join('') +
   '</div>';
-
   var rows = habitos.map(function(hab){
     var checks = dias.map(function(d){
       var key  = hab.nombre+'_'+semana+'_'+d.date;
       var done = !!_actChecks[key];
       var past = d.isPast;
       return '<div style="display:flex;align-items:center;justify-content:center">' +
-        '<button onclick="toggleHabito(\"'+hab.nombre.replace(/'/g,'\\&apos;')+'\",' + '\"'+semana+'\",' + '\"'+d.date+'\")" ' +
+        '<button onclick="toggleHabito(this.dataset.n,this.dataset.s,this.dataset.f)" ' +
+        'data-n="'+hab.nombre.replace(/"/g,'&quot;')+'" data-s="'+semana+'" data-f="'+d.date+'" ' +
         'style="width:28px;height:28px;border-radius:8px;border:1px solid '+(done?'rgba(74,222,128,.4)':'rgba(255,255,255,.1)')+';'+
         'background:'+(done?'rgba(74,222,128,.15)':'rgba(255,255,255,.03)')+';cursor:'+(past?'pointer':'default')+';'+
         'display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;opacity:'+(past?1:.35)+';color:'+color+'" '+
         (past?'':' disabled')+'>'+(done?'✓':'')+'</button></div>';
     }).join('');
-
     var total = dias.filter(function(d){ return !!_actChecks[hab.nombre+'_'+semana+'_'+d.date]; }).length;
     var pct   = Math.round(total/7*100);
-
     return '<div style="display:grid;grid-template-columns:1fr '+dias.map(function(){return '36px';}).join(' ')+';gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
-      '<div>' +
-        '<div style="font-size:13px;font-weight:500;color:var(--t)">'+hab.nombre+'</div>' +
-        '<div style="font-size:10px;color:var(--m);margin-top:2px">'+(hab.recurrencia||'Eventual')+' · '+total+'/7 días</div>' +
-        '<div style="height:2px;background:rgba(255,255,255,.06);border-radius:1px;margin-top:4px;overflow:hidden">' +
-          '<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:1px;opacity:.7"></div>' +
-        '</div>' +
-      '</div>'+checks+'</div>';
+      '<div><div style="font-size:13px;font-weight:500;color:var(--t)">'+hab.nombre+'</div>' +
+      '<div style="font-size:10px;color:var(--m);margin-top:2px">'+(hab.recurrencia||'Eventual')+' · '+total+'/7 días</div>' +
+      '<div style="height:2px;background:rgba(255,255,255,.06);border-radius:1px;margin-top:4px;overflow:hidden">' +
+      '<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:1px;opacity:.7"></div></div></div>'+checks+'</div>';
   }).join('');
-
   cont.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">' +
     '<div style="font-size:11px;color:var(--m)">Semana '+semana+'</div>' +
     '<button onclick="guardarChecks()" style="padding:6px 14px;border-radius:var(--rad-pill);background:'+color+';color:#000;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">' +
-    '<i class="fas fa-cloud-arrow-up" style="margin-right:4px"></i>Guardar</button>' +
-  '</div>' + thead + rows;
+    '<i class="fas fa-cloud-arrow-up" style="margin-right:4px"></i>Guardar</button></div>' + thead + rows;
 }
 
 function dibujarMedia(cont, items, tipo){
-  if(!items||!items.length){
-    cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin elementos</div>';return;
-  }
+  if(!items||!items.length){ cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin elementos</div>'; return; }
   var color    = tipo==='Lectura' ? '#EC4899' : '#F59E0B';
   var emoji    = tipo==='Lectura' ? '📚' : '🎬';
   var tipoKey  = tipo==='Lectura' ? 'libro' : 'movie';
   var pendientes = items.filter(function(i){ return !i.completado; }).length;
   var completados = items.length - pendientes;
-
   var html = items.map(function(item, idx){
     var nombre = item.nombre || item;
     var done   = item.completado;
-    var fila   = idx + 2; // fila en sheet (1=header, 2=first data)
+    var fila   = idx + 2;
     return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
       '<button data-tipo="'+tipoKey+'" data-fila="'+fila+'" data-val="'+(!done)+'" onclick="_toggleActivityItem(this,this.dataset.tipo,this.dataset.fila,this.dataset.val===\'true\')" ' +
-        'style="width:22px;height:22px;border-radius:6px;border:1px solid '+(done?'rgba(74,222,128,.4)':'rgba(255,255,255,.15)')+';'+
-        'background:'+(done?'rgba(74,222,128,.15)':'transparent')+';cursor:pointer;flex-shrink:0;'+
-        'display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ok);transition:all .2s">'+
-        (done?'✓':'')+'</button>' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:13px;color:'+(done?'var(--m)':'var(--t)')+';text-decoration:'+(done?'line-through':'none')+
-        ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+nombre+'</div>' +
-      '</div>' +
-      '<div style="font-size:16px;flex-shrink:0;opacity:'+(done?.4:1)+'">'+emoji+'</div>' +
-    '</div>';
+      'style="width:22px;height:22px;border-radius:6px;border:1px solid '+(done?'rgba(74,222,128,.4)':'rgba(255,255,255,.15)')+';'+
+      'background:'+(done?'rgba(74,222,128,.15)':'transparent')+';cursor:pointer;flex-shrink:0;'+
+      'display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ok);transition:all .2s">'+(done?'✓':'')+'</button>' +
+      '<div style="flex:1;min-width:0"><div style="font-size:13px;color:'+(done?'var(--m)':'var(--t)')+';text-decoration:'+(done?'line-through':'none')+
+      ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+nombre+'</div></div>' +
+      '<div style="font-size:16px;flex-shrink:0;opacity:'+(done?.4:1)+'">'+emoji+'</div></div>';
   }).join('');
-
-  cont.innerHTML =
-    '<div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 10px">' +
-      '<div style="font-size:11px;color:var(--m)">'+completados+' completados · '+pendientes+' pendientes</div>' +
-      '<div style="height:3px;width:120px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">' +
-        '<div style="height:100%;width:'+(items.length>0?Math.round(completados/items.length*100):0)+'%;background:'+color+';border-radius:2px"></div>' +
-      '</div>' +
-    '</div>' + html;
+  cont.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 10px">' +
+    '<div style="font-size:11px;color:var(--m)">'+completados+' completados · '+pendientes+' pendientes</div>' +
+    '<div style="height:3px;width:120px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">' +
+    '<div style="height:100%;width:'+(items.length>0?Math.round(completados/items.length*100):0)+'%;background:'+color+';border-radius:2px"></div></div></div>' + html;
 }
 
 function dibujarNoRutinarias(cont, items){
-  if(!items||!items.length){
-    cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin pendientes</div>';return;
-  }
+  if(!items||!items.length){ cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin pendientes</div>'; return; }
   var pendientes = items.filter(function(i){ return !i.completado; }).length;
-
   var html = items.map(function(item, idx){
     var nombre = item.nombre || item;
     var done   = item.completado;
     var fila   = idx + 2;
     return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
       '<button data-tipo="norut" data-fila="'+fila+'" data-val="'+(!done)+'" onclick="_toggleActivityItem(this,this.dataset.tipo,this.dataset.fila,this.dataset.val===\'true\')" ' +
-        'style="width:22px;height:22px;border-radius:6px;border:1px solid '+(done?'rgba(74,222,128,.4)':'rgba(139,92,246,.3)')+';'+
-        'background:'+(done?'rgba(74,222,128,.15)':'rgba(139,92,246,.08)')+';cursor:pointer;flex-shrink:0;'+
-        'display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ok);transition:all .2s">'+
-        (done?'✓':'')+'</button>' +
-      '<div style="font-size:13px;color:'+(done?'var(--m)':'var(--t)')+';text-decoration:'+(done?'line-through':'none')+';flex:1">'+nombre+'</div>' +
-    '</div>';
+      'style="width:22px;height:22px;border-radius:6px;border:1px solid '+(done?'rgba(74,222,128,.4)':'rgba(139,92,246,.3)')+';'+
+      'background:'+(done?'rgba(74,222,128,.15)':'rgba(139,92,246,.08)')+';cursor:pointer;flex-shrink:0;'+
+      'display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ok);transition:all .2s">'+(done?'✓':'')+'</button>' +
+      '<div style="font-size:13px;color:'+(done?'var(--m)':'var(--t)')+';text-decoration:'+(done?'line-through':'none')+';flex:1">'+nombre+'</div></div>';
   }).join('');
-
-  cont.innerHTML =
-    '<div style="font-size:11px;color:var(--m);padding:0 0 10px">'+pendientes+' pendientes de '+items.length+'</div>' + html;
+  cont.innerHTML = '<div style="font-size:11px;color:var(--m);padding:0 0 10px">'+pendientes+' pendientes de '+items.length+'</div>' + html;
 }
 
 function _toggleActivityItem(btn, tipo, fila, nuevoValor){
@@ -714,13 +665,12 @@ function _toggleActivityItem(btn, tipo, fila, nuevoValor){
   api.marcarActivityItem(tipo, fila, nuevoValor)
     .then(function(r){
       if(r.ok){
-        // Update local data and redraw
         var lista = tipo==='libro'?_actData.libros:tipo==='movie'?_actData.movies:_actData.noRutinarias;
         if(lista && lista[fila-2]) lista[fila-2].completado = nuevoValor;
         var cont = document.getElementById('act-container');
-        if(tipo==='libro')    dibujarMedia(cont, _actData.libros||[], 'Lectura');
-        else if(tipo==='movie') dibujarMedia(cont, _actData.movies||[], 'Movie');
-        else                    dibujarNoRutinarias(cont, _actData.noRutinarias||[]);
+        if(tipo==='libro')         dibujarMedia(cont, _actData.libros||[], 'Lectura');
+        else if(tipo==='movie')    dibujarMedia(cont, _actData.movies||[], 'Movie');
+        else                       dibujarNoRutinarias(cont, _actData.noRutinarias||[]);
       } else {
         btn.disabled = false;
         showToast('Error al marcar', false);
@@ -733,4 +683,46 @@ function dibujarHistorial(cont){
   cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m);font-size:13px">' +
     '<div style="font-size:32px;margin-bottom:12px">📊</div>' +
     'El historial se construirá conforme guardes semanas.</div>';
+}
+
+function cargarScore(){
+  const body = document.getElementById('score-body');
+  if(body) body.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px"></i></div>';
+  api.getScoreVida ? api.getScoreVida().then(renderScore).catch(()=>{}) : null;
+}
+
+function renderScore(data){
+  const body = document.getElementById('score-body');
+  if(!body) return;
+  if(!data||!data.ok){ body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m)">Sin datos de score</div>'; return; }
+  const score = data.score || 0;
+  const areas = data.areas || [];
+  const circumference = 2 * Math.PI * 54;
+  const dashOffset = circumference - (score / 100) * circumference;
+  const color = score >= 70 ? '#4ADE80' : score >= 40 ? '#FBBF24' : '#EF4444';
+  body.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;padding:24px 20px 16px">
+      <svg width="140" height="140" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
+        <circle cx="60" cy="60" r="54" fill="none" stroke="${color}" stroke-width="10"
+          stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}"
+          stroke-linecap="round" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset .8s ease"/>
+        <text x="60" y="58" text-anchor="middle" font-size="26" font-weight="700" fill="${color}" font-family="system-ui">${score}</text>
+        <text x="60" y="74" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.4)" font-family="system-ui">/ 100</text>
+      </svg>
+      <div style="font-size:11px;color:var(--m);margin-top:4px">Score de Vida</div>
+    </div>
+    <div style="padding:0 20px 20px">
+      ${areas.map(a=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+          <div style="font-size:13px;flex-shrink:0">${a.emoji||'●'}</div>
+          <div style="flex:1">
+            <div style="font-size:12px;font-weight:600;color:var(--t)">${a.label}</div>
+            <div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:4px;overflow:hidden">
+              <div style="height:100%;width:${a.score}%;background:${a.color||color};border-radius:2px"></div>
+            </div>
+          </div>
+          <div style="font-size:13px;font-weight:700;color:${a.color||color};font-variant-numeric:tabular-nums">${a.score}</div>
+        </div>`).join('')}
+    </div>`;
 }
