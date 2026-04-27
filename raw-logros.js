@@ -1,14 +1,3 @@
-/* RAW Entry — Logros v.4.024
-   Board/Carrusel · Tooltip · Logros+Íconos · Maslow · Tab Móvil
-*/
-// ══════════════════════════════════════════
-//  FLIP BOARD — carrusel de pantallas
-// ══════════════════════════════════════════
-let _pantalla = 'anverso';
-let _boardFlipped = false;
-let _reversoMostrarDone = false;
-let _ordenLogros = 'az';
-
 function setOrdenLogros(orden) {
   _ordenLogros = orden;
   ['az','desc','asc'].forEach(k => {
@@ -558,9 +547,7 @@ let _actData    = null;
 let _actVista   = 'habitos';
 let _actChecks  = {};
 
-function renderActivity(){
-  if(!_actData) return;
-  switchVistaAct(_actVista);
+  switchVistaAct('habitos');
 }
 
 function switchVistaAct(vista){
@@ -590,12 +577,11 @@ function renderActivity(){
   var tabBar = document.getElementById('act-tabs');
   if(tabBar){
     tabBar.innerHTML =
-      '<button id="act-btn-habitos"     onclick="switchVistaAct('habitos')"     style="'+_actTabStyle()+'">⚡ Personal</button>' +
-      '<button id="act-btn-electronics" onclick="switchVistaAct('electronics')" style="'+_actTabStyle()+'">🏢 Trabajo</button>' +
-      '<button id="act-btn-libros"      onclick="switchVistaAct('libros')"      style="'+_actTabStyle()+'">📚 Libros</button>' +
-      '<button id="act-btn-movies"      onclick="switchVistaAct('movies')"      style="'+_actTabStyle()+'">🎬 Movies</button>' +
-      '<button id="act-btn-norut"       onclick="switchVistaAct('norut')"       style="'+_actTabStyle()+'">📋 Pendientes</button>';
-  }
+      '<button id="act-btn-habitos" onclick="switchVistaAct(\'habitos\')" style="'+_actTabStyle()+'">Personal</button> ' +
+      '<button id="act-btn-electronics" onclick="switchVistaAct(\'electronics\')" style="'+_actTabStyle()+'">Trabajo</button> ' +
+      '<button id="act-btn-libros" onclick="switchVistaAct(\'libros\')" style="'+_actTabStyle()+'">Libros</button> ' +
+      '<button id="act-btn-movies" onclick="switchVistaAct(\'movies\')" style="'+_actTabStyle()+'">Movies</button> ' +
+      '<button id="act-btn-norut" onclick="switchVistaAct(\'norut\')" style="'+_actTabStyle()+'">Pendientes</button>';
   switchVistaAct('habitos');
 }
 
