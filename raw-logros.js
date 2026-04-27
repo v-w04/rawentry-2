@@ -34,6 +34,8 @@ function _setPantalla(p){
   if(sheets) sheets.classList.remove('active');
   const scoreP = document.getElementById('board-score');
   if(scoreP) scoreP.classList.remove('active');
+  const nutP = document.getElementById('board-nutricion');
+  if(nutP) nutP.classList.remove('active');
   if(p === 'logros'){ anv.classList.add('slide-left'); if(logros) logros.classList.add('active'); }
   else if(p === 'maslow'){ anv.classList.add('slide-right'); if(maslow) maslow.classList.add('active'); }
   else if(p === 'activity'){ anv.classList.add('slide-right'); if(act) act.classList.add('active'); }
@@ -53,6 +55,8 @@ function _setPantalla(p){
   if(bA)  bA.classList.toggle('active', p==='activity');
   if(bS)  bS.classList.toggle('active', p.startsWith('sheets_'));
   if(bSc) bSc.classList.toggle('active', p==='score');
+  var bNut = document.getElementById('btn-nutricion');
+  if(bNut) bNut.classList.toggle('active', p==='nutricion');
   if(typeof _syncMobTab==='function') _syncMobTab(p);
 }
 
@@ -79,6 +83,18 @@ function irAActivity(){
   }
 }
 function irAScore(){ if(_pantalla==='score'){ volverAlAnverso(); return; } _setPantalla('score'); cargarScore(); }
+
+function irANutricion(){
+  if(_pantalla==='nutricion'){ volverAlAnverso(); return; }
+  _setPantalla('nutricion');
+  var lbl = document.getElementById('nut-fecha-lbl');
+  if(lbl){ var hoy=new Date(); lbl.textContent=hoy.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'}); }
+  if(typeof renderNutricion==='function' && typeof api!=='undefined'){
+    Promise.all([api.getNutricion(), api.getMetasNutricion ? api.getMetasNutricion() : Promise.resolve(null)])
+      .then(function(res){ renderNutricion(res[0], res[1]); })
+      .catch(function(){ renderNutricion({ok:true,dias:{},semana:[],hoy:{cal:0,prot:0,carbos:0,grasa:0,agua:0}}); });
+  }
+}
 function volverAlAnverso(){ _setPantalla('anverso'); }
 function flipBoard(){ if(_pantalla==='anverso') irALogros(); else volverAlAnverso(); }
 
@@ -492,7 +508,7 @@ function mobTab(tab){
 }
 
 function _syncMobTab(p){
-  const map = {anverso:'entrada', logros:'logros', maslow:'maslow', activity:'activity', score:'score'};
+  const map = {anverso:'entrada', logros:'logros', maslow:'maslow', activity:'activity', score:'score', nutricion:'nutricion'};
   const t = p.startsWith('sheets_') ? 'sheets' : (map[p]||'entrada');
   document.querySelectorAll('.mob-tab').forEach(b=>{ b.classList.toggle('active', b.dataset.tab===t); });
 }
