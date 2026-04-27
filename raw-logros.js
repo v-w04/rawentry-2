@@ -88,9 +88,9 @@ function irAActivity(){
   _setPantalla('activity');
   if(_actData) renderActivity();
   else {
-    const grid = document.getElementById('act-container');
+    var grid = document.getElementById('act-container');
     if(grid) grid.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px"></i></div>';
-    api.getActivityCheck().then(d=>{ _actData=d; renderActivity(); }).catch(()=>{});
+    api.getActivityCheck().then(function(d){ _actData=d; renderActivity(); }).catch(function(){});
   }
 }
 
@@ -565,133 +565,125 @@ function renderActivity(){
 
 function switchVistaAct(vista){
   _actVista = vista;
-  ['habitos','media','historial'].forEach(v=>{
-    const btn = document.getElementById('act-btn-'+v);
+  ['habitos','electronics','libros','movies','norut'].forEach(function(v){
+    var btn = document.getElementById('act-btn-'+v);
     if(!btn) return;
-    const on = v===vista;
+    var on = (v===vista);
     btn.style.background  = on?'rgba(59,130,246,.25)':'rgba(255,255,255,.04)';
     btn.style.borderColor = on?'rgba(59,130,246,.6)':'var(--border)';
     btn.style.color       = on?'#93C5FD':'var(--m)';
     btn.style.fontWeight  = on?'700':'500';
   });
-  const cont = document.getElementById('act-container');
+  var cont = document.getElementById('act-container');
   if(!cont) return;
-  if(vista==='habitos')    dibujarHabitos(cont);
-  else if(vista==='media') dibujarMedia(cont);
-  else                     dibujarHistorial(cont);
+  if(vista==='habitos')     dibujarHabitos(cont, (_actData.habitosPersonal||_actData.habitos||[]));
+  else if(vista==='electronics') dibujarHabitos(cont, _actData.habitosElectronics||[], true);
+  else if(vista==='libros') dibujarMedia(cont, _actData.libros||[], 'Lectura');
+  else if(vista==='movies') dibujarMedia(cont, _actData.movies||[], 'Movie');
+  else if(vista==='norut')  dibujarNoRutinarias(cont, _actData.noRutinarias||[]);
 }
 
-function _getSemanaKey(){
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const week  = Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
-  return `${now.getFullYear()}-W${String(week).padStart(2,'0')}`;
-}
-
-function _getDiasEstaSemanaMX(){
-  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  const hoy  = new Date();
-  const dow   = hoy.getDay();
-  const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - (dow===0?6:dow-1));
-  return Array.from({length:7},(_,i)=>{
-    const d = new Date(lunes); d.setDate(lunes.getDate()+i);
-    return { label:dias[d.getDay()], date:d.toISOString().slice(0,10), isPast: d<=hoy };
-  });
-}
-
-function dibujarHabitos(cont){
-  if(!_actData||!_actData.habitos||!_actData.habitos.length){
-    cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin hábitos configurados</div>';return;
+function renderActivity(){
+  if(!_actData) return;
+  // Rebuild tab bar with 5 tabs
+  var cont = document.getElementById('act-container');
+  var tabBar = document.getElementById('act-tabs');
+  if(tabBar){
+    tabBar.innerHTML =
+      '<button id="act-btn-habitos"     onclick="switchVistaAct('habitos')"     style="'+_actTabStyle()+'">⚡ Personal</button>' +
+      '<button id="act-btn-electronics" onclick="switchVistaAct('electronics')" style="'+_actTabStyle()+'">🏢 Trabajo</button>' +
+      '<button id="act-btn-libros"      onclick="switchVistaAct('libros')"      style="'+_actTabStyle()+'">📚 Libros</button>' +
+      '<button id="act-btn-movies"      onclick="switchVistaAct('movies')"      style="'+_actTabStyle()+'">🎬 Movies</button>' +
+      '<button id="act-btn-norut"       onclick="switchVistaAct('norut')"       style="'+_actTabStyle()+'">📋 Pendientes</button>';
   }
-  const semana = _getSemanaKey();
-  const dias   = _getDiasEstaSemanaMX();
-  const hoy    = new Date().toISOString().slice(0,10);
-  const thead = `<div style="display:grid;grid-template-columns:1fr ${dias.map(()=>'36px').join(' ')};gap:6px;align-items:center;padding:0 0 8px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:8px">
-    <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Hábito</div>
-    ${dias.map(d=>`<div style="text-align:center;font-size:9px;font-weight:600;color:${d.date===hoy?'var(--ok)':'var(--m)'};letter-spacing:.04em">${d.label}</div>`).join('')}
-  </div>`;
-  const rows = _actData.habitos.map(hab=>{
-    const checks = dias.map(d=>{
-      const key   = `${hab.nombre}_${semana}_${d.date}`;
-      const done  = !!_actChecks[key];
-      const past  = d.isPast;
-      return `<div style="display:flex;align-items:center;justify-content:center">
-        <button onclick="toggleHabito('${hab.nombre}','${semana}','${d.date}')"
-          style="width:28px;height:28px;border-radius:8px;border:1px solid ${done?'rgba(74,222,128,.4)':'rgba(255,255,255,.1)'};
-          background:${done?'rgba(74,222,128,.15)':'rgba(255,255,255,.03)'};cursor:${past?'pointer':'default'};
-          display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;opacity:${past?1:.35}"
-          ${!past?'disabled':''}>${done?'✓':''}</button></div>`;
-    }).join('');
-    const total = dias.filter(d=>{ const k=`${hab.nombre}_${semana}_${d.date}`; return _actChecks[k]; }).length;
-    const pct   = Math.round(total/7*100);
-    return `<div style="display:grid;grid-template-columns:1fr ${dias.map(()=>'36px').join(' ')};gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)">
-      <div>
-        <div style="font-size:13px;font-weight:500;color:var(--t)">${hab.nombre}</div>
-        <div style="font-size:10px;color:var(--m);margin-top:2px">${hab.recurrencia||'Diario'} · ${total}/7 días</div>
-        <div style="height:2px;background:rgba(255,255,255,.06);border-radius:1px;margin-top:4px;overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:var(--ok);border-radius:1px;opacity:.7"></div>
-        </div>
-      </div>${checks}</div>`;
-  }).join('');
-  cont.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-    <div style="font-size:11px;color:var(--m)">Semana ${semana}</div>
-    <button onclick="guardarChecks()" style="padding:6px 14px;border-radius:var(--rad-pill);background:var(--ok);color:#000;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">
-      <i class="fas fa-cloud-arrow-up" style="margin-right:4px"></i>Guardar</button>
-  </div>${thead}${rows}`;
+  switchVistaAct('habitos');
 }
 
-function toggleHabito(nombre, semana, fecha){
-  const key = `${nombre}_${semana}_${fecha}`;
-  _actChecks[key] = !_actChecks[key];
-  dibujarHabitos(document.getElementById('act-container'));
+function _actTabStyle(){
+  return 'padding:5px 10px;border-radius:var(--rad-pill);font-size:10px;font-weight:500;'+
+    'background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--m);'+
+    'cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap';
 }
 
-function guardarChecks(){
-  const semana = _getSemanaKey();
-  const payload = Object.entries(_actChecks)
-    .filter(([k,v])=>k.includes(semana) && v)
-    .map(([k])=>{ const parts=k.split('_'); return {nombre:parts[0],semana:parts[1],fecha:parts[2]}; });
-  api.guardarActivityChecks(semana, payload)
-    .then(r=>showToast(r.ok?'✓ Guardado':'Error',r.ok))
-    .catch(()=>showToast('Error al guardar',false));
-}
-
-function dibujarMedia(cont){
-  if(!_actData||!_actData.media||!_actData.media.length){
-    cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin elementos en lista</div>';return;
+function dibujarHabitos(cont, habitos, esElectronics){
+  if(!habitos||!habitos.length){
+    cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin hábitos</div>';return;
   }
-  const porCategoria = {};
-  _actData.media.forEach(item=>{ const cat = item.categoria||'Sin categoría'; if(!porCategoria[cat]) porCategoria[cat]=[]; porCategoria[cat].push(item); });
-  const CAT_ICONS = {'L':'📚','M':'🎬','S':'📺','':'🎯'};
-  const html = Object.entries(porCategoria).map(([cat,items])=>{
-    const icon = CAT_ICONS[cat]||'🎯';
-    const rows = items.map(item=>{
-      const done = item.completado==='Sí'||item.completado==='Si';
-      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)">
-        <div style="width:20px;height:20px;border-radius:6px;border:1px solid ${done?'rgba(74,222,128,.4)':'rgba(255,255,255,.1)'};
-          background:${done?'rgba(74,222,128,.1)':'transparent'};display:flex;align-items:center;justify-content:center;
-          font-size:11px;flex-shrink:0;color:${done?'var(--ok)':'var(--m)'}">${done?'✓':''}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;color:${done?'var(--m)':'var(--t)'};text-decoration:${done?'line-through':'none'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.nombre}</div>
-          ${item.nota?`<div style="font-size:10px;color:var(--m)">${item.nota}</div>`:''}
-        </div>
-        ${item.categoria?`<div style="font-size:18px;flex-shrink:0">${CAT_ICONS[item.categoria]||'🎯'}</div>`:''}
-      </div>`;
+  var semana = _getSemanaKey();
+  var dias   = _getDiasEstaSemanaMX();
+  var hoy    = new Date().toISOString().slice(0,10);
+  var color  = esElectronics ? '#3B82F6' : '#4ADE80';
+
+  var thead = '<div style="display:grid;grid-template-columns:1fr '+dias.map(function(){return '36px';}).join(' ')+';gap:6px;align-items:center;padding:0 0 8px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:8px">' +
+    '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Hábito</div>' +
+    dias.map(function(d){ return '<div style="text-align:center;font-size:9px;font-weight:600;color:'+(d.date===hoy?'var(--ok)':'var(--m)')+';letter-spacing:.04em">'+d.label+'</div>'; }).join('') +
+  '</div>';
+
+  var rows = habitos.map(function(hab){
+    var checks = dias.map(function(d){
+      var key  = hab.nombre+'_'+semana+'_'+d.date;
+      var done = !!_actChecks[key];
+      var past = d.isPast;
+      return '<div style="display:flex;align-items:center;justify-content:center">' +
+        '<button onclick="toggleHabito(''+hab.nombre.replace(/'/g,"\'")+"','"+semana+"','"+d.date+'')" '+
+        'style="width:28px;height:28px;border-radius:8px;border:1px solid '+(done?'rgba(74,222,128,.4)':'rgba(255,255,255,.1)')+';'+
+        'background:'+(done?'rgba(74,222,128,.15)':'rgba(255,255,255,.03)')+';cursor:'+(past?'pointer':'default')+';'+
+        'display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;opacity:'+(past?1:.35)+';color:'+color+'" '+
+        (past?'':' disabled')+'>'+(done?'✓':'')+'</button></div>';
     }).join('');
-    const total = items.length;
-    const done  = items.filter(i=>i.completado==='Sí'||i.completado==='Si').length;
-    return `<div style="margin-bottom:16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--m);display:flex;align-items:center;gap:6px">
-          <span>${icon}</span><span>${cat==='L'?'Libros':cat==='M'?'Películas':cat==='S'?'Series':'Otros'}</span></div>
-        <span style="font-size:10px;color:var(--m)">${done}/${total}</span>
-      </div>${rows}</div>`;
+
+    var total = dias.filter(function(d){ return !!_actChecks[hab.nombre+'_'+semana+'_'+d.date]; }).length;
+    var pct   = Math.round(total/7*100);
+
+    return '<div style="display:grid;grid-template-columns:1fr '+dias.map(function(){return '36px';}).join(' ')+';gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
+      '<div>' +
+        '<div style="font-size:13px;font-weight:500;color:var(--t)">'+hab.nombre+'</div>' +
+        '<div style="font-size:10px;color:var(--m);margin-top:2px">'+(hab.recurrencia||'Eventual')+' · '+total+'/7 días</div>' +
+        '<div style="height:2px;background:rgba(255,255,255,.06);border-radius:1px;margin-top:4px;overflow:hidden">' +
+          '<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:1px;opacity:.7"></div>' +
+        '</div>' +
+      '</div>'+checks+'</div>';
   }).join('');
-  cont.innerHTML=html;
+
+  cont.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">' +
+    '<div style="font-size:11px;color:var(--m)">Semana '+semana+'</div>' +
+    '<button onclick="guardarChecks()" style="padding:6px 14px;border-radius:var(--rad-pill);background:'+color+';color:#000;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">' +
+    '<i class="fas fa-cloud-arrow-up" style="margin-right:4px"></i>Guardar</button>' +
+  '</div>' + thead + rows;
+}
+
+function dibujarMedia(cont, items, tipo){
+  if(!items||!items.length){
+    cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin elementos</div>';return;
+  }
+  var color  = tipo==='Lectura' ? '#EC4899' : '#F59E0B';
+  var emoji  = tipo==='Lectura' ? '📚' : '🎬';
+  var html = items.map(function(item){
+    var nombre = item.nombre || item;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
+      '<div style="font-size:16px;flex-shrink:0">'+emoji+'</div>' +
+      '<div style="flex:1;min-width:0;font-size:13px;color:var(--t);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+nombre+'</div>' +
+    '</div>';
+  }).join('');
+  cont.innerHTML = '<div style="padding:0 0 8px;font-size:11px;color:var(--m)">'+items.length+' elementos</div>' + html;
+}
+
+function dibujarNoRutinarias(cont, items){
+  if(!items||!items.length){
+    cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin pendientes</div>';return;
+  }
+  var html = items.map(function(item){
+    var nombre = item.nombre || item;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
+      '<div style="width:8px;height:8px;border-radius:50%;background:rgba(139,92,246,.6);flex-shrink:0"></div>' +
+      '<div style="font-size:13px;color:var(--t)">'+nombre+'</div>' +
+    '</div>';
+  }).join('');
+  cont.innerHTML = '<div style="padding:0 0 8px;font-size:11px;color:var(--m)">'+items.length+' pendientes no rutinarias</div>' + html;
 }
 
 function dibujarHistorial(cont){
-  cont.innerHTML=`<div style="padding:40px;text-align:center;color:var(--m);font-size:13px">
-    <div style="font-size:32px;margin-bottom:12px">📊</div>
-    El historial se construirá conforme guardes semanas.</div>`;
+  cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m);font-size:13px">' +
+    '<div style="font-size:32px;margin-bottom:12px">📊</div>' +
+    'El historial se construirá conforme guardes semanas.</div>';
 }
