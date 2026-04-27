@@ -53,8 +53,73 @@
    <div class="board-face anverso" id="board-anverso">
    <div class="sections" id="mob-sections">
 
-    <!-- COL 1: Score de Vida -->
+    <!-- COL 1: Nueva Entrada + Score de Vida -->
     <div id="col1-wrap">
+    <div class="section" id="sec-entrada">
+      <div class="sec-hdr open" id="sec-entrada-hdr">
+        <div class="sec-hdr-left">
+          <div class="sec-hdr-icon" style="background:rgba(99,102,241,.15);color:#A5B4FC"><i class="fas fa-pen-to-square"></i></div>
+          <span class="sec-hdr-title">Nueva Entrada</span>
+        </div>
+        <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+      </div>
+      <div class="sec-body open" id="sec-entrada-body">
+        <div id="cf-fecha" class="cf done">
+          <div class="cf-label">Fecha</div>
+          <div class="cf-val-wrap"><input type="date" id="fecha" class="cf-date" onchange="onFechaChange()"></div>
+        </div>
+        <div id="cf-proyecto" class="cf" onclick="activarCampo('proyecto')">
+          <div class="cf-label">Proyecto</div>
+          <div class="cf-val-wrap"><span id="cv-proyecto" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-proyecto"></div>
+        </div>
+        <div id="cf-contacto" class="cf" onclick="activarCampo('contacto')">
+          <div class="cf-label">Contacto</div>
+          <div class="cf-val-wrap"><span id="cv-contacto" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-contacto"></div>
+        </div>
+        <div id="cf-concepto" class="cf" onclick="abrirConcepto()">
+          <div class="cf-label">Concepto</div>
+          <div class="cf-val-wrap"><span id="cv-concepto" class="cf-val empty">—</span></div>
+        </div>
+        <div id="cf-monto" class="cf" onclick="activarCampo('monto')">
+          <div class="cf-label">Monto</div>
+          <div class="cf-val-wrap">
+            <div class="monto-wrap">
+              <button id="sbp" class="msign pos" onclick="event.stopPropagation();setSign(1)">+</button>
+              <input type="number" id="monto" class="monto-input" step="0.01" inputmode="decimal" oninput="upM()" placeholder="0.00">
+              <button id="sbn" class="msign" onclick="event.stopPropagation();setSign(-1)">−</button>
+              <span id="mprev" class="mprev">$ 0.00</span>
+            </div>
+          </div>
+        </div>
+        <div id="cf-recurrencia" class="cf" onclick="activarCampo('recurrencia')">
+          <div class="cf-label">Recurrencia</div>
+          <div class="cf-val-wrap"><span id="cv-recurrencia" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-recurrencia"></div>
+        </div>
+        <div id="cf-necesidad" class="cf" onclick="activarCampo('necesidad')">
+          <div class="cf-label">Necesidad</div>
+          <div class="cf-val-wrap"><span id="cv-necesidad" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-necesidad"></div>
+        </div>
+        <div id="cf-clave" class="cf" onclick="activarCampo('clave')">
+          <div class="cf-label">Clave</div>
+          <div class="cf-val-wrap"><input type="text" id="clave" class="cf-text" placeholder="Opcional" onchange="onClaveChange()"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-save" id="btnG" onclick="guardar()">
+            <div class="spin-sm" id="spin" style="display:none"></div>
+            <i class="fas fa-floppy-disk" id="bico"></i> Guardar
+          </button>
+          <button class="btn-sm sec" onclick="limpiar()" title="Limpiar"><i class="fas fa-rotate-left"></i></button>
+          <button class="btn-sm sec" onclick="irASheet()" title="Ver Sheet"><i class="fas fa-table-cells"></i></button>
+        </div>
+        <div id="save-res" class="save-res">
+          <span id="res-ico"></span> <span id="res-msg"></span>
+        </div>
+      </div>
+    </div>
     <div class="section" id="sec-score-inline">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-score-inline-hdr">
         <div class="sec-hdr-left">
@@ -383,63 +448,8 @@
       <span class="popup-title">Nueva Entrada</span>
       <button onclick="cerrarEntrada()" class="popup-close">✕</button>
     </div>
-    <div id="popup-entrada-body">
-      <div id="wrap-entrada">
-        <div id="cf-fecha" class="cf done">
-          <div class="cf-label">Fecha</div>
-          <div class="cf-val-wrap"><input type="date" id="fecha" class="cf-date" onchange="onFechaChange()"></div>
-        </div>
-        <div id="cf-proyecto" class="cf" onclick="activarCampo('proyecto')">
-          <div class="cf-label">Proyecto</div>
-          <div class="cf-val-wrap"><span id="cv-proyecto" class="cf-val empty">—</span></div>
-          <div class="sw" id="sw-proyecto"></div>
-        </div>
-        <div id="cf-contacto" class="cf" onclick="activarCampo('contacto')">
-          <div class="cf-label">Contacto</div>
-          <div class="cf-val-wrap"><span id="cv-contacto" class="cf-val empty">—</span></div>
-          <div class="sw" id="sw-contacto"></div>
-        </div>
-        <div id="cf-concepto" class="cf" onclick="abrirConcepto()">
-          <div class="cf-label">Concepto</div>
-          <div class="cf-val-wrap"><span id="cv-concepto" class="cf-val empty">—</span></div>
-        </div>
-        <div id="cf-monto" class="cf" onclick="activarCampo('monto')">
-          <div class="cf-label">Monto</div>
-          <div class="cf-val-wrap">
-            <div class="monto-wrap">
-              <button id="sbp" class="msign pos" onclick="event.stopPropagation();setSign(1)">+</button>
-              <input type="number" id="monto" class="monto-input" step="0.01" inputmode="decimal" oninput="upM()" placeholder="0.00">
-              <button id="sbn" class="msign" onclick="event.stopPropagation();setSign(-1)">−</button>
-              <span id="mprev" class="mprev">$ 0.00</span>
-            </div>
-          </div>
-        </div>
-        <div id="cf-recurrencia" class="cf" onclick="activarCampo('recurrencia')">
-          <div class="cf-label">Recurrencia</div>
-          <div class="cf-val-wrap"><span id="cv-recurrencia" class="cf-val empty">—</span></div>
-          <div class="sw" id="sw-recurrencia"></div>
-        </div>
-        <div id="cf-necesidad" class="cf" onclick="activarCampo('necesidad')">
-          <div class="cf-label">Necesidad</div>
-          <div class="cf-val-wrap"><span id="cv-necesidad" class="cf-val empty">—</span></div>
-          <div class="sw" id="sw-necesidad"></div>
-        </div>
-        <div id="cf-clave" class="cf" onclick="activarCampo('clave')">
-          <div class="cf-label">Clave</div>
-          <div class="cf-val-wrap"><input type="text" id="clave" class="cf-text" placeholder="Opcional" onchange="onClaveChange()"></div>
-        </div>
-        <div class="form-actions">
-          <button class="btn-save" id="btnG" onclick="guardar()">
-            <div class="spin-sm" id="spin" style="display:none"></div>
-            <i class="fas fa-floppy-disk" id="bico"></i> Guardar
-          </button>
-          <button class="btn-sm sec" onclick="limpiar()" title="Limpiar"><i class="fas fa-rotate-left"></i></button>
-          <button class="btn-sm sec" onclick="irASheets('raw')" title="RAW"><i class="fas fa-expand"></i></button>
-        </div>
-        <div id="save-res" class="save-res">
-          <span id="res-ico"></span> <span id="res-msg"></span>
-        </div>
-      </div>
+    <div style="padding:20px;text-align:center;color:var(--m)">
+      El formulario está en la columna izquierda del dashboard.
     </div>
   </div>
 </div>
