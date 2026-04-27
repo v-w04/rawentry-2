@@ -202,6 +202,13 @@ function refreshTodo(){
     if(d&&d.flujoPorMes) renderFlujoMensual(d.flujoPorMes);
     if(d&&d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
     if(d&&d.apartados)   renderApartados(d.apartados);
+    // Reload lazy modules
+    api.getPensamientos().then(renderPensamientos).catch(()=>{});
+    api.getRelaciones().then(renderRelaciones).catch(()=>{});
+    api.getSalud().then(renderSalud).catch(()=>{});
+    api.getPatrimonio().then(renderPatrimonio).catch(()=>{});
+    if(typeof cargarScore==='function') cargarScore();
+    cargarRevision('mensual', new Date().getFullYear(), new Date().getMonth()+1, null);
     btn.classList.remove('spinning');btn.disabled=false;
     progDone();showToast('Datos actualizados');
   })
@@ -930,40 +937,177 @@ function renderPatrimonio(data){
 }
 
 // ══════════════════════════════════════════
-//  NUTRICIÓN
+//  NUTRICIÓN (Lose It! style)
 // ══════════════════════════════════════════
-function renderNutricion(data){
+var _nutMetas = null;
+var _nutData  = null;
+var _nutVista = 'hoy'; // hoy | semana
+
+function renderNutricion(data, metas){
+  _nutData  = data  || _nutData;
+  _nutMetas = metas || _nutMetas || { calorias:1800, proteina:150, carbos:180, grasa:60, agua:2.5 };
   var body = document.getElementById('nutricion-body');
   if(!body) return;
-  if(!data||!data.ok||!data.items||!data.items.length){
-    body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m);font-size:13px">Sin registros — agrega desde el formulario</div>';
+  if(!_nutData||!_nutData.ok){
+    body.innerHTML='<div style="padding:24px;text-align:center;color:var(--m)">Sin datos — agrega desde Nueva Entrada 🥗</div>';
     return;
   }
-  var r = data.resumen || {};
-  var resumen = '';
-  if(r.calHoy||r.aguaHoy||r.fastHoy){
-    resumen = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px var(--pad);background:rgba(0,196,132,.05);border-bottom:1px solid rgba(0,196,132,.1)">' +
-      '<div style="text-align:center"><div style="font-size:18px;font-weight:700;color:#4ADE80">'+(r.calHoy||0)+'</div><div style="font-size:9px;color:var(--m)">kcal hoy</div></div>' +
-      '<div style="text-align:center"><div style="font-size:18px;font-weight:700;color:#60A5FA">'+(r.protHoy||0)+'g</div><div style="font-size:9px;color:var(--m)">proteína</div></div>' +
-      '<div style="text-align:center"><div style="font-size:18px;font-weight:700;color:#38BDF8">'+(r.aguaHoy||0)+'L</div><div style="font-size:9px;color:var(--m)">agua</div></div>' +
-      '<div style="text-align:center"><div style="font-size:18px;font-weight:700;color:#F59E0B">'+(r.fastHoy||0)+'h</div><div style="font-size:9px;color:var(--m)">fasting</div></div>' +
-    '</div>';
-  }
-  var rows = data.items.map(function(it){
-    var badge = it.esHoy ? '<span style="background:rgba(74,222,128,.15);color:#4ADE80;font-size:9px;padding:1px 6px;border-radius:10px;border:1px solid rgba(74,222,128,.3)">hoy</span>' : '';
-    return '<div style="display:flex;align-items:center;gap:10px;padding:8px var(--pad);border-bottom:1px solid rgba(255,255,255,.04)">' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:12px;color:var(--t);display:flex;align-items:center;gap:6px">' + it.comida + ' ' + badge + '</div>' +
-        '<div style="font-size:10px;color:var(--m);margin-top:2px">' + it.fecha +
-          (it.calorias?' · '+it.calorias+' kcal':'') +
-          (it.proteina?' · '+it.proteina+'g prot':'') +
-          (it.agua?' · '+it.agua+'L agua':'') +
-          (it.fasting?' · '+it.fasting+'h fasting':'') +
-        '</div>' +
+  if(_nutVista==='hoy') _renderNutricionHoy(body);
+  else                   _renderNutricionSemana(body);
+}
+
+function _nutricionTabBar(){
+  var onH = 'onclick="_nutTab(this.dataset.v)" data-v="hoy"';
+  var onS = 'onclick="_nutTab(this.dataset.v)" data-v="semana"';
+  return '<div style="display:flex;gap:6px;padding:12px var(--pad) 8px">' +
+    '<button '+onH+' id="nut-tab-hoy" style="'+_nutTabStyle(_nutVista==='hoy')+'">Hoy</button>' +
+    '<button '+onS+' id="nut-tab-sem" style="'+_nutTabStyle(_nutVista==='semana')+'">Semana</button>' +
+  '</div>';
+}
+function _nutTabStyle(on){ return 'padding:4px 12px;border-radius:20px;font-size:11px;font-weight:'+(on?'700':'500')+';cursor:pointer;font-family:inherit;transition:all .15s;border:1px solid '+(on?'rgba(74,222,128,.5)':'rgba(255,255,255,.1)')+';background:'+(on?'rgba(74,222,128,.15)':'rgba(255,255,255,.04)')+';color:'+(on?'#4ADE80':'var(--m)'); }
+function _nutTab(elOrV){ _nutVista = (typeof elOrV==='string') ? elOrV : elOrV.dataset.v; renderNutricion(); }
+
+function _renderNutricionHoy(body){
+  var hoy   = _nutData.hoy  || {};
+  var metas = _nutMetas;
+  var calPct   = metas.calorias  > 0 ? Math.min(100, Math.round(hoy.cal/metas.calorias*100))    : 0;
+  var protPct  = metas.proteina  > 0 ? Math.min(100, Math.round(hoy.prot/metas.proteina*100))   : 0;
+  var carPct   = metas.carbos    > 0 ? Math.min(100, Math.round(hoy.carbos/metas.carbos*100))   : 0;
+  var grasPct  = metas.grasa     > 0 ? Math.min(100, Math.round(hoy.grasa/metas.grasa*100))     : 0;
+  var aguaPct  = metas.agua      > 0 ? Math.min(100, Math.round(hoy.agua/metas.agua*100))       : 0;
+  var calRest  = metas.calorias - (hoy.cal||0);
+  var calColor = calRest < 0 ? 'var(--err)' : calRest < 200 ? 'var(--warn)' : '#4ADE80';
+
+  // Gauge circular de calorías
+  var circ = 2*Math.PI*36;
+  var dash = circ - (calPct/100*circ);
+
+  var gauge = '<div style="display:flex;flex-direction:column;align-items:center;padding:16px var(--pad) 8px">' +
+    '<svg width="100" height="100" viewBox="0 0 80 80">' +
+      '<circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="7"/>' +
+      '<circle cx="40" cy="40" r="36" fill="none" stroke="'+calColor+'" stroke-width="7"' +
+        ' stroke-dasharray="'+circ.toFixed(1)+'" stroke-dashoffset="'+dash.toFixed(1)+'"' +
+        ' stroke-linecap="round" transform="rotate(-90 40 40)" style="transition:stroke-dashoffset .6s ease"/>' +
+      '<text x="40" y="37" text-anchor="middle" font-size="14" font-weight="700" fill="'+calColor+'" font-family="system-ui">'+(hoy.cal||0)+'</text>' +
+      '<text x="40" y="50" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.4)" font-family="system-ui">/ '+metas.calorias+'</text>' +
+    '</svg>' +
+    '<div style="font-size:11px;color:'+calColor+';font-weight:600;margin-top:2px">' +
+      (calRest>=0 ? calRest+' kcal restantes' : Math.abs(calRest)+' kcal sobre el límite') +
+    '</div>' +
+  '</div>';
+
+  // Macros
+  function macroBar(label, val, meta, pct, color){
+    return '<div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px">' +
+        '<span style="color:var(--m);font-weight:600">'+label+'</span>' +
+        '<span style="color:var(--t)">'+val+'<span style="color:var(--m)"> / '+meta+'g</span></span>' +
+      '</div>' +
+      '<div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">' +
+        '<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:3px;transition:width .5s ease"></div>' +
       '</div>' +
     '</div>';
+  }
+
+  var macros = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:4px var(--pad) 12px">' +
+    macroBar('Proteína', hoy.prot||0, metas.proteina, protPct, '#60A5FA') +
+    macroBar('Carbos',   hoy.carbos||0, metas.carbos, carPct,  '#FBBF24') +
+    macroBar('Grasa',    hoy.grasa||0, metas.grasa,  grasPct, '#F87171') +
+  '</div>';
+
+  // Agua y sodio
+  var extras = '<div style="display:flex;gap:12px;padding:0 var(--pad) 12px">' +
+    '<div style="flex:1;background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.15);border-radius:10px;padding:8px 12px;text-align:center">' +
+      '<div style="font-size:18px;font-weight:700;color:#38BDF8">'+(hoy.agua||0).toFixed(1)+'L</div>' +
+      '<div style="font-size:9px;color:var(--m)">Agua · meta '+metas.agua+'L</div>' +
+      '<div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:6px;overflow:hidden">' +
+        '<div style="height:100%;width:'+aguaPct+'%;background:#38BDF8;border-radius:2px"></div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="flex:1;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:10px;padding:8px 12px;text-align:center">' +
+      '<div style="font-size:18px;font-weight:700;color:#FBBF24">'+(hoy.fibra||0)+'g</div>' +
+      '<div style="font-size:9px;color:var(--m)">Fibra</div>' +
+    '</div>' +
+  '</div>';
+
+  // Items de hoy agrupados por momento
+  var MOMENTO_COLOR = {Desayuno:'#F59E0B',Comida:'#4ADE80',Cena:'#8B5CF6',Snack:'#60A5FA','Post-entreno':'#F87171'};
+  var MOMENTO_EMOJI = {Desayuno:'🌅',Comida:'☀️',Cena:'🌙',Snack:'🍎','Post-entreno':'💪'};
+  var items = (hoy.items||[]);
+  var grupos = {};
+  items.forEach(function(it){
+    var m = it.momento||'Otro';
+    if(!grupos[m]) grupos[m] = { items:[], cal:0 };
+    grupos[m].items.push(it);
+    grupos[m].cal += it.cal||0;
+  });
+  var ORDER = ['Desayuno','Comida','Cena','Snack','Post-entreno','Otro'];
+  var itemsHtml = ORDER.filter(function(m){ return grupos[m]; }).map(function(m){
+    var g = grupos[m];
+    var color = MOMENTO_COLOR[m]||'var(--m)';
+    var emoji = MOMENTO_EMOJI[m]||'🍽️';
+    return '<div style="margin:0 var(--pad) 10px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+        '<div style="font-size:11px;font-weight:700;color:'+color+'">' + emoji + ' ' + m + '</div>' +
+        '<div style="font-size:11px;color:var(--m)">'+g.cal+' kcal</div>' +
+      '</div>' +
+      g.items.map(function(it){
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
+          '<div style="font-size:12px;color:var(--t);flex:1">' + it.alimento + '</div>' +
+          '<div style="font-size:11px;color:var(--m);margin-left:8px;flex-shrink:0">' +
+            (it.cal?it.cal+' kcal':'') +
+            (it.prot?' · '+it.prot+'g P':'') +
+          '</div>' +
+        '</div>';
+      }).join('') +
+    '</div>';
   }).join('');
-  body.innerHTML = resumen + rows;
+
+  if(!items.length) itemsHtml = '<div style="padding:16px var(--pad);color:var(--m);font-size:13px;text-align:center">Sin registros hoy — agrega desde Nueva Entrada 🥗</div>';
+
+  body.innerHTML = _nutricionTabBar() + gauge + macros + extras +
+    '<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:8px">' + itemsHtml + '</div>';
+}
+
+function _renderNutricionSemana(body){
+  var semana = (_nutData.semana||[]).slice().reverse(); // cronológico
+  var metas  = _nutMetas;
+
+  var bars = semana.map(function(d){
+    var pct = metas.calorias > 0 ? Math.min(120, d.cal/metas.calorias*100) : 0;
+    var over = d.cal > metas.calorias;
+    var color = over ? '#EF4444' : d.cal > metas.calorias*0.8 ? '#4ADE80' : 'rgba(255,255,255,.2)';
+    var label = d.fecha ? d.fecha.slice(5) : '';
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">' +
+      '<div style="font-size:9px;color:var(--m)">'+(d.cal||0)+'</div>' +
+      '<div style="width:100%;height:80px;display:flex;align-items:flex-end">' +
+        '<div style="width:100%;height:'+Math.max(4,pct*.8)+'%;background:'+color+';border-radius:4px 4px 0 0;transition:height .5s ease;min-height:4px"></div>' +
+      '</div>' +
+      '<div style="font-size:9px;color:var(--m)">'+label+'</div>' +
+    '</div>';
+  }).join('');
+
+  var chartHtml = '<div style="padding:12px var(--pad)">' +
+    '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px">Calorías últimos 7 días</div>' +
+    '<div style="display:flex;gap:4px;align-items:flex-end;height:110px">' + bars + '</div>' +
+    '<div style="font-size:9px;color:var(--m);text-align:center;margin-top:4px">Meta: '+metas.calorias+' kcal/día</div>' +
+  '</div>';
+
+  // Promedios
+  var dias = semana.filter(function(d){ return d.cal > 0; });
+  var avg  = function(key){ return dias.length ? Math.round(dias.reduce(function(s,d){ return s+(d[key]||0); },0)/dias.length) : 0; };
+  var statsHtml = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 var(--pad) 12px">' +
+    ['cal','prot','carbos','grasa'].map(function(k,i){
+      var labels = ['kcal','P(g)','C(g)','G(g)'];
+      var colors = ['#4ADE80','#60A5FA','#FBBF24','#F87171'];
+      return '<div style="text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:8px 4px">' +
+        '<div style="font-size:16px;font-weight:700;color:'+colors[i]+'">'+avg(k)+'</div>' +
+        '<div style="font-size:9px;color:var(--m)">prom '+labels[i]+'</div>' +
+      '</div>';
+    }).join('') +
+  '</div>';
+
+  body.innerHTML = _nutricionTabBar() + chartHtml + statsHtml;
 }
 
 // ══════════════════════════════════════════
