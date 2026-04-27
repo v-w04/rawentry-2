@@ -561,6 +561,7 @@ function switchVistaAct(vista){
   });
   var cont = document.getElementById('act-container');
   if(!cont) return;
+  if(!_actData) { cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div>'; return; }
   if(vista==='habitos')     dibujarHabitos(cont, (_actData.habitosPersonal||_actData.habitos||[]));
   else if(vista==='electronics') dibujarHabitos(cont, _actData.habitosElectronics||[], true);
   else if(vista==='libros') dibujarMedia(cont, _actData.libros||[], 'Lectura');
