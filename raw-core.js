@@ -254,7 +254,7 @@ function guardarBanco(){
         showToast('✓ Banco guardado');
         document.getElementById('banco-nombre').value='';
         document.getElementById('banco-monto').value='';
-        document.getElementById('banco-fecha').value=fmtD(new Date());
+        const bfEl=document.getElementById('banco-fecha'); if(bfEl) bfEl.value=fmtD(new Date());
         api.getFijos().then(renderEntes);
       } else {
         showToast(r.mensaje||'Error', false);
@@ -268,9 +268,12 @@ function guardarBanco(){
 // ══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded',()=>{
   const hoy=fmtD(new Date());
-  document.getElementById('fecha').value=hoy;
+  // fecha is inside popup — set it safely
+  const fechaEl=document.getElementById('fecha');
+  if(fechaEl) fechaEl.value=hoy;
   _inyectarToggleModo();
-  document.getElementById('saldo-fecha').value=hoy;
+  const saldoFechaEl=document.getElementById('saldo-fecha');
+  if(saldoFechaEl) saldoFechaEl.value=hoy;
   actualizarResumenFecha(hoy);
   consultarSaldo();
 
@@ -312,7 +315,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   initTooltip();
   _initMobTablero();
-  document.getElementById('banco-fecha').value=fmtD(new Date());
+  const bfEl=document.getElementById('banco-fecha'); if(bfEl) bfEl.value=fmtD(new Date());
 });
 
 function mostrarErrorConexion(msg){
@@ -595,9 +598,9 @@ function guardar(){
 }
 
 function setBtn(l){
-  const b=document.getElementById('btnG');b.disabled=l;
-  document.getElementById('spin').style.display=l?'block':'none';
-  document.getElementById('bico').style.display=l?'none':'inline';
+  const b=document.getElementById('btnG');if(b)b.disabled=l;
+  const sp=document.getElementById('spin');if(sp)sp.style.display=l?'block':'none';
+  const bi=document.getElementById('bico');if(bi)bi.style.display=l?'none':'inline';
 }
 function mostrarRes(ok,msg){
   const el=document.getElementById('save-res');
@@ -608,7 +611,7 @@ function mostrarRes(ok,msg){
 function ocultarRes(){document.getElementById('save-res').className='save-res';}
 
 function limpiar(rf=true){
-  if(rf)document.getElementById('fecha').value=fmtD(new Date());
+  if(rf){const fEl=document.getElementById('fecha');if(fEl)fEl.value=fmtD(new Date());}
   actualizarResumenFecha(rf?fmtD(new Date()):'');
   ['proyecto','contacto','recurrencia'].forEach(k=>{
     document.querySelectorAll(`#sw-${k} .opt`).forEach(b=>b.classList.remove('on'));
