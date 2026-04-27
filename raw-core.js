@@ -292,10 +292,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   const fechaEl=document.getElementById('fecha');
   if(fechaEl) fechaEl.value=hoy;
   _inyectarToggleModo();
-  const saldoFechaEl=document.getElementById('saldo-fecha');
-  if(saldoFechaEl) saldoFechaEl.value=hoy;
-  actualizarResumenFecha(hoy);
-  consultarSaldo();
+  // saldo-fecha se inicializa cuando renderFinancieroAvanzado crea el input
+  setTimeout(consultarSaldo, 2000);
 
   setChip('load','Cargando');
   api.getAll()
@@ -561,12 +559,22 @@ function upM(){
 //  SALDO
 // ══════════════════════════════════════════
 function consultarSaldo(){
-  const f=document.getElementById('saldo-fecha').value;if(!f)return;
-  const el=document.getElementById('saldo-val');el.className='saldo-val ld';el.textContent='…';
-  const elMob=document.getElementById('saldo-val-mob');if(elMob){elMob.className='saldo-val ld';elMob.textContent='…';}
+  const fEl=document.getElementById('saldo-fecha');
+  if(!fEl){ 
+    // El input aún no existe (se renderiza con Financiero) — esperar
+    setTimeout(consultarSaldo, 500); return;
+  }
+  const hoy=fmtD(new Date());
+  if(!fEl.value) fEl.value=hoy;
+  const f=fEl.value;
+  // Actualizar el valor en la tarjeta financiero
+  const valEl=document.getElementById('saldo-val');
+  if(valEl){ valEl.className='saldo-val ld'; valEl.textContent='…'; }
   api.getSaldoDia(f)
-    .then(r=>{el.textContent=r.display;el.className='saldo-val '+(r.valor>0?'pos':r.valor<0?'neg':'');})
-    .catch(()=>{el.className='saldo-val ld';el.textContent='—';});
+    .then(r=>{
+      if(valEl){ valEl.textContent=r.display; valEl.className='saldo-val '+(r.valor>0?'pos':r.valor<0?'neg':''); }
+    })
+    .catch(()=>{ if(valEl){ valEl.className='saldo-val ld'; valEl.textContent='—'; } });
 }
 
 // ══════════════════════════════════════════
