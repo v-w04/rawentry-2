@@ -155,10 +155,13 @@ function _guardarNutricion(){
   res.textContent='Guardando…'; res.style.color='var(--m)';
   var datos = {
     comida:   comida,
-    calorias: parseFloat(document.getElementById('nut-cal').value)||0,
-    proteina: parseFloat(document.getElementById('nut-prot').value)||0,
-    agua:     parseFloat(document.getElementById('nut-agua').value)||0,
-    fasting:  parseFloat(document.getElementById('nut-fast').value)||0,
+    calorias: parseFloat(document.getElementById('nut-cal')?.value)||0,
+    proteina: parseFloat(document.getElementById('nut-prot')?.value)||0,
+    carbos:   parseFloat(document.getElementById('nut-carbos')?.value)||0,
+    grasa:    parseFloat(document.getElementById('nut-grasa')?.value)||0,
+    agua:     parseFloat(document.getElementById('nut-agua')?.value)||0,
+    fasting:  parseFloat(document.getElementById('nut-fast')?.value)||0,
+    notas:    document.getElementById('nut-notas')?.value||'',
     fecha:    fmtD(new Date())
   };
   api.guardarNutricion(datos)
@@ -167,8 +170,8 @@ function _guardarNutricion(){
       res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
       if(r.ok){
         document.getElementById('nut-comida').value='';
-        ['nut-cal','nut-prot','nut-agua','nut-fast'].forEach(function(id){
-          document.getElementById(id).value='';
+        ['nut-cal','nut-prot','nut-carbos','nut-grasa','nut-agua','nut-fast','nut-notas'].forEach(function(id){
+          var el = document.getElementById(id); if(el) el.value='';
         });
         api.getNutricion().then(renderNutricion).catch(function(){});
       }
@@ -182,12 +185,14 @@ function _guardarEntrenamiento(){
   if(!ejercicio){ res.textContent='Escribe el ejercicio'; res.style.color='var(--err)'; return; }
   res.textContent='Guardando…'; res.style.color='var(--m)';
   var datos = {
-    tipo:      document.getElementById('ent-tipo').value,
+    tipo:      document.getElementById('ent-tipo')?.value||'',
     ejercicio: ejercicio,
-    duracion:  parseFloat(document.getElementById('ent-dur').value)||0,
-    series:    parseFloat(document.getElementById('ent-series').value)||0,
-    reps:      parseFloat(document.getElementById('ent-reps').value)||0,
-    peso:      parseFloat(document.getElementById('ent-peso').value)||0,
+    duracion:  parseFloat(document.getElementById('ent-dur')?.value)||0,
+    distancia: parseFloat(document.getElementById('ent-dist')?.value)||0,
+    series:    parseFloat(document.getElementById('ent-series')?.value)||0,
+    reps:      parseFloat(document.getElementById('ent-reps')?.value)||0,
+    peso:      parseFloat(document.getElementById('ent-peso')?.value)||0,
+    notas:     document.getElementById('ent-notas')?.value||'',
     fecha:     fmtD(new Date())
   };
   api.guardarEntrenamiento(datos)
@@ -654,7 +659,9 @@ function _inyectarToggleModo(){
     <button id="btn-tab-persona"     onclick="setModoEntrada('persona')"     class="tab-entrada">👥</button>
     <button id="btn-tab-salud"       onclick="setModoEntrada('salud')"       class="tab-entrada">🏥</button>
     <button id="btn-tab-apartado"    onclick="setModoEntrada('apartado')"    class="tab-entrada">💰</button>
-    <button id="btn-tab-patrimonio"  onclick="setModoEntrada('patrimonio')"  class="tab-entrada">🏦</button>`;
+    <button id="btn-tab-patrimonio"   onclick="setModoEntrada('patrimonio')"   class="tab-entrada">🏦</button>
+    <button id="btn-tab-nutricion"    onclick="setModoEntrada('nutricion')"    class="tab-entrada">🥗</button>
+    <button id="btn-tab-entrenamiento" onclick="setModoEntrada('entrenamiento')" class="tab-entrada">💪</button>`;
   const body = document.getElementById('sec-entrada-body');
   if(body) body.insertBefore(wrap, body.firstChild);
 
@@ -677,7 +684,7 @@ function _inyectarToggleModo(){
   if(body) body.insertBefore(idWrap, wrap.nextSibling);
 
   // Wraps para tabs alternativos
-  ['pensamiento','persona','salud','apartado','patrimonio'].forEach(tab=>{
+  ['pensamiento','persona','salud','apartado','patrimonio','nutricion','entrenamiento'].forEach(tab=>{
     const tw = document.createElement('div');
     tw.id = tab+'-wrap';
     tw.style.display = 'none';
@@ -690,7 +697,7 @@ function setModoEntrada(modo){
   _modoEditar  = (modo === 'editar');
 
   // Actualizar tabs
-  ['nueva','editar','pensamiento','persona','salud','apartado','patrimonio'].forEach(t=>{
+  ['nueva','editar','pensamiento','persona','salud','apartado','patrimonio','nutricion','entrenamiento'].forEach(t=>{
     const btn = document.getElementById('btn-tab-'+t);
     if(btn) btn.classList.toggle('on', t===modo);
   });
@@ -742,7 +749,9 @@ function _renderTabEntrada(tab){
   else if(tab==='persona') _renderPersonaForm(wrap);
   else if(tab==='salud')   _renderSaludForm(wrap);
   else if(tab==='apartado') _renderApartadoForm(wrap);
-  else if(tab==='patrimonio') _renderPatrimonioForm(wrap);
+  else if(tab==='patrimonio')    _renderPatrimonioForm(wrap);
+  else if(tab==='nutricion')     _renderNutricionForm(wrap);
+  else if(tab==='entrenamiento') _renderEntrenamientoForm(wrap);
 }
 
 // ── Formulario Patrimonio ──
@@ -841,6 +850,99 @@ function _guardarPatrimonio(){
           fondo:{meta:0,avance:0,meses:0,salud:'err'}}));
     }
   }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
+}
+
+
+// ── Formulario Nutrición ──
+function _renderNutricionForm(wrap){
+  wrap.innerHTML=`
+    <div style="padding:16px var(--pad);display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Registrar comida / día</div>
+      <input type="text" id="nut-comida" class="finput" placeholder="Ej. Desayuno: huevos + aguacate" style="font-size:14px;padding:10px 14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Calorías (kcal)</div>
+          <input type="number" id="nut-cal" class="finput" placeholder="0" style="font-size:16px;padding:10px 12px">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Proteína (g)</div>
+          <input type="number" id="nut-prot" class="finput" placeholder="0" style="font-size:16px;padding:10px 12px">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Carbos (g)</div>
+          <input type="number" id="nut-carbos" class="finput" placeholder="0" style="padding:9px 10px;font-size:13px">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Grasa (g)</div>
+          <input type="number" id="nut-grasa" class="finput" placeholder="0" style="padding:9px 10px;font-size:13px">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Agua (L)</div>
+          <input type="number" id="nut-agua" class="finput" placeholder="0.0" step="0.1" style="padding:9px 10px;font-size:13px">
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--m);margin-bottom:4px">Fasting (horas de ayuno hoy)</div>
+        <div class="opts" id="nut-fast-opts">
+          ${[0,12,14,16,18,20].map(h=>`<button class="opt" onclick="event.stopPropagation();_selOpt(this,'nut-fast-opts');document.getElementById('nut-fast').value=${h}">${h?h+'h':'Sin ayuno'}</button>`).join('')}
+        </div>
+        <input type="hidden" id="nut-fast" value="0">
+      </div>
+      <input type="text" id="nut-notas" class="finput" placeholder="Notas opcionales" style="font-size:13px;padding:9px 12px">
+      <button onclick="_guardarNutricion()" class="btn-save" style="border-radius:var(--rad-pill)">
+        <i class="fas fa-floppy-disk"></i> Guardar
+      </button>
+      <div id="nut-res" style="font-size:12px;text-align:center;color:var(--m)"></div>
+    </div>`;
+}
+
+// ── Formulario Entrenamiento ──
+function _renderEntrenamientoForm(wrap){
+  wrap.innerHTML=`
+    <div style="padding:16px var(--pad);display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Registrar sesión</div>
+      <div>
+        <div style="font-size:10px;color:var(--m);margin-bottom:6px">Tipo</div>
+        <div class="opts" id="ent-tipo-opts">
+          ${['Fuerza','Cardio','HIIT','Flexibilidad','Deporte'].map(t=>
+            `<button class="opt" onclick="event.stopPropagation();_selOpt(this,'ent-tipo-opts');document.getElementById('ent-tipo').value='${t}'">${t}</button>`
+          ).join('')}
+        </div>
+        <input type="hidden" id="ent-tipo" value="">
+      </div>
+      <input type="text" id="ent-ejercicio" class="finput" placeholder="Ejercicio (ej. Press banca, Caminata, Yoga)" style="font-size:14px;padding:10px 14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Duración (min)</div>
+          <input type="number" id="ent-dur" class="finput" placeholder="0" style="font-size:16px;padding:10px 12px">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Distancia (km)</div>
+          <input type="number" id="ent-dist" class="finput" placeholder="0.0" step="0.1" style="font-size:16px;padding:10px 12px">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Series</div>
+          <input type="number" id="ent-series" class="finput" placeholder="0" style="padding:9px 10px;font-size:13px">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Reps</div>
+          <input type="number" id="ent-reps" class="finput" placeholder="0" style="padding:9px 10px;font-size:13px">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Peso (kg)</div>
+          <input type="number" id="ent-peso" class="finput" placeholder="0" step="0.5" style="padding:9px 10px;font-size:13px">
+        </div>
+      </div>
+      <input type="text" id="ent-notas" class="finput" placeholder="Notas" style="font-size:13px;padding:9px 12px">
+      <button onclick="_guardarEntrenamiento()" class="btn-save" style="border-radius:var(--rad-pill)">
+        <i class="fas fa-floppy-disk"></i> Guardar sesión
+      </button>
+      <div id="ent-res" style="font-size:12px;text-align:center;color:var(--m)"></div>
+    </div>`;
 }
 
 // ── Formulario Pensamiento ──
@@ -1184,12 +1286,23 @@ function activarSOS(){
   // Intentar obtener ubicación
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(
-      pos=>{
-        const loc = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+      function(pos){
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+        var acc = pos.coords.accuracy; // metros de precisión
+        var loc = 'https://maps.google.com/?q=' + lat + ',' + lng;
+        console.log('GPS accuracy: ' + acc + 'm');
         _doEnviarSOS(msg, loc, btn);
       },
-      ()=>{ _doEnviarSOS(msg, '', btn); },
-      { timeout: 5000 }
+      function(err){
+        console.warn('Geolocation error:', err.code, err.message);
+        _doEnviarSOS(msg, '', btn);
+      },
+      {
+        enableHighAccuracy: true,  // fuerza GPS chip si disponible
+        timeout: 15000,            // espera más tiempo para GPS real
+        maximumAge: 0              // no usar caché — ubicación fresca
+      }
     );
   } else {
     _doEnviarSOS(msg, '', btn);
