@@ -209,6 +209,32 @@ function _guardarEntrenamiento(){
     }).catch(function(){ res.textContent='Error'; res.style.color='var(--err)'; });
 }
 
+
+// ── Popup Nueva Entrada ──
+function abrirEntrada(){
+  const p = document.getElementById('popup-entrada');
+  if(!p) return;
+  p.classList.add('show');
+  p.style.display = 'flex';
+  // Init tabs and date
+  if(typeof _inyectarToggleModo === 'function') _inyectarToggleModo();
+  const fechaEl = document.getElementById('fecha');
+  if(fechaEl && !fechaEl.value) fechaEl.value = fmtD(new Date());
+  // Focus
+  setTimeout(function(){ const m = document.getElementById('monto'); if(m) m.focus(); }, 100);
+}
+
+function cerrarEntrada(e){
+  if(e && e.target !== document.getElementById('popup-entrada')) return;
+  const p = document.getElementById('popup-entrada');
+  if(p){ p.classList.remove('show'); p.style.display = 'none'; }
+}
+
+// Also close on Escape
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') cerrarEntrada();
+});
+
 // ══════════════════════════════════════════
 //  GUARDAR BANCO
 // ══════════════════════════════════════════
@@ -649,11 +675,10 @@ function irASheets(sheetId){
 //  MODO NUEVA / EDITAR
 // ══════════════════════════════════════════
 function _inyectarToggleModo(){
-  const hdr = document.getElementById('sec-entrada-hdr');
-  if(!hdr || document.getElementById('toggle-modo-wrap')) return;
+  if(document.getElementById('toggle-modo-wrap')) return;
   const wrap = document.createElement('div');
   wrap.id = 'toggle-modo-wrap';
-  wrap.style.cssText = 'display:flex;align-items:center;gap:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:3px;margin:10px var(--pad) 0;';
+  wrap.style.cssText = 'display:flex;align-items:center;gap:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:3px;margin:0 0 10px;flex-wrap:wrap;';
   wrap.innerHTML = `
     <button id="btn-tab-nueva"       onclick="setModoEntrada('nueva')"       class="tab-entrada on">+ Nueva</button>
     <button id="btn-tab-editar"      onclick="setModoEntrada('editar')"      class="tab-entrada">✏ Editar</button>
@@ -661,10 +686,10 @@ function _inyectarToggleModo(){
     <button id="btn-tab-persona"     onclick="setModoEntrada('persona')"     class="tab-entrada">👥</button>
     <button id="btn-tab-salud"       onclick="setModoEntrada('salud')"       class="tab-entrada">🏥</button>
     <button id="btn-tab-apartado"    onclick="setModoEntrada('apartado')"    class="tab-entrada">💰</button>
-    <button id="btn-tab-patrimonio"   onclick="setModoEntrada('patrimonio')"   class="tab-entrada">🏦</button>
-    <button id="btn-tab-nutricion"    onclick="setModoEntrada('nutricion')"    class="tab-entrada">🥗</button>
+    <button id="btn-tab-patrimonio"  onclick="setModoEntrada('patrimonio')"  class="tab-entrada">🏦</button>
+    <button id="btn-tab-nutricion"   onclick="setModoEntrada('nutricion')"   class="tab-entrada">🥗</button>
     <button id="btn-tab-entrenamiento" onclick="setModoEntrada('entrenamiento')" class="tab-entrada">💪</button>`;
-  const body = document.getElementById('sec-entrada-body');
+  const body = document.getElementById('sec-entrada-body') || document.getElementById('wrap-entrada');
   if(body) body.insertBefore(wrap, body.firstChild);
 
   // ID input (hidden by default)
