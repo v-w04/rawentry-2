@@ -198,10 +198,6 @@ window.addEventListener('DOMContentLoaded',()=>{
       renderNecesidades(d.necesidades);
       renderFlujoMensual(d.flujoPorMes);
       if(d.activityCheck){ _actData=d.activityCheck; }
-      else {
-        // Lazy load activity
-        api.getActivityCheck().then(function(d){ _actData=d; }).catch(function(){});
-      }
       if(d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
       if(d.apartados) renderApartados(d.apartados);
       // Cargar módulos lazy
@@ -568,12 +564,9 @@ function irASheets(sheetId){
   // Render iframe
   const cont = document.getElementById('sheets-iframe-cont');
   if(cont){
-    cont.innerHTML = `<iframe
-      src="${_sheetEmbedUrl(cfg)}&widget=true&chrome=false"
-      style="width:100%;height:100%;border:none;display:block;min-height:500px"
-      allowfullscreen
-      scrolling="yes">
-    </iframe>`;
+    // Google Sheets embed URL
+    var embedUrl = 'https://docs.google.com/spreadsheets/d/' + cfg.spreadsheetId + '/htmlview?gid=' + cfg.gid + '&widget=true';
+    cont.innerHTML = '<iframe src="' + embedUrl + '" style="width:100%;height:100%;border:none;display:block" allowfullscreen scrolling="yes"></iframe>';
   }
   // Update header label
   const lbl = document.getElementById('sheets-panel-label');
