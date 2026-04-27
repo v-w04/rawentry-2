@@ -531,25 +531,10 @@
         <div class="sec-hdr-icon" style="background:rgba(0,196,132,.1);color:#4ADE80"><i class="fas fa-apple-whole"></i></div>
         <span class="sec-hdr-title">Nutrición</span>
       </div>
-      <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+      <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('nutricion')" class="sec-add-btn" title="Agregar">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
     </div>
     <div class="sec-body" id="sec-nutricion-body">
       <div id="nutricion-body" style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div>
-      <!-- Formulario rápido -->
-      <div style="padding:12px var(--pad);border-top:1px solid rgba(255,255,255,.06)">
-        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px">Agregar registro</div>
-        <input type="text" id="nut-comida" class="finput" placeholder="Comida / Alimento" style="font-size:13px;padding:8px 12px;margin-bottom:6px">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-          <input type="number" id="nut-cal" class="finput" placeholder="kcal" style="font-size:12px;padding:7px 8px">
-          <input type="number" id="nut-prot" class="finput" placeholder="prot g" style="font-size:12px;padding:7px 8px">
-          <input type="number" id="nut-agua" class="finput" placeholder="agua L" step="0.1" style="font-size:12px;padding:7px 8px">
-          <input type="number" id="nut-fast" class="finput" placeholder="fast h" style="font-size:12px;padding:7px 8px">
-        </div>
-        <button onclick="_guardarNutricion()" class="btn-save" style="border-radius:var(--rad-pill);font-size:12px;padding:8px">
-          <i class="fas fa-floppy-disk"></i> Guardar
-        </button>
-        <div id="nut-res" style="font-size:11px;text-align:center;color:var(--m);margin-top:4px"></div>
-      </div>
     </div>
   </div>
 
@@ -560,32 +545,10 @@
         <div class="sec-hdr-icon" style="background:rgba(239,68,68,.1);color:#FCA5A5"><i class="fas fa-dumbbell"></i></div>
         <span class="sec-hdr-title">Entrenamiento</span>
       </div>
-      <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+      <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('entrenamiento')" class="sec-add-btn" title="Agregar">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
     </div>
     <div class="sec-body" id="sec-entrenamiento-body">
       <div id="entrenamiento-body" style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div>
-      <!-- Formulario rápido -->
-      <div style="padding:12px var(--pad);border-top:1px solid rgba(255,255,255,.06)">
-        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px">Agregar sesión</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-          <select id="ent-tipo" class="finput" style="font-size:12px;padding:7px 8px;background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,.15)">
-            <option value="">Tipo</option>
-            <option>Fuerza</option><option>Cardio</option><option>HIIT</option>
-            <option>Flexibilidad</option><option>Deporte</option>
-          </select>
-          <input type="number" id="ent-dur" class="finput" placeholder="Duración (min)" style="font-size:12px;padding:7px 8px">
-        </div>
-        <input type="text" id="ent-ejercicio" class="finput" placeholder="Ejercicio (ej. Press banca)" style="font-size:13px;padding:8px 12px;margin-bottom:6px">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-          <input type="number" id="ent-series" class="finput" placeholder="Series" style="font-size:12px;padding:7px 8px">
-          <input type="number" id="ent-reps" class="finput" placeholder="Reps" style="font-size:12px;padding:7px 8px">
-          <input type="number" id="ent-peso" class="finput" placeholder="Peso kg" step="0.5" style="font-size:12px;padding:7px 8px">
-        </div>
-        <button onclick="_guardarEntrenamiento()" class="btn-save" style="border-radius:var(--rad-pill);font-size:12px;padding:8px">
-          <i class="fas fa-floppy-disk"></i> Guardar sesión
-        </button>
-        <div id="ent-res" style="font-size:11px;text-align:center;color:var(--m);margin-top:4px"></div>
-      </div>
     </div>
   </div>
   </div><!-- /life-grid -->
