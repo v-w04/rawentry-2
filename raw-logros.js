@@ -570,7 +570,18 @@ function switchVistaAct(vista){
 
 function renderActivity(){
   if(!_actData) return;
-  // Rebuild tab bar with 5 tabs
+  var tabBar = document.getElementById('act-tabs');
+  if(tabBar){
+    var ts = _actTabStyle();
+    tabBar.innerHTML =
+      '<button id="act-btn-habitos" onclick="switchVistaAct(\'habitos\')" style="'+ts+'">Personal</button> ' +
+      '<button id="act-btn-electronics" onclick="switchVistaAct(\'electronics\')" style="'+ts+'">Trabajo</button> ' +
+      '<button id="act-btn-libros" onclick="switchVistaAct(\'libros\')" style="'+ts+'">Libros</button> ' +
+      '<button id="act-btn-movies" onclick="switchVistaAct(\'movies\')" style="'+ts+'">Movies</button> ' +
+      '<button id="act-btn-norut" onclick="switchVistaAct(\'norut\')" style="'+ts+'">Pendientes</button>';
+  }
+  switchVistaAct('habitos');
+}
   var cont = document.getElementById('act-container');
   var tabBar = document.getElementById('act-tabs');
   if(tabBar){
@@ -609,7 +620,7 @@ function dibujarHabitos(cont, habitos, esElectronics){
       var done = !!_actChecks[key];
       var past = d.isPast;
       return '<div style="display:flex;align-items:center;justify-content:center">' +
-        '<button onclick="toggleHabito(''+hab.nombre.replace(/'/g,"\'")+"','"+semana+"','"+d.date+'')" '+
+        '<button onclick="toggleHabito(\"'+hab.nombre.replace(/'/g,'\\&apos;')+'\",' + '\"'+semana+'\",' + '\"'+d.date+'\")" ' +
         'style="width:28px;height:28px;border-radius:8px;border:1px solid '+(done?'rgba(74,222,128,.4)':'rgba(255,255,255,.1)')+';'+
         'background:'+(done?'rgba(74,222,128,.15)':'rgba(255,255,255,.03)')+';cursor:'+(past?'pointer':'default')+';'+
         'display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;opacity:'+(past?1:.35)+';color:'+color+'" '+
@@ -651,7 +662,7 @@ function dibujarMedia(cont, items, tipo){
     var done   = item.completado;
     var fila   = idx + 2; // fila en sheet (1=header, 2=first data)
     return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
-      '<button onclick="_toggleActivityItem(this,''+tipoKey+'','+fila+','+(!done)+')" ' +
+      '<button data-tipo="'+tipoKey+'" data-fila="'+fila+'" data-val="'+(!done)+'" onclick="_toggleActivityItem(this,this.dataset.tipo,this.dataset.fila,this.dataset.val===\'true\')" ' +
         'style="width:22px;height:22px;border-radius:6px;border:1px solid '+(done?'rgba(74,222,128,.4)':'rgba(255,255,255,.15)')+';'+
         'background:'+(done?'rgba(74,222,128,.15)':'transparent')+';cursor:pointer;flex-shrink:0;'+
         'display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ok);transition:all .2s">'+
@@ -684,7 +695,7 @@ function dibujarNoRutinarias(cont, items){
     var done   = item.completado;
     var fila   = idx + 2;
     return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
-      '<button onclick="_toggleActivityItem(this,'norut','+fila+','+(!done)+')" ' +
+      '<button data-tipo="norut" data-fila="'+fila+'" data-val="'+(!done)+'" onclick="_toggleActivityItem(this,this.dataset.tipo,this.dataset.fila,this.dataset.val===\'true\')" ' +
         'style="width:22px;height:22px;border-radius:6px;border:1px solid '+(done?'rgba(74,222,128,.4)':'rgba(139,92,246,.3)')+';'+
         'background:'+(done?'rgba(74,222,128,.15)':'rgba(139,92,246,.08)')+';cursor:pointer;flex-shrink:0;'+
         'display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ok);transition:all .2s">'+
