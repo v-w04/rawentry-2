@@ -484,7 +484,8 @@ let _apartadosData = [];
 
 function renderApartados(data){
   _apartadosData = (data && data.items) ? data.items : [];
-  const body = document.getElementById('apartados-body');
+  const body = document.getElementById('apartados-list') || document.getElementById('apartados-body');
+  const total = document.getElementById('apartados-total');
   const totalEl = document.getElementById('apartados-total');
   if(!body) return;
 
