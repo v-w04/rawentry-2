@@ -599,6 +599,29 @@
     </div>
   </div>
 </div>
+
+<div class="board-face panel-nutricion" id="board-nutricion" style="overflow-y:auto;overflow-x:hidden;">
+  <div class="reverso-header" style="flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:32px;height:32px;border-radius:10px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.25);display:flex;align-items:center;justify-content:center;font-size:16px">🥗</div>
+      <div>
+        <div class="reverso-title">Nutrición</div>
+        <div style="font-size:10px;color:var(--m)" id="nut-fecha-lbl"></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <button onclick="setModoEntrada('nutricion');volverAlAnverso()" style="padding:5px 12px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);color:#4ADE80;cursor:pointer;font-family:inherit">
+        <i class="fas fa-plus" style="font-size:9px"></i> Agregar
+      </button>
+      <button class="btn-flip active" onclick="volverAlAnverso()">
+        <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
+      </button>
+    </div>
+  </div>
+  <div id="nutricion-body" style="padding-bottom:20px">
+    <div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px;color:#4ADE80"></i></div>
+  </div>
+</div>
 </div><!-- /board-wrap -->
 </div><!-- /app -->
 
