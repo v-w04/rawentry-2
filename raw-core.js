@@ -79,6 +79,9 @@ const api = {
   actualizarApartado:   (fila, estado) => EN_GAS ? gasRun('actualizarApartado', fila, estado) : apiPost('actualizarApartado', { fila, estado }),
   getFinancieroAvanzado:() => EN_GAS ? gasRun('getFinancieroAvanzado') : apiGet('getFinancieroAvanzado'),
   getRevision:          (tipo, anio, mes, semana) => EN_GAS ? gasRun('getRevision', tipo, anio, mes, semana) : apiGet('getRevision', { tipo, anio, mes, semana }),
+  getNecesidades:       () => EN_GAS ? gasRun('getNecesidades') : apiGet('getNecesidades'),
+  getFlujoPorMes:       () => EN_GAS ? gasRun('getFlujoPorMes') : apiGet('getFlujoPorMes'),
+  getScoreVida:         () => EN_GAS ? gasRun('getScoreVida') : apiGet('getScoreVida'),
   enviarSOS:            (d) => EN_GAS ? gasRun('enviarSOS', d) : apiPost('enviarSOS', { datos: d }),
   // ── Patrimonio ──
   getPatrimonio:        () => EN_GAS ? gasRun('getPatrimonio') : apiGet('getPatrimonio'),
@@ -558,8 +561,9 @@ function irASheets(sheetId){
   if(cont){
     cont.innerHTML = `<iframe
       src="${_sheetEmbedUrl(cfg)}"
-      style="width:100%;height:100%;border:none;border-radius:0"
+      style="width:100%;height:100%;border:none;display:block"
       allowfullscreen
+      scrolling="yes"
       loading="lazy">
     </iframe>`;
   }
