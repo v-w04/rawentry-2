@@ -242,8 +242,9 @@ function onRevSelChange(){
 
 function cargarRevision(tipo, anio, mes, semana){
   _revTipo = tipo || 'mensual';
-  const body = document.getElementById('revision-body');
-  if(body) body.innerHTML='<div style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:#C4B5FD"></i></div>';
+  // revision-body is rendered inside _renderCFO, spinner via fin-avanzado-body
+  const _tmpBody = document.getElementById('revision-body');
+  if(_tmpBody) _tmpBody.innerHTML='<div style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:#C4B5FD"></i></div>';
   api.getRevision(_revTipo, anio, mes, semana)
     .then(d=>{ _revData=d; _renderCFO(); })
     .catch(()=>{});
@@ -485,6 +486,7 @@ let _apartadosData = [];
 function renderApartados(data){
   _apartadosData = (data && data.items) ? data.items : [];
   const body = document.getElementById('apartados-list') || document.getElementById('apartados-body');
+  if(!body) return;
   const total = document.getElementById('apartados-total');
   const totalEl = document.getElementById('apartados-total');
   if(!body) return;
@@ -645,7 +647,8 @@ window.addEventListener('resize',syncFijosHeight);
 //  FLUJO MENSUAL
 // ══════════════════════════════════════════
 function renderFlujoMensual(data){
-  const body=document.getElementById('flujo-body');
+  const body = document.getElementById('flujo-mensual-body') || document.getElementById('flujo-body');
+  if(!body) return;
   if(!data||!data.meses||!data.meses.length){body.innerHTML='<div style="padding:16px;color:var(--m);text-align:center">Sin datos</div>';return;}
   const mesActual=MESES_ES[new Date().getMonth()];
   const rows=data.meses.map(mes=>{
@@ -697,12 +700,14 @@ let _scoreData = null;
 
 function cargarScore(){
   const body = document.getElementById('score-body');
+  if(!body) return;
   if(body) body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px;color:#8B5CF6"></i></div>';
   api.getScoreVida().then(d=>{ _scoreData=d; renderScore(d); }).catch(()=>{});
 }
 
 function renderScore(data){
   const body = document.getElementById('score-body');
+  if(!body) return;
   const fecha = document.getElementById('score-fecha');
   if(!body) return;
   if(!data||!data.ok){ body.innerHTML='<div style="padding:16px;color:var(--m);text-align:center">Error calculando score</div>'; return; }
