@@ -656,30 +656,81 @@ function dibujarMedia(cont, items, tipo){
   if(!items||!items.length){
     cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin elementos</div>';return;
   }
-  var color  = tipo==='Lectura' ? '#EC4899' : '#F59E0B';
-  var emoji  = tipo==='Lectura' ? '📚' : '🎬';
-  var html = items.map(function(item){
+  var color    = tipo==='Lectura' ? '#EC4899' : '#F59E0B';
+  var emoji    = tipo==='Lectura' ? '📚' : '🎬';
+  var tipoKey  = tipo==='Lectura' ? 'libro' : 'movie';
+  var pendientes = items.filter(function(i){ return !i.completado; }).length;
+  var completados = items.length - pendientes;
+
+  var html = items.map(function(item, idx){
     var nombre = item.nombre || item;
-    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
-      '<div style="font-size:16px;flex-shrink:0">'+emoji+'</div>' +
-      '<div style="flex:1;min-width:0;font-size:13px;color:var(--t);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+nombre+'</div>' +
+    var done   = item.completado;
+    var fila   = idx + 2; // fila en sheet (1=header, 2=first data)
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
+      '<button onclick="_toggleActivityItem(this,''+tipoKey+'','+fila+','+(!done)+')" ' +
+        'style="width:22px;height:22px;border-radius:6px;border:1px solid '+(done?'rgba(74,222,128,.4)':'rgba(255,255,255,.15)')+';'+
+        'background:'+(done?'rgba(74,222,128,.15)':'transparent')+';cursor:pointer;flex-shrink:0;'+
+        'display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ok);transition:all .2s">'+
+        (done?'✓':'')+'</button>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:13px;color:'+(done?'var(--m)':'var(--t)')+';text-decoration:'+(done?'line-through':'none')+
+        ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+nombre+'</div>' +
+      '</div>' +
+      '<div style="font-size:16px;flex-shrink:0;opacity:'+(done?.4:1)+'">'+emoji+'</div>' +
     '</div>';
   }).join('');
-  cont.innerHTML = '<div style="padding:0 0 8px;font-size:11px;color:var(--m)">'+items.length+' elementos</div>' + html;
+
+  cont.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 10px">' +
+      '<div style="font-size:11px;color:var(--m)">'+completados+' completados · '+pendientes+' pendientes</div>' +
+      '<div style="height:3px;width:120px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">' +
+        '<div style="height:100%;width:'+(items.length>0?Math.round(completados/items.length*100):0)+'%;background:'+color+';border-radius:2px"></div>' +
+      '</div>' +
+    '</div>' + html;
 }
 
 function dibujarNoRutinarias(cont, items){
   if(!items||!items.length){
     cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)">Sin pendientes</div>';return;
   }
-  var html = items.map(function(item){
+  var pendientes = items.filter(function(i){ return !i.completado; }).length;
+
+  var html = items.map(function(item, idx){
     var nombre = item.nombre || item;
-    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
-      '<div style="width:8px;height:8px;border-radius:50%;background:rgba(139,92,246,.6);flex-shrink:0"></div>' +
-      '<div style="font-size:13px;color:var(--t)">'+nombre+'</div>' +
+    var done   = item.completado;
+    var fila   = idx + 2;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
+      '<button onclick="_toggleActivityItem(this,'norut','+fila+','+(!done)+')" ' +
+        'style="width:22px;height:22px;border-radius:6px;border:1px solid '+(done?'rgba(74,222,128,.4)':'rgba(139,92,246,.3)')+';'+
+        'background:'+(done?'rgba(74,222,128,.15)':'rgba(139,92,246,.08)')+';cursor:pointer;flex-shrink:0;'+
+        'display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ok);transition:all .2s">'+
+        (done?'✓':'')+'</button>' +
+      '<div style="font-size:13px;color:'+(done?'var(--m)':'var(--t)')+';text-decoration:'+(done?'line-through':'none')+';flex:1">'+nombre+'</div>' +
     '</div>';
   }).join('');
-  cont.innerHTML = '<div style="padding:0 0 8px;font-size:11px;color:var(--m)">'+items.length+' pendientes no rutinarias</div>' + html;
+
+  cont.innerHTML =
+    '<div style="font-size:11px;color:var(--m);padding:0 0 10px">'+pendientes+' pendientes de '+items.length+'</div>' + html;
+}
+
+function _toggleActivityItem(btn, tipo, fila, nuevoValor){
+  btn.disabled = true;
+  api.marcarActivityItem(tipo, fila, nuevoValor)
+    .then(function(r){
+      if(r.ok){
+        // Update local data and redraw
+        var lista = tipo==='libro'?_actData.libros:tipo==='movie'?_actData.movies:_actData.noRutinarias;
+        if(lista && lista[fila-2]) lista[fila-2].completado = nuevoValor;
+        var cont = document.getElementById('act-container');
+        if(tipo==='libro')    dibujarMedia(cont, _actData.libros||[], 'Lectura');
+        else if(tipo==='movie') dibujarMedia(cont, _actData.movies||[], 'Movie');
+        else                    dibujarNoRutinarias(cont, _actData.noRutinarias||[]);
+      } else {
+        btn.disabled = false;
+        showToast('Error al marcar', false);
+      }
+    })
+    .catch(function(){ btn.disabled=false; showToast('Error',false); });
 }
 
 function dibujarHistorial(cont){
