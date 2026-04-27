@@ -483,6 +483,7 @@
  <div id="nec-tabla" style="background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px;backdrop-filter:blur(12px)"></div>
  </div>
 
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 0 20px;align-items:start">
   <!-- ══ PENSAMIENTOS ══ -->
   <div class="section" id="sec-pensamientos">
     <div class="sec-hdr" onclick="togSec(this)" id="sec-pensamientos-hdr">
@@ -530,7 +531,28 @@
     </div>
     <div class="sec-body" id="sec-score-inline-body"><div id="score-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
   </div>
+  </div><!-- /life-grid -->
 </div><!-- /board-maslow -->
+<div class="board-face panel-activity" id="board-activity" style="overflow-y:auto;overflow-x:hidden;">
+  <div class="reverso-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:32px;height:32px;border-radius:10px;background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.3);display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div>
+      <div>
+        <div class="reverso-title">Activity Check</div>
+        <div style="font-size:10px;color:var(--m)" id="act-semana-lbl"></div>
+      </div>
+    </div>
+    <button class="btn-flip active" onclick="volverAlAnverso()">
+      <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
+    </button>
+  </div>
+  <div id="act-tabs" style="display:flex;gap:6px;padding:0 20px 12px;flex-wrap:wrap"></div>
+  <div id="act-container" style="padding:0 20px 24px">
+    <div style="padding:40px;text-align:center;color:var(--m)">
+      <i class="fas fa-circle-notch fa-spin" style="font-size:20px;color:#3B82F6"></i>
+    </div>
+  </div>
+</div>
 
 </div><!-- /board-wrap -->
 </div><!-- /app -->
