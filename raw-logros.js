@@ -57,7 +57,17 @@ function _setPantalla(p){
 }
 
 function irALogros(){ if(_pantalla==='logros'){ volverAlAnverso(); return; } _setPantalla('logros'); pintarReverso(); }
-function irAMaslow(){ if(_pantalla==='maslow'){ volverAlAnverso(); return; } _setPantalla('maslow'); poblarFiltrosMes(); dibujarNecesidades(); }
+function irAMaslow(){
+  if(_pantalla==='maslow'){ volverAlAnverso(); return; }
+  _setPantalla('maslow');
+  poblarFiltrosMes();
+  dibujarNecesidades();
+  // Lazy load nutrición y entrenamiento
+  if(typeof renderNutricion==='function' && typeof api!=='undefined'){
+    api.getNutricion().then(renderNutricion).catch(function(){ renderNutricion({ok:true,items:[],resumen:{}}); });
+    api.getEntrenamiento().then(renderEntrenamiento).catch(function(){ renderEntrenamiento({ok:true,items:[]}); });
+  }
+}
 function irAActivity(){
   if(_pantalla==='activity'){ volverAlAnverso(); return; }
   _setPantalla('activity');
