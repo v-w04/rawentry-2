@@ -695,8 +695,17 @@ function renderScore(data){
   const body = document.getElementById('score-body');
   if(!body) return;
   if(!data||!data.ok){ body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m)">Sin datos de score</div>'; return; }
-  const score = data.score || 0;
-  const areas = data.areas || [];
+  const sc    = data.score || {};
+  const score = sc.total || 0;
+  const maximos = sc.maximos || { dinero:25, habitos:25, salud:20, relaciones:15, mental:15 };
+  const desglose = sc.desglose || {};
+  const areas = [
+    { emoji:'💰', label:'Dinero',     score: Math.round((desglose.dinero||0)   / maximos.dinero   * 100), color:'#4ADE80' },
+    { emoji:'⚡', label:'Hábitos',    score: Math.round((desglose.habitos||0)  / maximos.habitos  * 100), color:'#3B82F6' },
+    { emoji:'🏥', label:'Salud',      score: Math.round((desglose.salud||0)    / maximos.salud    * 100), color:'#EC4899' },
+    { emoji:'👥', label:'Relaciones', score: Math.round((desglose.relaciones||0)/ maximos.relaciones*100), color:'#F59E0B' },
+    { emoji:'🧠', label:'Mental',     score: Math.round((desglose.mental||0)   / maximos.mental   * 100), color:'#8B5CF6' },
+  ];
   const circumference = 2 * Math.PI * 54;
   const dashOffset = circumference - (score / 100) * circumference;
   const color = score >= 70 ? '#4ADE80' : score >= 40 ? '#FBBF24' : '#EF4444';
@@ -713,7 +722,18 @@ function renderScore(data){
       <div style="font-size:11px;color:var(--m);margin-top:4px">Score de Vida</div>
     </div>
     <div style="padding:0 20px 20px">
-      ${areas.map(a=>`
+      ${(data.alertas||[]).slice(0,3).map(a=>`
+      <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <div style="font-size:13px;flex-shrink:0">${a.area}</div>
+        <div style="font-size:12px;color:var(--err);flex:1">${a.msg}</div>
+      </div>`).join('')}
+    ${(data.positivos||[]).slice(0,2).map(a=>`
+      <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <div style="font-size:13px;flex-shrink:0">${a.area}</div>
+        <div style="font-size:12px;color:var(--ok);flex:1">${a.msg}</div>
+      </div>`).join('')}
+    <div style="font-size:10px;color:var(--m);padding:8px 0;text-align:center">${sc.estado||''}</div>
+    ${areas.map(a=>`
         <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
           <div style="font-size:13px;flex-shrink:0">${a.emoji||'●'}</div>
           <div style="flex:1">
