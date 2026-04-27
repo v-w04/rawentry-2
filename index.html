@@ -575,7 +575,31 @@
   </div>
 </div>
 
-  </div><!-- /board-wrap -->
+<div class="board-face panel-sheets" id="board-sheets">
+  <div class="reverso-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(34,197,94,.2),rgba(34,197,94,.05));border:1px solid rgba(34,197,94,.2);display:flex;align-items:center;justify-content:center;font-size:14px">📄</div>
+      <div>
+        <div class="reverso-title" id="sheets-panel-label">RAW</div>
+        <div style="font-size:10px;color:var(--m)">Google Sheets</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <a id="sheets-open-btn" href="https://docs.google.com/spreadsheets/d/15T14Hb7tvmv24ZAaC3su1NRtDwVS6-dWbJGxQYUGP1o/edit#gid=0" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#4ADE80;text-decoration:none">
+        <i class="fas fa-arrow-up-right-from-square" style="font-size:10px"></i> Abrir
+      </a>
+      <button class="btn-flip active" onclick="volverAlAnverso()">
+        <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
+      </button>
+    </div>
+  </div>
+  <div id="sheets-iframe-cont" style="flex:1;overflow:hidden;min-height:0">
+    <div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--m);font-size:13px">
+      <i class="fas fa-circle-notch fa-spin" style="margin-right:8px"></i> Cargando…
+    </div>
+  </div>
+</div>
+</div><!-- /board-wrap -->
 </div><!-- /app -->
 
 <div id="gtip" class="gtip"></div>
