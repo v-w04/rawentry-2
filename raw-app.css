@@ -752,3 +752,58 @@ html.mob .hero-right{display:none !important}
   max-height:85vh;
 }
 @keyframes slideDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Popup base styles ── */
+.popup-box{
+  background:#111;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:var(--rad-lg);
+  width:100%;
+  display:flex;flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,0,0,.8);
+}
+.popup-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  flex-shrink:0;
+}
+.pop-search{
+  width:100%;background:var(--card2);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:var(--rad);color:var(--t);
+  font-family:inherit;font-size:15px;
+  padding:10px 14px;outline:none;
+  letter-spacing:-.02em;
+  margin:12px 18px;width:calc(100% - 36px);
+}
+.popup-body{flex:1;overflow-y:auto;padding-bottom:20px}
+
+/* ── Móvil: popup como sheet desde abajo ── */
+@media(max-width:899px){
+  #popup-entrada{
+    padding-top:0 !important;
+    align-items:flex-end !important;
+  }
+  #popup-entrada .popup-box{
+    border-radius:var(--rad-lg) var(--rad-lg) 0 0 !important;
+    max-height:92vh !important;
+    animation:slideUp .25s ease !important;
+  }
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+}
+
+/* ── CF styles (used in popup form) ── */
+.cf{display:flex;align-items:center;padding:12px var(--pad);border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;position:relative;gap:4px}
+.cf:last-child{border-bottom:none}
+.cf-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);width:80px;flex-shrink:0}
+.cf-val-wrap{flex:1;padding:0 6px}
+.cf-val{font-size:var(--base);font-weight:500;color:var(--t)}
+.cf-val.empty{color:var(--dim);font-weight:400}
+.cf-date{background:none;border:none;color:var(--t);font-family:inherit;font-size:var(--base);font-weight:500;outline:none;cursor:pointer;-webkit-appearance:none}
+.cf-date::-webkit-calendar-picker-indicator{filter:invert(.5);cursor:pointer}
+.cf-text{background:none;border:none;color:var(--t);font-family:inherit;font-size:var(--base);width:100%;outline:none}
+.sw{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.cf.active .sw{max-height:300px}
+.sec-add-btn{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:var(--m);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:all .2s;line-height:1}
+.sec-add-btn:hover{background:rgba(255,255,255,.15);color:#fff}
