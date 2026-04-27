@@ -530,10 +530,28 @@
  </div>
 
  <!-- PANEL ACTIVITY CHECK -->
- <div class="board-face panel-activity" id="board-activity">
- <div class="reverso-header">
- <div style="display:flex;align-items:center;gap:10px">
- <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(59,130,246,.2),rgba(59,130,246,.05));border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div>
+   <div class="board-face panel-activity" id="board-activity">
+    <div class="reverso-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:10px;background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.3);display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div>
+        <div>
+          <div class="reverso-title">Activity Check</div>
+          <div style="font-size:10px;color:var(--m)" id="act-semana-lbl"></div>
+        </div>
+      </div>
+      <button class="btn-flip active" onclick="volverAlAnverso()">
+        <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
+      </button>
+    </div>
+    <!-- Tab bar de 5 pestañas -->
+    <div id="act-tabs" style="display:flex;gap:6px;padding:0 20px 12px;flex-wrap:wrap"></div>
+    <!-- Contenedor principal -->
+    <div id="act-container" style="padding:0 20px 24px;overflow-y:auto">
+      <div style="padding:40px;text-align:center;color:var(--m)">
+        <i class="fas fa-circle-notch fa-spin" style="font-size:20px;color:#3B82F6"></i>
+      </div>
+    </div>
+  </div>
  <div>
  <div class="reverso-title">Activity Check</div>
  <div style="font-size:10px;color:var(--m)" id="act-semana-lbl"></div>
