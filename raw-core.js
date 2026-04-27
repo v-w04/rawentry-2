@@ -92,6 +92,10 @@ const api = {
   guardarEfectivo:      (d) => EN_GAS ? gasRun('guardarEfectivo', d) : apiPost('guardarEfectivo', { datos: d }),
   guardarInversion:     (d) => EN_GAS ? gasRun('guardarInversion', d) : apiPost('guardarInversion', { datos: d }),
   marcarActivityItem:   (tipo, fila, valor) => EN_GAS ? gasRun('marcarActivityItem', tipo, fila, valor) : apiPost('marcarActivityItem', { tipo, fila, valor }),
+  getNutricion:         () => EN_GAS ? gasRun('getNutricion') : apiGet('getNutricion'),
+  guardarNutricion:     (d) => EN_GAS ? gasRun('guardarNutricion', d) : apiPost('guardarNutricion', { datos: d }),
+  getEntrenamiento:     () => EN_GAS ? gasRun('getEntrenamiento') : apiGet('getEntrenamiento'),
+  guardarEntrenamiento: (d) => EN_GAS ? gasRun('guardarEntrenamiento', d) : apiPost('guardarEntrenamiento', { datos: d }),
 };
 
 // ══════════════════════════════════════════
@@ -141,6 +145,63 @@ function _initMobTablero(){
   if(sections) sections.style.display='flex';
 }
 
+
+
+// ── Guardar Nutrición ──
+function _guardarNutricion(){
+  var comida = document.getElementById('nut-comida').value.trim();
+  var res    = document.getElementById('nut-res');
+  if(!comida){ res.textContent='Escribe qué comiste'; res.style.color='var(--err)'; return; }
+  res.textContent='Guardando…'; res.style.color='var(--m)';
+  var datos = {
+    comida:   comida,
+    calorias: parseFloat(document.getElementById('nut-cal').value)||0,
+    proteina: parseFloat(document.getElementById('nut-prot').value)||0,
+    agua:     parseFloat(document.getElementById('nut-agua').value)||0,
+    fasting:  parseFloat(document.getElementById('nut-fast').value)||0,
+    fecha:    fmtD(new Date())
+  };
+  api.guardarNutricion(datos)
+    .then(function(r){
+      res.textContent = r.ok ? '✓ Guardado' : '✗ '+r.mensaje;
+      res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
+      if(r.ok){
+        document.getElementById('nut-comida').value='';
+        ['nut-cal','nut-prot','nut-agua','nut-fast'].forEach(function(id){
+          document.getElementById(id).value='';
+        });
+        api.getNutricion().then(renderNutricion).catch(function(){});
+      }
+    }).catch(function(){ res.textContent='Error'; res.style.color='var(--err)'; });
+}
+
+// ── Guardar Entrenamiento ──
+function _guardarEntrenamiento(){
+  var ejercicio = document.getElementById('ent-ejercicio').value.trim();
+  var res       = document.getElementById('ent-res');
+  if(!ejercicio){ res.textContent='Escribe el ejercicio'; res.style.color='var(--err)'; return; }
+  res.textContent='Guardando…'; res.style.color='var(--m)';
+  var datos = {
+    tipo:      document.getElementById('ent-tipo').value,
+    ejercicio: ejercicio,
+    duracion:  parseFloat(document.getElementById('ent-dur').value)||0,
+    series:    parseFloat(document.getElementById('ent-series').value)||0,
+    reps:      parseFloat(document.getElementById('ent-reps').value)||0,
+    peso:      parseFloat(document.getElementById('ent-peso').value)||0,
+    fecha:     fmtD(new Date())
+  };
+  api.guardarEntrenamiento(datos)
+    .then(function(r){
+      res.textContent = r.ok ? '✓ Guardado' : '✗ '+r.mensaje;
+      res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
+      if(r.ok){
+        document.getElementById('ent-ejercicio').value='';
+        document.getElementById('ent-dur').value='';
+        ['ent-series','ent-reps','ent-peso'].forEach(function(id){ document.getElementById(id).value=''; });
+        api.getEntrenamiento().then(renderEntrenamiento).catch(function(){});
+      }
+    }).catch(function(){ res.textContent='Error'; res.style.color='var(--err)'; });
+}
 
 // ══════════════════════════════════════════
 //  GUARDAR BANCO
