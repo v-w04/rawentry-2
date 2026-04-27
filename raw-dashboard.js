@@ -662,7 +662,25 @@ function renderFlujoMensual(data){
     const excCell=excedente===0?`<td class="r" style="color:var(--m)">$ 0</td>`:`<td class="r" style="color:${excedente>0?'var(--ok)':'var(--err)'};font-weight:700">${excedente<0?'− ':''}${fmtMXN(excedente)}</td>`;
     return `<tr style="${esActual?'background:rgba(59,130,246,.08)':''}"><td style="font-weight:${esActual?700:500};color:${esActual?'var(--p)':'var(--t)'}">${mes}${esActual?' ↑':''}</td>${ingCell}${egrCell}${excCell}</tr>`;
   }).join('');
-  body.innerHTML=`<table id="flujo-tbl"><colgroup><col class="c-mes"><col class="c-num"><col class="c-num"><col class="c-num"></colgroup><thead><tr><th>Mes</th><th class="r" style="color:var(--ok)">Ingresos</th><th class="r" style="color:var(--err)">Egresos</th><th class="r">Excedente</th></tr></thead><tbody>${rows}</tbody></table>`;
+  body.innerHTML=`
+    <style>
+      #flujo-tbl{width:100%;border-collapse:collapse;font-size:12px}
+      #flujo-tbl th,#flujo-tbl td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.05)}
+      #flujo-tbl th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--m);padding-bottom:6px}
+      #flujo-tbl .r{text-align:right}
+      #flujo-tbl .c-mes{width:70px}
+      #flujo-tbl .c-num{width:110px}
+    </style>
+    <table id="flujo-tbl">
+      <colgroup><col class="c-mes"><col class="c-num"><col class="c-num"><col class="c-num"></colgroup>
+      <thead><tr>
+        <th>Mes</th>
+        <th class="r" style="color:var(--ok)">Ingresos</th>
+        <th class="r" style="color:var(--err)">Egresos</th>
+        <th class="r">Excedente</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 // ══════════════════════════════════════════
