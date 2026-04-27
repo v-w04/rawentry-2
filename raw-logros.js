@@ -45,6 +45,7 @@ function _setPantalla(p){
     const scorePanel = document.getElementById('board-score');
     if(scorePanel) scorePanel.classList.add('active');
   }
+  else if(p === 'nutricion'){ anv.classList.add('slide-right'); if(nutP) nutP.classList.add('active'); }
   const bL = document.getElementById('btn-logros');
   const bM = document.getElementById('btn-maslow');
   const bA = document.getElementById('btn-activity');
