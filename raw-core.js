@@ -264,6 +264,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       renderLogros(d.logros);
       renderNecesidades(d.necesidades);
       renderFlujoMensual(d.flujoPorMes);
+      renderApartados(d.apartados||{items:[],totalApartado:0});
       if(d.activityCheck){ _actData=d.activityCheck; }
       if(d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
       if(d.apartados) renderApartados(d.apartados);
