@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.4.024
+/* RAW Entry — Core v.5.001
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Detectar móvil
@@ -198,6 +198,10 @@ window.addEventListener('DOMContentLoaded',()=>{
       renderNecesidades(d.necesidades);
       renderFlujoMensual(d.flujoPorMes);
       if(d.activityCheck){ _actData=d.activityCheck; }
+      else {
+        // Lazy load activity
+        api.getActivityCheck().then(function(d){ _actData=d; }).catch(function(){});
+      }
       if(d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
       if(d.apartados) renderApartados(d.apartados);
       // Cargar módulos lazy
@@ -565,11 +569,10 @@ function irASheets(sheetId){
   const cont = document.getElementById('sheets-iframe-cont');
   if(cont){
     cont.innerHTML = `<iframe
-      src="${_sheetEmbedUrl(cfg)}"
-      style="width:100%;height:100%;border:none;display:block"
+      src="${_sheetEmbedUrl(cfg)}&widget=true&chrome=false"
+      style="width:100%;height:100%;border:none;display:block;min-height:500px"
       allowfullscreen
-      scrolling="yes"
-      loading="lazy">
+      scrolling="yes">
     </iframe>`;
   }
   // Update header label
