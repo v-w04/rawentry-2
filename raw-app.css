@@ -294,22 +294,14 @@ html,body{
   .sections{
     display:grid !important;
     grid-template-columns:minmax(280px,1fr) minmax(300px,1.1fr) minmax(380px,1.4fr) minmax(380px,1.4fr);
-    grid-template-rows:1fr;
     gap:12px;
     padding:12px 20px 32px;
     align-items:start;
-    overflow-y:scroll;
+    overflow-y:visible;
     overflow-x:hidden;
-    flex:1;
-    min-height:0;
-    height:0;
     width:100%;
     box-sizing:border-box;
   }
-  .sections::-webkit-scrollbar{width:6px}
-  .sections::-webkit-scrollbar-track{background:rgba(255,255,255,.03)}
-  .sections::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
-  .sections::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.22)}
   /* Cada columna es un wrapper flex que apila sus secciones sin huecos */
   #col-1{ grid-column:1; display:flex; flex-direction:column; gap:12px; align-self:start; min-width:0; }
   #col1-wrap{ grid-column:2; display:flex; flex-direction:column; gap:12px; align-self:start; min-width:0; }
@@ -323,8 +315,12 @@ html,body{
   .panel{width:380px}
   .prog-wrap{display:none}
   /* On desktop: board-wrap and board-face use flex/block instead of abs positioning */
-  .board-wrap{overflow-y:auto;overflow-x:hidden;flex:1;position:relative}
-  .board-face.anverso{position:relative;width:100%;height:auto;overflow:visible}
+  .board-wrap{overflow:hidden;flex:1;position:relative;min-height:0}
+  .board-face.anverso{position:relative;width:100%;height:100%;overflow-y:auto;overflow-x:hidden;}
+  .board-face.anverso::-webkit-scrollbar{width:6px}
+  .board-face.anverso::-webkit-scrollbar-track{background:rgba(255,255,255,.03)}
+  .board-face.anverso::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+  .board-face.anverso::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.25)}
   /* col1-wrap no excede su columna */
   
   #sheets-iframe-cont{height:calc(100vh - 120px)}
@@ -378,7 +374,7 @@ html.mob .panel-overlay.show{display:block !important}
 @keyframes chipPulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.4)}50%{box-shadow:0 0 0 5px rgba(74,222,128,0)}}
 
 .board-wrap{position:relative;width:100%;flex:1;overflow:hidden}
-.board-face{position:absolute;top:0;left:0;width:100%;height:100%;transition:opacity .2s ease;backface-visibility:hidden;overflow-y:hidden;display:flex;flex-direction:column}
+.board-face{position:absolute;top:0;left:0;width:100%;height:100%;transition:opacity .2s ease;backface-visibility:hidden;overflow:hidden}
 .board-face.anverso{transform:none;opacity:1;pointer-events:all;padding:0;background:transparent}
 .board-face.anverso.slide-right{transform:none;opacity:0;pointer-events:none}
 .board-face.anverso.slide-left{transform:none;opacity:0;pointer-events:none}
