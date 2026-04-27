@@ -37,7 +37,6 @@
     <div class="hero-right">
       <span id="saldo-clock" style="font-size:11px;color:var(--m);margin-right:8px"></span>
       <div id="chip" class="hero-chip load"><span id="chip-txt">Cargando</span></div>
-      <button class="btn-flip" id="btn-nueva-entrada" onclick="abrirEntrada()" title="Nueva Entrada" style="background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#A5B4FC"><i class="fas fa-plus"></i> Nueva</button>
       <button class="btn-flip" id="btn-logros" onclick="irALogros()" title="Logros"><i class="fas fa-trophy"></i> Logros</button>
       <button class="btn-flip" id="btn-maslow" onclick="irAMaslow()" title="Maslow">⬡ Maslow</button>
       <button class="btn-flip" id="btn-activity" onclick="irAActivity()" title="Activity Check">⚡ Activity</button>
@@ -324,7 +323,7 @@
             <div class="sec-hdr-icon" style="background:rgba(236,72,153,.1);color:#F9A8D4"><i class="fas fa-thought-bubble"></i></div>
             <span class="sec-hdr-title">Pensamientos</span>
           </div>
-          <div class="sec-hdr-right"><button onclick="event.stopPropagation();abrirEntrada();setModoEntrada('pensamiento')" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
+          <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('pensamiento');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
         </div>
         <div class="sec-body" id="sec-pensamientos-body"><div id="pensamientos-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
@@ -334,7 +333,7 @@
             <div class="sec-hdr-icon" style="background:rgba(59,130,246,.1);color:#93C5FD"><i class="fas fa-users"></i></div>
             <span class="sec-hdr-title">Relaciones</span>
           </div>
-          <div class="sec-hdr-right"><button onclick="event.stopPropagation();abrirEntrada();setModoEntrada('persona')" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
+          <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('persona');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
         </div>
         <div class="sec-body" id="sec-relaciones-body"><div id="relaciones-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
@@ -344,7 +343,7 @@
             <div class="sec-hdr-icon" style="background:rgba(239,68,68,.1);color:#FCA5A5"><i class="fas fa-heart-pulse"></i></div>
             <span class="sec-hdr-title">Salud</span>
           </div>
-          <div class="sec-hdr-right"><button onclick="event.stopPropagation();abrirEntrada();setModoEntrada('salud')" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
+          <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('salud');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
         </div>
         <div class="sec-body" id="sec-salud-body"><div id="salud-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
@@ -354,7 +353,7 @@
             <div class="sec-hdr-icon" style="background:rgba(0,196,132,.1);color:#4ADE80"><i class="fas fa-apple-whole"></i></div>
             <span class="sec-hdr-title">Nutrición</span>
           </div>
-          <div class="sec-hdr-right"><button onclick="event.stopPropagation();abrirEntrada();setModoEntrada('nutricion')" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
+          <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('nutricion');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
         </div>
         <div class="sec-body" id="sec-nutricion-body"><div id="nutricion-body" style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
@@ -364,7 +363,7 @@
             <div class="sec-hdr-icon" style="background:rgba(239,68,68,.1);color:#FCA5A5"><i class="fas fa-dumbbell"></i></div>
             <span class="sec-hdr-title">Entrenamiento</span>
           </div>
-          <div class="sec-hdr-right"><button onclick="event.stopPropagation();abrirEntrada();setModoEntrada('entrenamiento')" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
+          <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('entrenamiento');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
         </div>
         <div class="sec-body" id="sec-entrenamiento-body"><div id="entrenamiento-body" style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
@@ -424,7 +423,7 @@
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:6px">
-        <button onclick="abrirEntrada();setModoEntrada('nutricion')" style="padding:5px 12px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);color:#4ADE80;cursor:pointer;font-family:inherit">
+        <button onclick="setModoEntrada('nutricion');volverAlAnverso()" style="padding:5px 12px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);color:#4ADE80;cursor:pointer;font-family:inherit">
           <i class="fas fa-plus" style="font-size:9px"></i> Agregar
         </button>
         <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
@@ -440,19 +439,6 @@
 
 <div id="gtip" class="gtip"></div>
 <div id="toast" class="toast"><i></i><span id="toast-msg"></span></div>
-
-<!-- POPUP NUEVA ENTRADA -->
-<div id="popup-entrada" class="popup-overlay" onclick="cerrarEntrada(event)" style="display:none;z-index:200">
-  <div class="popup-box" style="max-width:480px;width:95%;max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">
-    <div class="popup-hdr">
-      <span class="popup-title">Nueva Entrada</span>
-      <button onclick="cerrarEntrada()" class="popup-close">✕</button>
-    </div>
-    <div style="padding:20px;text-align:center;color:var(--m)">
-      El formulario está en la columna izquierda del dashboard.
-    </div>
-  </div>
-</div>
 
 <!-- POPUP CONCEPTO -->
 <div id="popup-concepto" class="popup-overlay" onclick="cerrarConcepto(event)">
