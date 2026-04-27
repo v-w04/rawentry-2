@@ -928,3 +928,68 @@ function renderPatrimonio(data){
 
   body.innerHTML = totalHtml + barHtml + cardsHtml + metaHtml + movsHtml;
 }
+
+// ══════════════════════════════════════════
+//  NUTRICIÓN
+// ══════════════════════════════════════════
+function renderNutricion(data){
+  var body = document.getElementById('nutricion-body');
+  if(!body) return;
+  if(!data||!data.ok||!data.items||!data.items.length){
+    body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m);font-size:13px">Sin registros — agrega desde el formulario</div>';
+    return;
+  }
+  var r = data.resumen || {};
+  var resumen = '';
+  if(r.calHoy||r.aguaHoy||r.fastHoy){
+    resumen = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px var(--pad);background:rgba(0,196,132,.05);border-bottom:1px solid rgba(0,196,132,.1)">' +
+      '<div style="text-align:center"><div style="font-size:18px;font-weight:700;color:#4ADE80">'+(r.calHoy||0)+'</div><div style="font-size:9px;color:var(--m)">kcal hoy</div></div>' +
+      '<div style="text-align:center"><div style="font-size:18px;font-weight:700;color:#60A5FA">'+(r.protHoy||0)+'g</div><div style="font-size:9px;color:var(--m)">proteína</div></div>' +
+      '<div style="text-align:center"><div style="font-size:18px;font-weight:700;color:#38BDF8">'+(r.aguaHoy||0)+'L</div><div style="font-size:9px;color:var(--m)">agua</div></div>' +
+      '<div style="text-align:center"><div style="font-size:18px;font-weight:700;color:#F59E0B">'+(r.fastHoy||0)+'h</div><div style="font-size:9px;color:var(--m)">fasting</div></div>' +
+    '</div>';
+  }
+  var rows = data.items.map(function(it){
+    var badge = it.esHoy ? '<span style="background:rgba(74,222,128,.15);color:#4ADE80;font-size:9px;padding:1px 6px;border-radius:10px;border:1px solid rgba(74,222,128,.3)">hoy</span>' : '';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px var(--pad);border-bottom:1px solid rgba(255,255,255,.04)">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:12px;color:var(--t);display:flex;align-items:center;gap:6px">' + it.comida + ' ' + badge + '</div>' +
+        '<div style="font-size:10px;color:var(--m);margin-top:2px">' + it.fecha +
+          (it.calorias?' · '+it.calorias+' kcal':'') +
+          (it.proteina?' · '+it.proteina+'g prot':'') +
+          (it.agua?' · '+it.agua+'L agua':'') +
+          (it.fasting?' · '+it.fasting+'h fasting':'') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  body.innerHTML = resumen + rows;
+}
+
+// ══════════════════════════════════════════
+//  ENTRENAMIENTO
+// ══════════════════════════════════════════
+function renderEntrenamiento(data){
+  var body = document.getElementById('entrenamiento-body');
+  if(!body) return;
+  if(!data||!data.ok||!data.items||!data.items.length){
+    body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m);font-size:13px">Sin registros — agrega desde el formulario</div>';
+    return;
+  }
+  var TIPO_COLOR = {Fuerza:'#EF4444',Cardio:'#F59E0B',HIIT:'#8B5CF6',Flexibilidad:'#4ADE80',Deporte:'#3B82F6'};
+  var rows = data.items.map(function(it){
+    var color = TIPO_COLOR[it.tipo] || '#94A3B8';
+    var detalles = [];
+    if(it.duracion) detalles.push(it.duracion+'min');
+    if(it.series&&it.reps) detalles.push(it.series+'x'+it.reps+(it.peso?' @'+it.peso+'kg':''));
+    if(it.distancia) detalles.push(it.distancia+'km');
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px var(--pad);border-bottom:1px solid rgba(255,255,255,.04)">' +
+      '<div style="width:6px;height:32px;border-radius:3px;background:'+color+';flex-shrink:0"></div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:12px;color:var(--t)">' + it.ejercicio + '</div>' +
+        '<div style="font-size:10px;color:var(--m);margin-top:2px">' + it.fecha + ' · ' + it.tipo + (detalles.length?' · '+detalles.join(' · '):'') + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  body.innerHTML = rows;
+}
