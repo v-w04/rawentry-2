@@ -1164,3 +1164,31 @@ html.mob .hero-right{display:none !important}
 @media(max-width:899px){
   .drag-handle{display:none}
 }
+
+/* Columna vacía — zona de drop visible */
+@media(min-width:900px){
+  .col-empty{
+    min-height:80px;
+    border:2px dashed rgba(255,255,255,.1);
+    border-radius:var(--rad);
+    display:flex !important;
+    align-items:center;
+    justify-content:center;
+    transition:border-color .2s, background .2s;
+  }
+  .col-empty::after{
+    content:'Suelta aquí';
+    font-size:11px;
+    color:var(--dim);
+    font-weight:500;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+  }
+  .col-empty.col-drop-over{
+    border-color:rgba(99,102,241,.5);
+    background:rgba(99,102,241,.05);
+  }
+  .col-empty.col-drop-over::after{
+    color:rgba(99,102,241,.7);
+  }
+}
