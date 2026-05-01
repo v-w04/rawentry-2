@@ -758,12 +758,38 @@ function renderScore(data){
   const dashArr  = circleC;
   const dashOff  = circleC * (1 - pct/100);
 
+  const fin = data.finDetalle || {};
   const areas = [
-    { key:'dinero',    label:'Dinero',     emoji:'💰', max: mx.dinero||25 },
-    { key:'habitos',   label:'Hábitos',    emoji:'⚡', max: mx.habitos||25 },
-    { key:'salud',     label:'Salud',      emoji:'🏥', max: mx.salud||20 },
-    { key:'relaciones',label:'Relaciones', emoji:'👥', max: mx.relaciones||15 },
-    { key:'mental',    label:'Mental',     emoji:'🧠', max: mx.mental||15 },
+    { key:'dinero',    label:'Dinero',     emoji:'💰', max: mx.dinero||25,
+      detalle: [
+        { lbl:'% Ahorro', val: fin.pctAhorro!=null ? fin.pctAhorro+'%' : '—', pts: fin.ptsAhorro },
+        { lbl:'Runway',   val: fin.runway!=null ? fin.runway+' días' : '—',   pts: fin.ptsRunway },
+        { lbl:'Velocidad gasto', val: fin.velGasto!=null ? fin.velGasto+'%' : '—', pts: fin.ptsVel },
+      ]
+    },
+    { key:'habitos',   label:'Hábitos',    emoji:'⚡', max: mx.habitos||25,
+      detalle: [
+        { lbl:'Checks esta semana', val: fin.checksRecientes!=null ? fin.checksRecientes : '—', pts: null },
+      ]
+    },
+    { key:'salud',     label:'Salud',      emoji:'🏥', max: mx.salud||20,
+      detalle: [
+        { lbl:'Registros de salud', val: fin.numSalud!=null ? fin.numSalud : '—', pts: null },
+        { lbl:'Citas vencidas',     val: fin.citasVencidas!=null ? fin.citasVencidas : '—', pts: null },
+      ]
+    },
+    { key:'relaciones',label:'Relaciones', emoji:'👥', max: mx.relaciones||15,
+      detalle: [
+        { lbl:'Personas registradas', val: fin.numPersonas!=null ? fin.numPersonas : '—', pts: null },
+        { lbl:'Interacciones recientes', val: fin.interRecientes!=null ? fin.interRecientes : '—', pts: null },
+      ]
+    },
+    { key:'mental',    label:'Mental',     emoji:'🧠', max: mx.mental||15,
+      detalle: [
+        { lbl:'Logros completados', val: fin.logrosComp!=null ? fin.logrosComp : '—', pts: null },
+        { lbl:'Total logros',       val: fin.logrosTotal!=null ? fin.logrosTotal : '—', pts: null },
+      ]
+    },
   ];
 
   const areaColors = {
@@ -794,17 +820,21 @@ function renderScore(data){
         const val = d[a.key]||0;
         const pctA = Math.round(val/a.max*100);
         const col = areaColors[a.key]||'var(--p)';
-        return `<div style="margin-bottom:10px">
+        const detalleHtml = (a.detalle||[]).filter(d=>d.val!=='—').map(d=>
+          `<span style="font-size:10px;color:var(--m)">${d.lbl}: <span style="color:rgba(255,255,255,.5)">${d.val}</span></span>`
+        ).join('<span style="color:var(--dim);margin:0 4px">·</span>');
+        return `<div style="margin-bottom:12px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
             <div style="display:flex;align-items:center;gap:6px">
-              <span>${a.emoji}</span>
+              <span style="font-size:13px">${a.emoji}</span>
               <span style="font-size:12px;font-weight:600;color:#fff">${a.label}</span>
             </div>
-            <span style="font-size:12px;font-weight:700;color:${col};font-variant-numeric:tabular-nums">${val}/${a.max}</span>
+            <span style="font-size:13px;font-weight:700;color:${col};font-variant-numeric:tabular-nums">${val}<span style="font-size:10px;color:var(--m);font-weight:400">/${a.max}</span></span>
           </div>
-          <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
+          <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:5px">
             <div style="height:100%;width:${pctA}%;background:${col};border-radius:2px;transition:width .6s ease"></div>
           </div>
+          ${detalleHtml ? `<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">${detalleHtml}</div>` : ''}
         </div>`;
       }).join('')}
     </div>
