@@ -68,6 +68,17 @@
       _dragSec = null;
       _dragCol = null;
       saveLayout();
+      updateEmptyColumns();
+    });
+  }
+
+  // Mantener columnas vacías con altura mínima para poder hacer drop
+  function updateEmptyColumns(){
+    ['col1-wrap','col-1','col-3','col-4'].forEach(function(colId){
+      var col = document.getElementById(colId);
+      if(!col) return;
+      var hasSections = col.querySelectorAll('.section').length > 0;
+      col.classList.toggle('col-empty', !hasSections);
     });
   }
 
@@ -131,6 +142,7 @@
     document.querySelectorAll('#mob-sections .section').forEach(addHandle);
     initColumns();
     restoreLayout();
+    updateEmptyColumns();
   }
 
   // Llamar init cuando la app termina de cargar
