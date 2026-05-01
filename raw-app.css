@@ -1128,3 +1128,39 @@ html.mob .hero-right{display:none !important}
   letter-spacing:.08em;
   color:var(--m);
 }
+
+/* ══ DRAG & DROP — Módulos ══ */
+@media(min-width:900px){
+  .drag-handle{
+    width:24px;height:24px;
+    border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--dim);font-size:11px;
+    cursor:grab;flex-shrink:0;
+    transition:color .2s, background .2s;
+    margin-right:6px;
+  }
+  .drag-handle:hover{color:var(--m);background:rgba(255,255,255,.06)}
+  .drag-handle:active{cursor:grabbing}
+  .section.dragging{
+    opacity:.4;
+    outline:2px dashed rgba(255,255,255,.2);
+    outline-offset:2px;
+  }
+  .drop-indicator{
+    height:3px;
+    background:rgba(99,102,241,.6);
+    border-radius:2px;
+    margin:4px 0;
+    pointer-events:none;
+    box-shadow:0 0 8px rgba(99,102,241,.4);
+  }
+  .col-drop-over{
+    outline:1px dashed rgba(99,102,241,.3);
+    outline-offset:4px;
+    border-radius:var(--rad);
+  }
+}
+@media(max-width:899px){
+  .drag-handle{display:none}
+}
