@@ -901,7 +901,7 @@ html.mob .hero-right{display:none !important}
   border:1px solid rgba(255,255,255,.1);
   border-radius:var(--rad-lg);
   width:100%;
-  max-width:480px;
+  max-width:580px;
   max-height:90vh;
   overflow-y:auto;
   box-shadow:0 20px 60px rgba(0,0,0,.8);
@@ -1101,3 +1101,30 @@ html.mob .hero-right{display:none !important}
 
 /* PASO 2 — header con botón volver */
 #entrada-paso2{position:relative}
+
+/* ══ SEC-SUB-HDR — títulos de subsecciones (Gráficas etc) ══ */
+.sec-sub-hdr{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px var(--pad) 10px;
+  margin-top:4px;
+  border-top:1px solid rgba(255,255,255,.06);
+}
+.sec-sub-hdr-icon{
+  width:26px;height:26px;
+  border-radius:6px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;
+  color:rgba(255,255,255,.5);
+  flex-shrink:0;
+}
+.sec-sub-hdr span{
+  font-size:11px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--m);
+}
