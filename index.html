@@ -40,65 +40,139 @@
 <!-- DROPDOWN NUEVA ENTRADA -->
 <div id="entrada-dropdown" class="entrada-dropdown" style="display:none">
   <div class="entrada-dropdown-inner" id="sec-entrada" onclick="event.stopPropagation()">
-    <div id="sec-entrada-body">
-      <div id="cf-fecha" class="cf done">
-        <div class="cf-label">Fecha</div>
-        <div class="cf-val-wrap"><input type="date" id="fecha" class="cf-date" onchange="onFechaChange()"></div>
+
+    <!-- PASO 1: Selector de tipo -->
+    <div id="entrada-paso1">
+      <div class="entrada-selector-hdr">
+        <span>¿Qué quieres registrar?</span>
+        <button onclick="cerrarEntrada()" class="popup-close">✕</button>
       </div>
-      <div id="cf-proyecto" class="cf" onclick="activarCampo('proyecto')">
-        <div class="cf-label">Proyecto</div>
-        <div class="cf-val-wrap"><span id="cv-proyecto" class="cf-val empty">—</span></div>
-        <div class="sw" id="sw-proyecto"></div>
-      </div>
-      <div id="cf-contacto" class="cf" onclick="activarCampo('contacto')">
-        <div class="cf-label">Contacto</div>
-        <div class="cf-val-wrap"><span id="cv-contacto" class="cf-val empty">—</span></div>
-        <div class="sw" id="sw-contacto"></div>
-      </div>
-      <div id="cf-concepto" class="cf" onclick="abrirConcepto()">
-        <div class="cf-label">Concepto</div>
-        <div class="cf-val-wrap"><span id="cv-concepto" class="cf-val empty">—</span></div>
-      </div>
-      <div id="cf-monto" class="cf" onclick="activarCampo('monto')">
-        <div class="cf-label">Monto</div>
-        <div class="cf-val-wrap">
-          <div class="monto-wrap">
-            <button id="sbp" class="msign pos" onclick="event.stopPropagation();setSign(1)">+</button>
-            <input type="number" id="monto" class="monto-input" step="0.01" inputmode="decimal" oninput="upM()" placeholder="0.00">
-            <button id="sbn" class="msign" onclick="event.stopPropagation();setSign(-1)">−</button>
-            <span id="mprev" class="mprev">$ 0.00</span>
-          </div>
-        </div>
-      </div>
-      <div id="cf-recurrencia" class="cf" onclick="activarCampo('recurrencia')">
-        <div class="cf-label">Recurrencia</div>
-        <div class="cf-val-wrap"><span id="cv-recurrencia" class="cf-val empty">—</span></div>
-        <div class="sw" id="sw-recurrencia"></div>
-      </div>
-      <div id="cf-necesidad" class="cf" onclick="activarCampo('necesidad')">
-        <div class="cf-label">Necesidad</div>
-        <div class="cf-val-wrap"><span id="cv-necesidad" class="cf-val empty">—</span></div>
-        <div class="sw" id="sw-necesidad"></div>
-      </div>
-      <div id="cf-clave" class="cf" onclick="activarCampo('clave')">
-        <div class="cf-label">Clave</div>
-        <div class="cf-val-wrap"><input type="text" id="clave" class="cf-text" placeholder="Opcional" onchange="onClaveChange()"></div>
-      </div>
-      <div class="form-actions">
-        <button class="btn-save" id="btnG" onclick="guardar()">
-          <div class="spin-sm" id="spin" style="display:none"></div>
-          <i class="fas fa-floppy-disk" id="bico"></i> Guardar
+      <div class="entrada-selector-grid">
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('nueva')">
+          <div class="entrada-tipo-ico">💸</div>
+          <div class="entrada-tipo-lbl">RAW</div>
+          <div class="entrada-tipo-sub">Ingreso / Egreso</div>
         </button>
-        <button class="btn-sm sec" onclick="limpiar()" title="Limpiar"><i class="fas fa-rotate-left"></i></button>
-        <button class="btn-sm sec" onclick="irASheet()" title="Ver Sheet"><i class="fas fa-table-cells"></i></button>
-        <button class="btn-sm sec" onclick="oPanel()" title="Gestionar Lista"><i class="fas fa-list"></i></button>
-      </div>
-      <div id="save-res" class="save-res">
-        <span id="res-ico"></span> <span id="res-msg"></span>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('editar')">
+          <div class="entrada-tipo-ico">✏️</div>
+          <div class="entrada-tipo-lbl">Editar</div>
+          <div class="entrada-tipo-sub">Modificar entrada</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('apartado')">
+          <div class="entrada-tipo-ico">💰</div>
+          <div class="entrada-tipo-lbl">Apartado</div>
+          <div class="entrada-tipo-sub">Guardar para meta</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('patrimonio')">
+          <div class="entrada-tipo-ico">🏦</div>
+          <div class="entrada-tipo-lbl">Patrimonio</div>
+          <div class="entrada-tipo-sub">Banco / Efectivo / Inversión</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('bancos')">
+          <div class="entrada-tipo-ico">🏛️</div>
+          <div class="entrada-tipo-lbl">Bancos</div>
+          <div class="entrada-tipo-sub">Registrar saldo</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('pensamiento')">
+          <div class="entrada-tipo-ico">💭</div>
+          <div class="entrada-tipo-lbl">Pensamiento</div>
+          <div class="entrada-tipo-sub">Idea / Reflexión</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('persona')">
+          <div class="entrada-tipo-ico">👥</div>
+          <div class="entrada-tipo-lbl">Persona</div>
+          <div class="entrada-tipo-sub">Interacción social</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('salud')">
+          <div class="entrada-tipo-ico">🏥</div>
+          <div class="entrada-tipo-lbl">Salud</div>
+          <div class="entrada-tipo-sub">Cita / Síntoma</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('nutricion')">
+          <div class="entrada-tipo-ico">🥗</div>
+          <div class="entrada-tipo-lbl">Nutrición</div>
+          <div class="entrada-tipo-sub">Alimento / Agua</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('entrenamiento')">
+          <div class="entrada-tipo-ico">💪</div>
+          <div class="entrada-tipo-lbl">Entrenamiento</div>
+          <div class="entrada-tipo-sub">Ejercicio / Sesión</div>
+        </button>
       </div>
     </div>
+
+    <!-- PASO 2: Formulario (oculto hasta seleccionar tipo) -->
+    <div id="entrada-paso2" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 0">
+        <button onclick="volverAPaso1()" style="background:none;border:none;color:var(--m);cursor:pointer;font-family:inherit;font-size:12px;display:flex;align-items:center;gap:4px;padding:4px 0">
+          <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
+        </button>
+        <span id="entrada-paso2-titulo" style="font-size:12px;font-weight:600;color:var(--m)"></span>
+        <button onclick="cerrarEntrada()" class="popup-close" style="width:24px;height:24px;font-size:13px">✕</button>
+      </div>
+      <div id="sec-entrada-body">
+        <!-- tabs -->
+        <div id="cf-fecha" class="cf done">
+          <div class="cf-label">Fecha</div>
+          <div class="cf-val-wrap"><input type="date" id="fecha" class="cf-date" onchange="onFechaChange()"></div>
+        </div>
+        <div id="cf-proyecto" class="cf" onclick="activarCampo('proyecto')">
+          <div class="cf-label">Proyecto</div>
+          <div class="cf-val-wrap"><span id="cv-proyecto" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-proyecto"></div>
+        </div>
+        <div id="cf-contacto" class="cf" onclick="activarCampo('contacto')">
+          <div class="cf-label">Contacto</div>
+          <div class="cf-val-wrap"><span id="cv-contacto" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-contacto"></div>
+        </div>
+        <div id="cf-concepto" class="cf" onclick="abrirConcepto()">
+          <div class="cf-label">Concepto</div>
+          <div class="cf-val-wrap"><span id="cv-concepto" class="cf-val empty">—</span></div>
+        </div>
+        <div id="cf-monto" class="cf" onclick="activarCampo('monto')">
+          <div class="cf-label">Monto</div>
+          <div class="cf-val-wrap">
+            <div class="monto-wrap">
+              <button id="sbp" class="msign pos" onclick="event.stopPropagation();setSign(1)">+</button>
+              <input type="number" id="monto" class="monto-input" step="0.01" inputmode="decimal" oninput="upM()" placeholder="0.00">
+              <button id="sbn" class="msign" onclick="event.stopPropagation();setSign(-1)">−</button>
+              <span id="mprev" class="mprev">$ 0.00</span>
+            </div>
+          </div>
+        </div>
+        <div id="cf-recurrencia" class="cf" onclick="activarCampo('recurrencia')">
+          <div class="cf-label">Recurrencia</div>
+          <div class="cf-val-wrap"><span id="cv-recurrencia" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-recurrencia"></div>
+        </div>
+        <div id="cf-necesidad" class="cf" onclick="activarCampo('necesidad')">
+          <div class="cf-label">Necesidad</div>
+          <div class="cf-val-wrap"><span id="cv-necesidad" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-necesidad"></div>
+        </div>
+        <div id="cf-clave" class="cf" onclick="activarCampo('clave')">
+          <div class="cf-label">Clave</div>
+          <div class="cf-val-wrap"><input type="text" id="clave" class="cf-text" placeholder="Opcional" onchange="onClaveChange()"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-save" id="btnG" onclick="guardar()">
+            <div class="spin-sm" id="spin" style="display:none"></div>
+            <i class="fas fa-floppy-disk" id="bico"></i> Guardar
+          </button>
+          <button class="btn-sm sec" onclick="limpiar()" title="Limpiar"><i class="fas fa-rotate-left"></i></button>
+          <button class="btn-sm sec" onclick="irASheet()" title="Ver Sheet"><i class="fas fa-table-cells"></i></button>
+          <button class="btn-sm sec" onclick="oPanel()" title="Gestionar Lista"><i class="fas fa-list"></i></button>
+        </div>
+        <div id="save-res" class="save-res">
+          <span id="res-ico"></span> <span id="res-msg"></span>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
+
 
   <div class="board-wrap">
    <!-- ANVERSO -->
@@ -134,15 +208,7 @@
       </div>
       <div class="sec-body" id="sec-entes-body">
         <div id="entes-list"></div>
-        <div id="form-banco-wrap" style="padding:12px var(--pad) 0">
-          <div style="font-size:10px;font-weight:600;color:var(--m);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">+ Nuevo registro</div>
-          <input type="text" id="banco-nombre" class="finput" placeholder="Nombre del banco" style="margin-bottom:6px">
-          <input type="number" id="banco-monto" class="finput" placeholder="Monto" step="0.01" inputmode="decimal" style="margin-bottom:6px">
-          <input type="date" id="banco-fecha" class="finput" style="margin-bottom:8px">
-          <button onclick="guardarBanco()" class="btn-save" style="border-radius:var(--rad-pill)">
-            <i class="fas fa-floppy-disk"></i> Guardar en Bancos
-          </button>
-        </div>
+
         <div style="border-top:1px solid rgba(255,255,255,.06);margin:12px 0 0">
           <div style="padding:10px var(--pad) 4px;display:flex;justify-content:space-between;align-items:center">
             <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Apartados</div>
