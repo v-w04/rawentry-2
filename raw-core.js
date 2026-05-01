@@ -263,11 +263,24 @@ document.addEventListener('keydown', function(e){
 
 // ── Nueva Entrada — form en col1, sin popup ──
 function abrirEntrada(){
+  // Siempre mostrar paso1 primero
+  const paso1 = document.getElementById('entrada-paso1');
+  const paso2 = document.getElementById('entrada-paso2');
+  if(paso1) paso1.style.display = 'block';
+  if(paso2) paso2.style.display = 'none';
   toggleEntradaDropdown();
 }
 
 function cerrarEntrada(){
-  // No-op: sin popup
+  const dd = document.getElementById('entrada-dropdown');
+  const btn = document.getElementById('btn-nueva-entrada');
+  if(dd){ dd.classList.remove('show'); dd.style.display='none'; }
+  if(btn) btn.classList.remove('active');
+  // Regresar a paso1 para la próxima vez
+  const paso1 = document.getElementById('entrada-paso1');
+  const paso2 = document.getElementById('entrada-paso2');
+  if(paso1) paso1.style.display = 'block';
+  if(paso2) paso2.style.display = 'none';
 }
 
 // ══════════════════════════════════════════
@@ -724,7 +737,7 @@ function _inyectarToggleModo(){
     <button id="btn-tab-patrimonio"  onclick="setModoEntrada('patrimonio')"  class="tab-entrada">🏦</button>
     <button id="btn-tab-nutricion"   onclick="setModoEntrada('nutricion')"   class="tab-entrada">🥗</button>
     <button id="btn-tab-entrenamiento" onclick="setModoEntrada('entrenamiento')" class="tab-entrada">💪</button>`;
-  const body = document.getElementById('sec-entrada-body') || document.getElementById('wrap-entrada');
+  const body = document.getElementById('sec-entrada-body') || document.getElementById('entrada-paso2') || document.getElementById('wrap-entrada');
   if(body) body.insertBefore(wrap, body.firstChild);
 
   // ID input (hidden by default)
@@ -754,12 +767,30 @@ function _inyectarToggleModo(){
   });
 }
 
+function volverAPaso1(){
+  const paso1 = document.getElementById('entrada-paso1');
+  const paso2 = document.getElementById('entrada-paso2');
+  if(paso1) paso1.style.display = 'block';
+  if(paso2) paso2.style.display = 'none';
+}
+
 function setModoEntrada(modo){
   _tabEntrada  = modo;
   _modoEditar  = (modo === 'editar');
 
+  // Cambiar de paso1 a paso2
+  const paso1 = document.getElementById('entrada-paso1');
+  const paso2 = document.getElementById('entrada-paso2');
+  if(paso1) paso1.style.display = 'none';
+  if(paso2) paso2.style.display = 'block';
+
+  // Título del paso2
+  const titulos = {nueva:'💸 RAW',editar:'✏️ Editar',pensamiento:'💭 Pensamiento',persona:'👥 Persona',salud:'🏥 Salud',apartado:'💰 Apartado',patrimonio:'🏦 Patrimonio',bancos:'🏛️ Bancos',nutricion:'🥗 Nutrición',entrenamiento:'💪 Entrenamiento'};
+  const tituloEl = document.getElementById('entrada-paso2-titulo');
+  if(tituloEl) tituloEl.textContent = titulos[modo] || modo;
+
   // Actualizar tabs
-  ['nueva','editar','pensamiento','persona','salud','apartado','patrimonio','nutricion','entrenamiento'].forEach(t=>{
+  ['nueva','editar','pensamiento','persona','salud','apartado','patrimonio','bancos','nutricion','entrenamiento'].forEach(t=>{
     const btn = document.getElementById('btn-tab-'+t);
     if(btn) btn.classList.toggle('on', t===modo);
   });
@@ -812,8 +843,57 @@ function _renderTabEntrada(tab){
   else if(tab==='salud')   _renderSaludForm(wrap);
   else if(tab==='apartado') _renderApartadoForm(wrap);
   else if(tab==='patrimonio')    _renderPatrimonioForm(wrap);
+  else if(tab==='bancos')        _renderBancosForm(wrap);
   else if(tab==='nutricion')     _renderNutricionForm(wrap);
   else if(tab==='entrenamiento') _renderEntrenamientoForm(wrap);
+}
+
+// ── Formulario Bancos ──
+function _renderBancosForm(wrap){
+  wrap.innerHTML=`
+    <div style="padding:16px var(--pad);display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Registrar en Bancos</div>
+      <input type="text" id="banco-nombre" class="finput" placeholder="Nombre del banco (BBVA, BEATS…)" style="font-size:14px;padding:10px 14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Monto</div>
+          <input type="number" id="banco-monto" class="finput" placeholder="0.00" step="0.01" inputmode="decimal" style="font-size:16px;padding:10px 12px">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">Fecha</div>
+          <input type="date" id="banco-fecha" class="finput" style="font-size:13px;padding:9px 12px">
+        </div>
+      </div>
+      <button onclick="_guardarBancosForm()" class="btn-save" style="border-radius:var(--rad-pill)">
+        <i class="fas fa-floppy-disk"></i> Guardar en Bancos
+      </button>
+      <div id="banco-res" style="font-size:12px;text-align:center;color:var(--m)"></div>
+    </div>`;
+  const fechaEl = document.getElementById('banco-fecha');
+  if(fechaEl) fechaEl.value = fmtD(new Date());
+}
+
+function _guardarBancosForm(){
+  const nombre = document.getElementById('banco-nombre').value.trim();
+  const monto  = parseFloat(document.getElementById('banco-monto').value);
+  const fecha  = document.getElementById('banco-fecha').value;
+  const res    = document.getElementById('banco-res');
+  if(!nombre || isNaN(monto) || !fecha){
+    res.textContent='Completa todos los campos'; res.style.color='var(--err)'; return;
+  }
+  res.textContent='Guardando…'; res.style.color='var(--m)';
+  api.guardarEnBancos(nombre, monto, fecha)
+    .then(r=>{
+      res.textContent = r.ok ? '✓ Guardado' : '✗ '+(r.mensaje||'Error');
+      res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
+      if(r.ok){
+        document.getElementById('banco-nombre').value='';
+        document.getElementById('banco-monto').value='';
+        document.getElementById('banco-fecha').value = fmtD(new Date());
+        api.getFijos().then(renderEntes);
+        showToast('✓ Banco guardado');
+      }
+    }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
 }
 
 // ── Formulario Patrimonio ──
