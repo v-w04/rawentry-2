@@ -48,25 +48,30 @@
         <button onclick="cerrarEntrada()" class="popup-close">✕</button>
       </div>
       <div class="entrada-selector-grid">
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('nueva')" style="--tipo-color:#6366F1;--tipo-bg:rgba(99,102,241,.15)">
-          <i class="fas fa-arrow-right-arrow-left entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">RAW</div>
-          <div class="entrada-tipo-sub">Ingreso · Egreso</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('editar')" style="--tipo-color:#94A3B8;--tipo-bg:rgba(148,163,184,.12)">
-          <i class="fas fa-pen entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Editar</div>
-          <div class="entrada-tipo-sub">Modificar RAW</div>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('apartado')" style="--tipo-color:#4ADE80;--tipo-bg:rgba(74,222,128,.12)">
+          <i class="fas fa-piggy-bank entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">Apartado</div>
+          <div class="entrada-tipo-sub">Meta de ahorro</div>
         </button>
         <button class="entrada-tipo-btn" onclick="setModoEntrada('bancos')" style="--tipo-color:#F59E0B;--tipo-bg:rgba(245,158,11,.12)">
           <i class="fas fa-building-columns entrada-tipo-ico"></i>
           <div class="entrada-tipo-lbl">Bancos</div>
           <div class="entrada-tipo-sub">Registrar saldo</div>
         </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('apartado')" style="--tipo-color:#4ADE80;--tipo-bg:rgba(74,222,128,.12)">
-          <i class="fas fa-piggy-bank entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Apartado</div>
-          <div class="entrada-tipo-sub">Meta de ahorro</div>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('editar')" style="--tipo-color:#94A3B8;--tipo-bg:rgba(148,163,184,.12)">
+          <i class="fas fa-pen entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">Editar</div>
+          <div class="entrada-tipo-sub">Modificar RAW</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('entrenamiento')" style="--tipo-color:#FB923C;--tipo-bg:rgba(251,146,60,.1)">
+          <i class="fas fa-dumbbell entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">Entrenamiento</div>
+          <div class="entrada-tipo-sub">Ejercicio · Sesión</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('nutricion')" style="--tipo-color:#4ADE80;--tipo-bg:rgba(0,196,132,.1)">
+          <i class="fas fa-apple-whole entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">Nutrición</div>
+          <div class="entrada-tipo-sub">Alimento · Agua</div>
         </button>
         <button class="entrada-tipo-btn" onclick="setModoEntrada('patrimonio')" style="--tipo-color:#C4B5FD;--tipo-bg:rgba(139,92,246,.12)">
           <i class="fas fa-landmark entrada-tipo-ico"></i>
@@ -83,20 +88,15 @@
           <div class="entrada-tipo-lbl">Persona</div>
           <div class="entrada-tipo-sub">Interacción social</div>
         </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('nueva')" style="--tipo-color:#6366F1;--tipo-bg:rgba(99,102,241,.15)">
+          <i class="fas fa-arrow-right-arrow-left entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">RAW</div>
+          <div class="entrada-tipo-sub">Ingreso · Egreso</div>
+        </button>
         <button class="entrada-tipo-btn" onclick="setModoEntrada('salud')" style="--tipo-color:#FCA5A5;--tipo-bg:rgba(239,68,68,.1)">
           <i class="fas fa-heart-pulse entrada-tipo-ico"></i>
           <div class="entrada-tipo-lbl">Salud</div>
           <div class="entrada-tipo-sub">Cita · Síntoma</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('nutricion')" style="--tipo-color:#4ADE80;--tipo-bg:rgba(0,196,132,.1)">
-          <i class="fas fa-apple-whole entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Nutrición</div>
-          <div class="entrada-tipo-sub">Alimento · Agua</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('entrenamiento')" style="--tipo-color:#FCA5A5;--tipo-bg:rgba(239,68,68,.1)">
-          <i class="fas fa-dumbbell entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Entrenamiento</div>
-          <div class="entrada-tipo-sub">Ejercicio · Sesión</div>
         </button>
       </div>
     </div>
