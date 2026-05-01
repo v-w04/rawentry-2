@@ -874,8 +874,7 @@ html.mob .hero-right{display:none !important}
 /* sec-entrada mismo card que el resto */
 #sec-entrada{background:rgba(22,22,22,.75);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.06);border-radius:var(--rad);overflow:hidden;box-shadow:var(--shadow)}
 /* Toggle tabs — más compacto */
-#toggle-modo-wrap{margin:8px var(--pad);grid-template-columns:repeat(9,1fr)}
-.tab-entrada{font-size:10px;padding:6px 2px}
+
 /* Hamburger visible solo en móvil */
 .hero-hamburger{display:none;background:none;border:none;color:var(--m);cursor:pointer;font-size:16px;padding:4px}
 @media(max-width:899px){
@@ -984,11 +983,7 @@ html.mob .hero-right{display:none !important}
 }
 
 /* Toggle tabs compacto */
-#toggle-modo-wrap{
-  margin:8px 16px;
-  grid-template-columns:repeat(9,1fr);
-}
-.tab-entrada{font-size:10px;padding:5px 2px}
+
 
 
 /* ══ HERO FINAL — una sola línea ══ */
@@ -1018,4 +1013,41 @@ html.mob .hero-right{display:none !important}
   #btn-sos{font-size:10px !important;padding:4px 9px !important;white-space:nowrap !important}
   .hero-chip{font-size:10px !important;padding:4px 9px !important;white-space:nowrap !important}
   .hero-hamburger{display:none !important}
+}
+
+/* ══ TABS NUEVA ENTRADA ══ */
+#toggle-modo-wrap{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:4px !important;
+  background:rgba(255,255,255,.04) !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  border-radius:var(--rad-lg) !important;
+  padding:4px !important;
+  margin:12px 16px 8px !important;
+}
+.tab-entrada{
+  flex:1 1 auto !important;
+  min-width:fit-content !important;
+  padding:7px 10px !important;
+  border-radius:var(--rad) !important;
+  font-size:11px !important;
+  font-weight:500 !important;
+  white-space:nowrap !important;
+  text-align:center !important;
+  cursor:pointer !important;
+  border:none !important;
+  background:none !important;
+  color:var(--m) !important;
+  transition:all .15s !important;
+  font-family:inherit !important;
+}
+.tab-entrada.on{
+  background:#fff !important;
+  color:#000 !important;
+  font-weight:700 !important;
+}
+.tab-entrada:hover:not(.on){
+  color:#fff !important;
+  background:rgba(255,255,255,.1) !important;
 }
