@@ -92,6 +92,7 @@ const api = {
   guardarEfectivo:      (d) => EN_GAS ? gasRun('guardarEfectivo', d) : apiPost('guardarEfectivo', { datos: d }),
   guardarInversion:     (d) => EN_GAS ? gasRun('guardarInversion', d) : apiPost('guardarInversion', { datos: d }),
   marcarActivityItem:   (tipo, fila, valor) => EN_GAS ? gasRun('marcarActivityItem', tipo, fila, valor) : apiPost('marcarActivityItem', { tipo, fila, valor }),
+  resetearElectronics:  () => EN_GAS ? gasRun('resetearElectronicsHoy') : apiGet('resetearElectronics'),
   getNutricion:         () => EN_GAS ? gasRun('getNutricion') : apiGet('getNutricion'),
   getMetasNutricion:    () => EN_GAS ? gasRun('getMetasNutricion') : apiGet('getMetasNutricion'),
   guardarNutricion:     (d) => EN_GAS ? gasRun('guardarNutricion', d) : apiPost('guardarNutricion', { datos: d }),
@@ -234,12 +235,26 @@ function toggleEntradaDropdown(){
   }
 }
 
-// Cerrar dropdown al hacer click fuera
+// Cerrar dropdown al hacer click en el overlay (fuera del inner)
 document.addEventListener('click', function(e){
   const dd = document.getElementById('entrada-dropdown');
   const btn = document.getElementById('btn-nueva-entrada');
   if(!dd || !dd.classList.contains('show')) return;
-  if(!dd.contains(e.target) && e.target !== btn && !btn?.contains(e.target)){
+  const inner = document.querySelector('.entrada-dropdown-inner');
+  // Si el click fue en el overlay (dd) pero fuera del inner — cerrar
+  if(e.target === dd){
+    dd.classList.remove('show');
+    dd.style.display = 'none';
+    if(btn) btn.classList.remove('active');
+  }
+});
+
+// Cerrar con Escape
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Escape') return;
+  const dd = document.getElementById('entrada-dropdown');
+  const btn = document.getElementById('btn-nueva-entrada');
+  if(dd && dd.classList.contains('show')){
     dd.classList.remove('show');
     dd.style.display = 'none';
     if(btn) btn.classList.remove('active');
