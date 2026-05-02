@@ -311,7 +311,7 @@ html,body{
   /* Sections: 4 columnas flex independientes — sin grid-row fijo */
   .sections{
     display:grid !important;
-    grid-template-columns:minmax(240px,.85fr) minmax(300px,1.15fr) minmax(380px,1.4fr) minmax(300px,1.1fr);
+    grid-template-columns:repeat(4, minmax(280px,1fr));
     gap:12px;
     padding:12px 20px 32px;
     align-items:start;
