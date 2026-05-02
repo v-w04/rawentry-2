@@ -142,6 +142,17 @@
   // Init — esperar a que el DOM cargue los módulos
   function init(){
     if(window.innerWidth < 900) return;
+    // Limpiar layout si está corrupto (todas las secciones en una columna)
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        var layout = JSON.parse(raw);
+        var colsConSecs = Object.keys(layout).filter(function(k){ return (layout[k]||[]).length > 0; }).length;
+        if(colsConSecs < 2){
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+    } catch(e){ try{ localStorage.removeItem(STORAGE_KEY); }catch(e2){} }
     document.querySelectorAll('#mob-sections .section').forEach(addHandle);
     initColumns();
     restoreLayout();
