@@ -1,6 +1,9 @@
-/* RAW Entry — Core v.5.049
+/* RAW Entry — Core v.5.050
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
+// Globales compartidas entre raw-core y raw-dashboard
+window._apartadosData = window._apartadosData || [];
+window._fijosData     = window._fijosData     || [];
 // Detectar móvil
 (function(){
   if(/iPhone|iPad|iPod|Android.*Mobile/.test(navigator.userAgent)){
@@ -1417,7 +1420,7 @@ function renderEntes(data){
   // Calcular apartados por banco (solo activos, no usados)
   const apartadosPorBanco = {};
   let totalApartadosActivos = 0;
-  (_apartadosData||[]).forEach(ap=>{
+  (window._apartadosData||[]).forEach(ap=>{
     if(ap.estado && ap.estado.toLowerCase()==='usado') return;
     const banco = (ap.banco||'').trim().toUpperCase();
     apartadosPorBanco[banco] = (apartadosPorBanco[banco]||0) + (ap.monto||0);
