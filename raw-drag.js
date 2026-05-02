@@ -147,6 +147,45 @@
     restoreLayout();
     updateEmptyColumns();
     saveDefaultLayout();
+    initMaslowColumns();
+  }
+
+  function initMaslowColumns(){
+    var MASLOW_KEY = 'lifeos_maslow_layout_v1';
+    var mCols = ['mcol-1','mcol-2','mcol-3','mcol-4','mcol-5'];
+    mCols.forEach(function(colId){
+      var col = document.getElementById(colId);
+      if(!col) return;
+      col.addEventListener('dragover', function(e){
+        if(!_dragSec) return;
+        e.preventDefault();
+        col.classList.add('col-drop-over');
+        var indicator = document.createElement('div');
+        indicator.className = 'drop-indicator';
+        document.querySelectorAll('.drop-indicator').forEach(function(el){ el.remove(); });
+        var sections = Array.from(col.querySelectorAll('.section:not(.dragging)'));
+        var inserted = false;
+        for(var i=0; i<sections.length; i++){
+          if(e.clientY < sections[i].getBoundingClientRect().top + sections[i].getBoundingClientRect().height/2){
+            col.insertBefore(indicator, sections[i]); inserted=true; break;
+          }
+        }
+        if(!inserted) col.appendChild(indicator);
+      });
+      col.addEventListener('dragleave', function(e){
+        if(!col.contains(e.relatedTarget)) col.classList.remove('col-drop-over');
+      });
+      col.addEventListener('drop', function(e){
+        e.preventDefault();
+        col.classList.remove('col-drop-over');
+        if(!_dragSec) return;
+        var indicator = col.querySelector('.drop-indicator');
+        if(indicator){ col.insertBefore(_dragSec, indicator); indicator.remove(); }
+        else col.appendChild(_dragSec);
+      });
+    });
+    // Agregar handles a secciones de Maslow
+    document.querySelectorAll('#maslow-sections .section').forEach(addHandle);
   }
 
   // Guardar layout default si no hay nada guardado
