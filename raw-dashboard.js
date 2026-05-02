@@ -1,4 +1,4 @@
-/* RAW Entry — Dashboard v.5.045
+/* RAW Entry — Dashboard v.5.046
    Tablas Variables/Fijos · Flujo Mensual · Gráficas
    + Financiero Avanzado · Revisión · Relaciones · Salud · Apartados · Pensamientos
 */
@@ -856,41 +856,35 @@ function renderScore(data){
     </div>` : ''}
   `;
   // Renderizar barras por área fuera del template
-  var _desglose = (data.score||{}).desglose||{};
-  _renderScoreAreas(document.getElementById('score-areas-wrap'), areas, _desglose, areaColors);
-}
+  // Renderizar barras con DOM directo — sin template literals
+  var wrap = document.getElementById('score-areas-wrap');
+  if(wrap){
+    var scoreDesglose = (data.score||{}).desglose||{};
+    var barsHtml = '';
+    areas.forEach(function(a){
+      var val = scoreDesglose[a.key]||0;
+      var pctA = Math.round(val/a.max*100);
+      var col = areaColors[a.key]||'#fff';
+      var detalleItems = (a.detalle||[]).filter(function(dt){
+        return dt.val !== null && dt.val !== undefined && dt.val !== '—';
+      });
+      var detalleStr = detalleItems.map(function(dt){
+        return '<span style="font-size:10px;color:#666">'+dt.lbl+': <span style="color:rgba(255,255,255,.7)">'+dt.val+'</span></span>';
+      }).join('<span style="color:#333;padding:0 3px">·</span>');
 
-function _renderScoreAreas(wrap, areas, desglose, colors){
-  if(!wrap) return;
-  var html = '';
-  areas.forEach(function(a){
-    var val = desglose[a.key]||0;
-    var pctA = Math.round(val/a.max*100);
-    var col = colors[a.key]||'var(--p)';
-    var detalleItems = (a.detalle||[]).filter(function(dt){
-      return dt.val!=null && dt.val!=='—' && dt.val!==undefined;
+      barsHtml += '<div style="margin-bottom:14px">';
+      barsHtml += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">';
+      barsHtml += '<span style="font-size:13px;font-weight:600;color:#fff">'+a.emoji+' '+a.label+'</span>';
+      barsHtml += '<span style="font-size:13px;font-weight:700;color:'+col+'">'+val+'<span style="font-size:10px;color:#555;font-weight:400">/'+a.max+'</span></span>';
+      barsHtml += '</div>';
+      barsHtml += '<div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:4px">';
+      barsHtml += '<div style="height:100%;width:'+pctA+'%;background:'+col+';border-radius:2px"></div>';
+      barsHtml += '</div>';
+      if(detalleStr) barsHtml += '<div style="line-height:1.8">'+detalleStr+'</div>';
+      barsHtml += '</div>';
     });
-    var detalleHtml = detalleItems.map(function(dt){
-      return '<span style="font-size:10px;color:var(--m)">'+dt.lbl+': <b style="color:rgba(255,255,255,.65);font-weight:600">'+dt.val+'</b></span>';
-    }).join('<span style="color:var(--dim);padding:0 3px">·</span>');
-
-    html += '<div style="margin-bottom:12px">';
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">';
-    html += '<div style="display:flex;align-items:center;gap:6px">';
-    html += '<span style="font-size:13px">'+a.emoji+'</span>';
-    html += '<span style="font-size:12px;font-weight:600;color:#fff">'+a.label+'</span>';
-    html += '</div>';
-    html += '<span style="font-size:13px;font-weight:700;color:'+col+';font-variant-numeric:tabular-nums">'+val+'<span style="font-size:10px;color:var(--m);font-weight:400">/'+a.max+'</span></span>';
-    html += '</div>';
-    html += '<div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:5px">';
-    html += '<div style="height:100%;width:'+pctA+'%;background:'+col+';border-radius:2px;transition:width .6s ease"></div>';
-    html += '</div>';
-    if(detalleHtml){
-      html += '<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">'+detalleHtml+'</div>';
-    }
-    html += '</div>';
-  });
-  wrap.innerHTML = html;
+    wrap.innerHTML = barsHtml;
+  }
 }
 
 // ══════════════════════════════════════════
