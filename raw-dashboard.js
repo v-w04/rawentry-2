@@ -26,8 +26,8 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.056
-   CFO bloque saldo: fila única, ancho completo
+/* RAW Entry — Dashboard v.5.057
+   CFO: semáforo eliminado · bloque ② eliminado · proyección sin repetir egresos
 */
 
 // ══════════════════════════════════════════
@@ -320,11 +320,11 @@ function _renderCFO(){
   const insightsFiltrados = ins.filter(i => !i.msg.includes('Buen ritmo de ahorro'));
 
   body.innerHTML = `
-    <!-- ① SALDO — fila completa, todo integrado -->
+    <!-- ① SALDO — fila completa sin semáforo flotante -->
     <div style="padding:14px 16px 12px;border-bottom:1px solid rgba(255,255,255,.06)">
 
-      <!-- Fila superior: etiqueta SALDO + controles + semáforo alineado a la derecha -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <!-- Fila superior: etiqueta SALDO + controles -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--m)">SALDO</div>
         <input type="date" id="saldo-fecha" onchange="consultarSaldo()"
           style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;
@@ -337,62 +337,46 @@ function _renderCFO(){
           border-radius:20px;color:var(--m);cursor:pointer;font-size:10px;padding:2px 8px;font-family:inherit;line-height:1.6">
           <i class="fas fa-table-cells"></i>
         </button>
-        <!-- Semáforo integrado en la misma línea, empujado a la derecha -->
-        <div style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;
-          background:${saludColor}15;border:1px solid ${saludColor}35">
-          <span style="color:${saludColor};font-size:10px">${saludIcon}</span>
-          <span style="font-size:11px;font-weight:700;color:${saludColor}">${saludLabel}</span>
-        </div>
       </div>
 
-      <!-- Fila inferior: saldo grande + gasto/día + runway, todo en una línea -->
-      <div style="display:flex;align-items:baseline;gap:0;flex-wrap:nowrap">
-        <div id="saldo-val" style="font-size:36px;font-weight:800;letter-spacing:-.04em;
-          color:${saldo>=0?'#4ADE80':'#EF4444'};line-height:1;white-space:nowrap;flex-shrink:0">
-          ${fmtM2(saldo)}
-        </div>
-        <!-- Separador vertical -->
-        <div style="width:1px;height:28px;background:rgba(255,255,255,.1);margin:0 16px;flex-shrink:0;align-self:center"></div>
-        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">
-          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Gasto/día prom.</div>
-          <div style="font-size:16px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:-.02em">${fmtM(gastoDia)}</div>
-        </div>
-        <!-- Separador vertical -->
-        <div style="width:1px;height:28px;background:rgba(255,255,255,.1);margin:0 16px;flex-shrink:0;align-self:center"></div>
-        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">
-          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Runway</div>
-          <div style="font-size:16px;font-weight:700;color:${runwayColor};letter-spacing:-.02em">
-            ${runway !== null ? runway+' días' : '—'}
+      <!-- Fila de métricas: saldo + separadores + gasto/día + runway + ahorro -->
+      <div style="display:flex;align-items:center;gap:0;width:100%">
+        <!-- Saldo -->
+        <div style="flex:0 0 auto">
+          <div id="saldo-val" style="font-size:34px;font-weight:800;letter-spacing:-.04em;
+            color:${saldo>=0?'#4ADE80':'#EF4444'};line-height:1;white-space:nowrap">
+            ${fmtM2(saldo)}
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- ② MÉTRICAS CLAVE: Runway + Ahorro (UNA sola vez cada una) -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid rgba(255,255,255,.06)">
-      <div style="padding:12px 14px;border-right:1px solid rgba(255,255,255,.06)">
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m);margin-bottom:5px">RUNWAY</div>
-        <div style="font-size:${runway!==null&&runway<=30?'30px':'24px'};font-weight:800;color:${runwayColor};line-height:1;letter-spacing:-.03em">
-          ${runway !== null ? runway+' días' : '—'}
+        <div style="width:1px;height:32px;background:rgba(255,255,255,.1);margin:0 18px;flex-shrink:0"></div>
+        <!-- Gasto/día -->
+        <div style="flex:1;min-width:0">
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:3px">Gasto/día prom.</div>
+          <div style="font-size:18px;font-weight:700;color:rgba(255,255,255,.75);letter-spacing:-.02em">${fmtM(gastoDia)}</div>
         </div>
-        <div style="font-size:10px;color:var(--m);margin-top:3px">
-          ${runway===null?'Sin datos':runway<7?'⚠ Crítico — actúa ya':runway<14?'⚠ Menos de 2 semanas':runway<30?'Cuidado con gastos':'Buena cobertura'}
+        <div style="width:1px;height:32px;background:rgba(255,255,255,.1);margin:0 18px;flex-shrink:0"></div>
+        <!-- Runway -->
+        <div style="flex:1;min-width:0">
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:3px">Runway</div>
+          <div style="font-size:18px;font-weight:700;color:${runwayColor};letter-spacing:-.02em">
+            ${runway !== null ? runway+' días' : '—'}
+          </div>
+          <div style="font-size:9px;color:${runwayColor};margin-top:1px;opacity:.8">
+            ${runway===null?'':runway<7?'⚠ Crítico':runway<14?'⚠ &lt;2 semanas':runway<30?'Cuidado':''}
+          </div>
         </div>
-      </div>
-      <div style="padding:12px 14px">
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m);margin-bottom:5px">TASA DE AHORRO</div>
-        <div style="font-size:24px;font-weight:800;letter-spacing:-.03em;line-height:1;
-          color:${pctAhorro<0?'#EF4444':pctAhorro<10?'#F59E0B':pctAhorro>=20?'#4ADE80':'#F59E0B'}">
-          ${pctAhorro}%
-        </div>
-        <div style="margin-top:5px">
-          <div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-bottom:3px">
+        <div style="width:1px;height:32px;background:rgba(255,255,255,.1);margin:0 18px;flex-shrink:0"></div>
+        <!-- Tasa ahorro -->
+        <div style="flex:1;min-width:0">
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:3px">Tasa ahorro</div>
+          <div style="font-size:18px;font-weight:700;letter-spacing:-.02em;
+            color:${pctAhorro<0?'#EF4444':pctAhorro<10?'#F59E0B':pctAhorro>=20?'#4ADE80':'#F59E0B'}">
+            ${pctAhorro}%
+          </div>
+          <div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-top:4px">
             <div style="height:100%;width:${Math.min(100,Math.max(0,pctAhorro))}%;border-radius:2px;
               background:${pctAhorro<0?'#EF4444':pctAhorro<10?'#F59E0B':'#4ADE80'}"></div>
           </div>
-          <span style="font-size:10px;color:var(--m)">
-            ${pctAhorro>=20?'✓ Sobre meta (≥20%)':pctAhorro>=10?'Cerca de la meta':pctAhorro>=0?'⚠ Bajo la meta':'⚠ Gasto > ingreso'}
-          </span>
         </div>
       </div>
     </div>
@@ -444,21 +428,19 @@ function _renderCFO(){
       </div>
     </div>
 
-    <!-- ④ PROYECCIÓN FIN DE MES -->
+    <!-- ④ PROYECCIÓN FIN DE MES — solo excedente, sin repetir egresos -->
     ${proy.diasRestantes > 0 ? `
     <div style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06)">
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m);margin-bottom:8px">
-        PROYECCIÓN · ${proy.diasRestantes} días restantes
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
-          <div style="font-size:10px;color:var(--m)">Egresos proyectados</div>
-          <div style="font-size:16px;font-weight:700;color:#EF4444;font-variant-numeric:tabular-nums">${fmtM(proy.egresos)}</div>
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--m);margin-bottom:3px">
+            Proyección fin de mes · ${proy.diasRestantes} días restantes
+          </div>
+          <div style="font-size:11px;color:var(--m)">Al ritmo actual de ${fmtM(gastoDia)}/día</div>
         </div>
-        <i class="fas fa-arrow-right" style="color:rgba(255,255,255,.15);font-size:14px"></i>
         <div style="text-align:right">
-          <div style="font-size:10px;color:var(--m)">Excedente proyectado</div>
-          <div style="font-size:20px;font-weight:800;letter-spacing:-.03em;color:${(proy.excedente||0)>=0?'#4ADE80':'#EF4444'};font-variant-numeric:tabular-nums">
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:3px">Excedente proyectado</div>
+          <div style="font-size:22px;font-weight:800;letter-spacing:-.03em;color:${(proy.excedente||0)>=0?'#4ADE80':'#EF4444'};font-variant-numeric:tabular-nums">
             ${(proy.excedente||0)>=0?'+':''}${fmtM(proy.excedente)}
           </div>
         </div>
