@@ -26,7 +26,7 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.063
+/* RAW Entry — Dashboard v.5.064
    Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
 */
 
@@ -593,10 +593,9 @@ function renderSalud(data){
 // ══════════════════════════════════════════
 //  APARTADOS — fix: renderApartados usa fila real del GAS
 // ══════════════════════════════════════════
-let _apartadosData = [];
 
 function renderApartados(data){
-  _apartadosData = (data && data.items) ? data.items : [];
+  window._apartadosData = (data && data.items) ? data.items : [];
   const body = document.getElementById('apartados-list') || document.getElementById('apartados-body');
   if(!body) return;
 
@@ -607,14 +606,14 @@ function renderApartados(data){
     totalEl.className = 'sec-hdr-val '+cls;
   }
 
-  if(!_apartadosData.length){
+  if(!(window._apartadosData||[]).length){
     body.innerHTML='<div style="padding:16px;text-align:center;color:var(--m)">Sin apartados activos</div>';
     return;
   }
 
   const hoy = new Date(); hoy.setHours(0,0,0,0);
 
-  body.innerHTML = _apartadosData.map(ap=>{
+  body.innerHTML = (window._apartadosData||[]).map(ap=>{
     const {txt:mTxt} = fmtMoneda(ap.monto);
     const usado = ap.estado && ap.estado.toLowerCase() === 'usado';
     let metaStr = '';
@@ -1063,7 +1062,7 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.063
+/* RAW Entry — Dashboard v.5.064
    Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
 */
 
@@ -1630,10 +1629,9 @@ function renderSalud(data){
 // ══════════════════════════════════════════
 //  APARTADOS — fix: renderApartados usa fila real del GAS
 // ══════════════════════════════════════════
-let _apartadosData = [];
 
 function renderApartados(data){
-  _apartadosData = (data && data.items) ? data.items : [];
+  window._apartadosData = (data && data.items) ? data.items : [];
   const body = document.getElementById('apartados-list') || document.getElementById('apartados-body');
   if(!body) return;
 
@@ -1644,14 +1642,14 @@ function renderApartados(data){
     totalEl.className = 'sec-hdr-val '+cls;
   }
 
-  if(!_apartadosData.length){
+  if(!(window._apartadosData||[]).length){
     body.innerHTML='<div style="padding:16px;text-align:center;color:var(--m)">Sin apartados activos</div>';
     return;
   }
 
   const hoy = new Date(); hoy.setHours(0,0,0,0);
 
-  body.innerHTML = _apartadosData.map(ap=>{
+  body.innerHTML = (window._apartadosData||[]).map(ap=>{
     const {txt:mTxt} = fmtMoneda(ap.monto);
     const usado = ap.estado && ap.estado.toLowerCase() === 'usado';
     let metaStr = '';
@@ -2097,7 +2095,7 @@ function renderPatrimonio(data){
 
   var apPorBanco = {};
   var totalAp = 0;
-  (_apartadosData||[]).forEach(function(ap){
+  (window._apartadosData||[]).forEach(function(ap){
     if(ap.estado && ap.estado.toLowerCase()==='usado') return;
     var b = (ap.banco||'').trim().toUpperCase();
     apPorBanco[b] = (apPorBanco[b]||0) + (ap.monto||0);
@@ -2220,13 +2218,13 @@ function renderPatrimonio(data){
   }
 
   // Apartados
-  if((_apartadosData||[]).length){
+  if((window._apartadosData||[]).length){
     html += '<div style="padding:8px 16px 4px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.06);margin-top:4px">';
     html += '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--m)">Apartados</div>';
     html += '<span style="font-size:13px;font-weight:700;color:var(--warn)">'+fmt(totalAp)+'</span>';
     html += '</div>';
     var hoy = new Date(); hoy.setHours(0,0,0,0);
-    (_apartadosData||[]).forEach(function(ap){
+    (window._apartadosData||[]).forEach(function(ap){
       var usado = ap.estado && ap.estado.toLowerCase()==='usado';
       var metaStr = '';
       if(ap.meta){
