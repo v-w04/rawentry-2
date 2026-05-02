@@ -895,13 +895,13 @@ function _dibujarRadarYPiramideInline(niveles){
 
   wrap.innerHTML =
     '<div style="display:flex;align-items:flex-start;justify-content:center;gap:24px;padding:20px 16px 8px;width:100%;box-sizing:border-box">' +
-      '<div style="display:flex;flex-direction:column;align-items:center;width:200px;flex-shrink:0">' +
+      '<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">' +
         '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:10px">Radar</div>' +
-        '<div style="width:200px;height:200px"><canvas id="radar-inline-canvas" width="200" height="200"></canvas></div>' +
+        '<div style="width:240px;height:240px;max-width:100%"><canvas id="radar-inline-canvas" width="240" height="240"></canvas></div>' +
       '</div>' +
-      '<div style="display:flex;flex-direction:column;align-items:center;width:200px;flex-shrink:0">' +
+      '<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">' +
         '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:10px">Distribución</div>' +
-        '<svg width="200" height="170" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg">'+svgRects+'</svg>' +
+        '<svg width="100%" height="200" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg" style="max-width:240px">'+svgRects+'</svg>' +
       '</div>' +
     '</div>';
 
