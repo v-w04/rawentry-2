@@ -817,30 +817,7 @@ function renderScore(data){
     </div>
 
     <!-- Barras por área -->
-    <div style="padding:4px var(--pad) 16px">
-      ${areas.map(a=>{
-        const val = d[a.key]||0;
-        const pctA = Math.round(val/a.max*100);
-        const col = areaColors[a.key]||'var(--p)';
-        const detalleHtml = (a.detalle||[]).filter(function(dt){ return dt.val!=null && dt.val!=='—' && dt.val!==undefined; }).map(function(dt){
-          return '<span style="font-size:10px;color:var(--m)">'+dt.lbl+': <span style="color:rgba(255,255,255,.6);font-weight:600">'+dt.val+'</span></span>';
-        }).join('<span style="color:var(--dim);padding:0 4px">·</span>');
-        var detalleWrap = detalleHtml ? '<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:2px">'+detalleHtml+'</div>' : '';
-        return '<div style="margin-bottom:12px">' +
-          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
-            '<div style="display:flex;align-items:center;gap:6px">' +
-              '<span style="font-size:13px">'+a.emoji+'</span>' +
-              '<span style="font-size:12px;font-weight:600;color:#fff">'+a.label+'</span>' +
-            '</div>' +
-            '<span style="font-size:13px;font-weight:700;color:'+col+';font-variant-numeric:tabular-nums">'+val+'<span style="font-size:10px;color:var(--m);font-weight:400">/'+a.max+'</span></span>' +
-          '</div>' +
-          '<div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:5px">' +
-            '<div style="height:100%;width:'+pctA+'%;background:'+col+';border-radius:2px;transition:width .6s ease"></div>' +
-          '</div>' +
-          detalleWrap +
-        '</div>';
-      }).join('')}
-    </div>
+    <div style="padding:4px var(--pad) 16px" id="score-areas-wrap"></div>
 
     <!-- Alertas -->
     ${(data.alertas||[]).length ? `
@@ -878,6 +855,41 @@ function renderScore(data){
         </div>`).join('')}
     </div>` : ''}
   `;
+  // Renderizar barras por área fuera del template
+  _renderScoreAreas(document.getElementById('score-areas-wrap'), areas, d, areaColors);
+}
+
+function _renderScoreAreas(wrap, areas, desglose, colors){
+  if(!wrap) return;
+  var html = '';
+  areas.forEach(function(a){
+    var val = desglose[a.key]||0;
+    var pctA = Math.round(val/a.max*100);
+    var col = colors[a.key]||'var(--p)';
+    var detalleItems = (a.detalle||[]).filter(function(dt){
+      return dt.val!=null && dt.val!=='—' && dt.val!==undefined;
+    });
+    var detalleHtml = detalleItems.map(function(dt){
+      return '<span style="font-size:10px;color:var(--m)">'+dt.lbl+': <b style="color:rgba(255,255,255,.65);font-weight:600">'+dt.val+'</b></span>';
+    }).join('<span style="color:var(--dim);padding:0 3px">·</span>');
+
+    html += '<div style="margin-bottom:12px">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">';
+    html += '<div style="display:flex;align-items:center;gap:6px">';
+    html += '<span style="font-size:13px">'+a.emoji+'</span>';
+    html += '<span style="font-size:12px;font-weight:600;color:#fff">'+a.label+'</span>';
+    html += '</div>';
+    html += '<span style="font-size:13px;font-weight:700;color:'+col+';font-variant-numeric:tabular-nums">'+val+'<span style="font-size:10px;color:var(--m);font-weight:400">/'+a.max+'</span></span>';
+    html += '</div>';
+    html += '<div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:5px">';
+    html += '<div style="height:100%;width:'+pctA+'%;background:'+col+';border-radius:2px;transition:width .6s ease"></div>';
+    html += '</div>';
+    if(detalleHtml){
+      html += '<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">'+detalleHtml+'</div>';
+    }
+    html += '</div>';
+  });
+  wrap.innerHTML = html;
 }
 
 // ══════════════════════════════════════════
