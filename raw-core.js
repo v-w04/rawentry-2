@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.5.050
+/* RAW Entry — Core v.5.051
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Globales compartidas entre raw-core y raw-dashboard
@@ -352,8 +352,8 @@ window.addEventListener('DOMContentLoaded',()=>{
       sheetUrl = d.sheetUrl || '';
       onCats(d.catalogos);
       if(typeof renderApartados==='function') renderApartados(d.apartados||{items:[],totalApartado:0});
-      renderEntes(d.fijos);
-      onDatosMes(d.datosMes);
+      if(typeof renderEntes==='function') renderEntes(d.fijos);
+      if(typeof onDatosMes==='function') onDatosMes(d.datosMes);
       if(typeof renderAnualidad==='function') renderAnualidad(d.gastos);
       if(typeof renderLogros==='function') renderLogros(d.logros);
       if(typeof renderNecesidades==='function') renderNecesidades(d.necesidades);
@@ -366,7 +366,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       api.getSalud().then(r=>{ if(typeof renderSalud==='function') renderSalud(r); }).catch(()=>{});
       if(typeof cargarScore==='function') cargarScore();
       api.getPatrimonio().then(r=>{ if(typeof renderPatrimonio==='function') renderPatrimonio(r); }).catch(()=>{});
-      cargarRevision('mensual', new Date().getFullYear(), new Date().getMonth()+1, null);
+      if(typeof cargarRevision==='function') cargarRevision('mensual', new Date().getFullYear(), new Date().getMonth()+1, null);
     })
     .catch(err=>{
       setChip('err','Error');
@@ -1012,12 +1012,12 @@ function _guardarPatrimonio(){
       document.getElementById('pat-concepto').value='';
       document.getElementById('pat-monto').value='';
       api.getPatrimonio()
-        .then(renderPatrimonio)
-        .catch(()=>renderPatrimonio({ok:true,total:0,
+        .then(r=>{ if(typeof renderPatrimonio==='function') renderPatrimonio(r); })
+        .catch(()=>{ if(typeof renderPatrimonio==='function') renderPatrimonio({ok:true,total:0,
           banco:{saldo:0,pct:0,items:[]},
           fisico:{saldo:0,pct:0,items:[]},
           inversion:{saldo:0,pct:0,rendimientoTotal:0,items:[]},
-          fondo:{meta:0,avance:0,meses:0,salud:'err'}}));
+          fondo:{meta:0,avance:0,meses:0,salud:'err'}}); });
       setTimeout(cerrarEntrada, 800);
     }
   }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
@@ -1485,10 +1485,10 @@ function guardarEnte(fila){
         // Recargar fijos Y apartados juntos para que el disponible sea correcto
         Promise.all([api.getFijos(), api.getApartados()])
           .then(([fijos, apData])=>{
-            if(apData) renderApartados(apData);
-            renderEntes(fijos);
+            if(apData && typeof renderApartados==='function') renderApartados(apData);
+            if(typeof renderEntes==='function') renderEntes(fijos);
           })
-          .catch(()=>api.getFijos().then(renderEntes));
+          .catch(()=>api.getFijos().then(f=>{ if(typeof renderEntes==='function') renderEntes(f); }));
       }
     })
     .catch(()=>{ico.className='fas fa-check';});
