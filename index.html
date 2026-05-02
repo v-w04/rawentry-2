@@ -6,6 +6,7 @@
   <title>LifeOS</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="raw-app.css">
+  <link rel="stylesheet" href="encom-theme.css">
 </head>
 <body>
 <canvas id="bg-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none"></canvas>
@@ -19,7 +20,7 @@
       <button class="hero-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
       <div class="hero-brand">
         <div class="hero-title">Life<span style="color:var(--p)">OS</span></div>
-        <div class="hero-sub">v.5.62 · Trello · Sheets</div>
+        <div class="hero-sub">v.5.63 · Trello · Sheets</div>
       </div>
     </div>
 
@@ -32,6 +33,8 @@
       <button class="nav-btn sos" id="btn-sos" onclick="activarSOS()" title="SOS"><i class="fas fa-circle-exclamation"></i> SOS</button>
       <button class="btn-flip" id="btn-nutricion" onclick="irANutricion()" title="Nutrición" style="background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.3);color:#4ADE80"><i class="fas fa-leaf"></i> Nutrición</button>
       <button class="btn-flip" id="btn-sheets" onclick="irASheets('raw')" title="RAW Sheets"><i class="fas fa-table"></i> RAW</button>
+      <!-- BOTÓN ENCOM THEME -->
+      <button id="btn-encom-toggle" onclick="toggleEncomTheme()" title="Encom Mode">⬡ ENCOM</button>
       <button class="btn-refresh" id="btn-rf" onclick="refreshTodo()" title="Actualizar"><i class="fas fa-rotate-right"></i></button>
     </div>
   </div>
@@ -101,7 +104,7 @@
       </div>
     </div>
 
-    <!-- PASO 2: Formulario (oculto hasta seleccionar tipo) -->
+    <!-- PASO 2: Formulario -->
     <div id="entrada-paso2" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 0">
         <button onclick="volverAPaso1()" style="background:none;border:none;color:var(--m);cursor:pointer;font-family:inherit;font-size:12px;display:flex;align-items:center;gap:4px;padding:4px 0">
@@ -111,7 +114,6 @@
         <button onclick="cerrarEntrada()" class="popup-close" style="width:24px;height:24px;font-size:13px">✕</button>
       </div>
       <div id="sec-entrada-body">
-        <!-- tabs -->
         <div id="cf-fecha" class="cf done">
           <div class="cf-label">Fecha</div>
           <div class="cf-val-wrap"><input type="date" id="fecha" class="cf-date" onchange="onFechaChange()"></div>
@@ -335,7 +337,6 @@
     </div>
     </div>
 
-
   </div><!-- /sections -->
   </div><!-- /board-anverso -->
 
@@ -386,9 +387,7 @@
         <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
       </div>
     </div>
-    <!-- 5 columnas Bitácora -->
     <div class="maslow-cols" id="maslow-sections">
-
       <div id="mcol-1">
       <div class="section" id="sec-pensamientos">
         <div class="sec-hdr" onclick="togSec(this)" id="sec-pensamientos-hdr">
@@ -401,7 +400,6 @@
         <div class="sec-body" id="sec-pensamientos-body"><div id="pensamientos-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
       </div>
-
       <div id="mcol-2">
       <div class="section" id="sec-relaciones">
         <div class="sec-hdr" onclick="togSec(this)" id="sec-relaciones-hdr">
@@ -414,7 +412,6 @@
         <div class="sec-body" id="sec-relaciones-body"><div id="relaciones-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
       </div>
-
       <div id="mcol-3">
       <div class="section" id="sec-salud">
         <div class="sec-hdr" onclick="togSec(this)" id="sec-salud-hdr">
@@ -427,7 +424,6 @@
         <div class="sec-body" id="sec-salud-body"><div id="salud-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
       </div>
-
       <div id="mcol-4">
       <div class="section" id="sec-nutricion">
         <div class="sec-hdr" onclick="togSec(this)" id="sec-nutricion-hdr">
@@ -440,7 +436,6 @@
         <div class="sec-body" id="sec-nutricion-body"><div id="nutricion-body" style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
       </div>
-
       <div id="mcol-5">
       <div class="section" id="sec-entrenamiento">
         <div class="sec-hdr" onclick="togSec(this)" id="sec-entrenamiento-hdr">
@@ -453,10 +448,8 @@
         <div class="sec-body" id="sec-entrenamiento-body"><div id="entrenamiento-body" style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
       </div>
-
     </div>
-
-    </div><!-- /board-maslow -->
+  </div>
 
   <!-- PANEL ACTIVITY -->
   <div class="board-face panel-activity" id="board-activity" style="overflow-y:auto;overflow-x:hidden;">
@@ -540,7 +533,6 @@
   </div>
 </div>
 
-
 <div class="mob-tabbar">
   <button class="mob-tab active" data-tab="entrada" onclick="_syncMobTab('entrada');volverAlAnverso()">
     <div class="mob-tab-icon"><i class="fas fa-pen-to-square"></i></div>
@@ -575,6 +567,9 @@
     <div style="text-align:center;padding:24px;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div>
   </div>
 </div>
+
+<!-- THUMBPRINT decorativo (Encom mode) -->
+<div id="encom-thumbprint"></div>
 
 <script src="raw-drag.js"></script>
 <script src="raw-core.js"></script>
