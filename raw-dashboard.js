@@ -818,6 +818,93 @@ function renderScore(data){
 }
 
 
+
+// ══════════════════════════════════════════
+//  MASLOW INLINE — Anverso col-4
+// ══════════════════════════════════════════
+var _necInlineData = null;
+var _necInlineVista = 'piramide';
+
+function switchNecInline(vista){
+  _necInlineVista = vista;
+  var p = document.getElementById('maslow-inline-piramide');
+  var r = document.getElementById('maslow-inline-radar');
+  var bp = document.getElementById('nec-inline-btn-piramide');
+  var br = document.getElementById('nec-inline-btn-radar');
+  if(vista === 'piramide'){
+    if(p) p.style.display = 'block';
+    if(r) r.style.display = 'none';
+    if(bp){ bp.style.background='rgba(139,92,246,.25)'; bp.style.borderColor='rgba(139,92,246,.4)'; bp.style.color='#C4B5FD'; }
+    if(br){ br.style.background='none'; br.style.borderColor='rgba(255,255,255,.1)'; br.style.color='var(--m)'; }
+  } else {
+    if(p) p.style.display = 'none';
+    if(r) r.style.display = 'block';
+    if(br){ br.style.background='rgba(139,92,246,.25)'; br.style.borderColor='rgba(139,92,246,.4)'; br.style.color='#C4B5FD'; }
+    if(bp){ bp.style.background='none'; bp.style.borderColor='rgba(255,255,255,.1)'; bp.style.color='var(--m)'; }
+    if(_necInlineData) _renderNecRadarInline(_necInlineData);
+  }
+}
+
+function renderNecesidadesInline(data){
+  if(!data || !data.ok) return;
+  _necInlineData = data;
+
+  var NIVELES = [
+    {n:'5', label:'Autorrealización', color:'#8B5CF6'},
+    {n:'4', label:'Reconocimiento',   color:'#F59E0B'},
+    {n:'3', label:'Afiliación',       color:'#22C55E'},
+    {n:'2', label:'Seguridad',        color:'#EF4444'},
+    {n:'1', label:'Fisiológicas',     color:'#F97316'},
+  ];
+
+  var items = data.items || [];
+  var totales = {};
+  var totalGlobal = 0;
+  items.forEach(function(it){
+    var m = (it.necesidad||'').match(/^(\d+)\./);
+    if(m){ 
+      totales[m[1]] = (totales[m[1]]||0) + Math.abs(it.monto||0);
+      totalGlobal += Math.abs(it.monto||0);
+    }
+  });
+
+  // Pirámide
+  var cont = document.getElementById('nec-inline-container');
+  if(cont){
+    var html = '';
+    NIVELES.forEach(function(niv){
+      var amt = totales[niv.n]||0;
+      var pct = totalGlobal > 0 ? Math.round(amt/totalGlobal*100) : 0;
+      html += '<div style="margin-bottom:6px">';
+      html += '<div style="display:flex;justify-content:space-between;margin-bottom:2px">';
+      html += '<span style="font-size:11px;font-weight:600;color:'+niv.color+'">'+niv.label+'</span>';
+      html += '<span style="font-size:11px;color:rgba(255,255,255,.5)">$'+amt.toLocaleString()+' <span style="color:'+niv.color+'">'+pct+'%</span></span>';
+      html += '</div>';
+      html += '<div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">';
+      html += '<div style="height:100%;width:'+pct+'%;background:'+niv.color+';border-radius:3px;transition:width .6s ease"></div>';
+      html += '</div>';
+      html += '</div>';
+    });
+    cont.innerHTML = html;
+  }
+
+  // Tabla resumen
+  var tabla = document.getElementById('nec-inline-tabla');
+  if(tabla && data.resumen){
+    var th = '<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:8px">';
+    data.resumen.slice(0,4).forEach(function(r){
+      th += '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px">';
+      th += '<span style="color:rgba(255,255,255,.6)">'+r.label+'</span>';
+      th += '<span style="color:#fff;font-weight:600">$'+Math.abs(r.total||0).toLocaleString()+'</span>';
+      th += '</div>';
+    });
+    th += '</div>';
+    tabla.innerHTML = th;
+  }
+}
+
+function _renderNecRadarInline(data){ /* radar simple — pendiente */ }
+
 // ══════════════════════════════════════════
 //  PATRIMONIO
 // ══════════════════════════════════════════
