@@ -26,7 +26,7 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.059
+/* RAW Entry — Dashboard v.5.060
    Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
 */
 
@@ -1045,8 +1045,8 @@ function renderPatrimonio(data){
     body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m)">Sin datos</div>';
     return;
   }
-  var fmt = function(v){ return '$ '+Math.abs(v||0).toLocaleString('es-MX',{minimumFractionDigits:0}); };
-  var fmt2= function(v){ return '$ '+Math.abs(v||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); };
+  var fmt  = function(v){ return '$ '+Math.abs(v||0).toLocaleString('es-MX',{minimumFractionDigits:0}); };
+  var fmt2 = function(v){ return '$ '+Math.abs(v||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); };
 
   var f         = data.fondo     || {};
   var banco     = data.banco     || {saldo:0, pct:0, items:[]};
@@ -1058,38 +1058,45 @@ function renderPatrimonio(data){
   var saludColor = f.salud==='ok'?'#4ADE80':f.salud==='warn'?'#F59E0B':'#EF4444';
   var saludLbl   = f.salud==='ok'?'Fondo completo':f.salud==='warn'?'Fondo parcial':'Sin fondo';
 
+  // Apartados por banco para el disponible
+  var apPorBanco = {};
+  var totalAp = 0;
+  (_apartadosData||[]).forEach(function(ap){
+    if(ap.estado && ap.estado.toLowerCase()==='usado') return;
+    var b = (ap.banco||'').trim().toUpperCase();
+    apPorBanco[b] = (apPorBanco[b]||0) + (ap.monto||0);
+    totalAp += (ap.monto||0);
+  });
+
   var html = '';
 
-  // ── Cabecera: total + barra de distribución ──
-  html += '<div style="padding:14px 16px 10px">';
+  // ── Cabecera: total neto ──
+  html += '<div style="padding:14px 16px 8px">';
   html += '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m);margin-bottom:4px">Patrimonio neto líquido</div>';
   html += '<div style="font-size:30px;font-weight:800;letter-spacing:-.04em;color:#fff;line-height:1">'+fmt2(total)+'</div>';
   if(prestamo > 0){
-    html += '<div style="font-size:11px;color:var(--m);margin-top:3px">Pasivo: <span style="color:#F59E0B">− '+fmt(prestamo)+'</span> (no incluido en total)</div>';
+    html += '<div style="font-size:11px;color:var(--m);margin-top:3px">Pasivo: <span style="color:#F59E0B">− '+fmt(prestamo)+'</span></div>';
   }
   html += '</div>';
 
-  // Barra distribución proporcional
+  // Barra distribución
   if(total > 0){
-    html += '<div style="margin:0 16px 12px;height:6px;border-radius:3px;overflow:hidden;display:flex;gap:1px">';
-    if(banco.pct > 0)     html += '<div style="width:'+banco.pct+'%;background:#4ADE80;border-radius:3px" title="Banco '+banco.pct+'%"></div>';
-    if(fisico.pct > 0)    html += '<div style="width:'+fisico.pct+'%;background:#FBBF24;border-radius:3px" title="Efectivo '+fisico.pct+'%"></div>';
-    if(inversion.pct > 0) html += '<div style="width:'+inversion.pct+'%;background:#8B5CF6;border-radius:3px" title="Inversión '+inversion.pct+'%"></div>';
+    html += '<div style="margin:0 16px 10px;height:6px;border-radius:3px;overflow:hidden;display:flex;gap:1px">';
+    if(banco.pct > 0)     html += '<div style="width:'+banco.pct+'%;background:#4ADE80;border-radius:3px"></div>';
+    if(fisico.pct > 0)    html += '<div style="width:'+fisico.pct+'%;background:#FBBF24;border-radius:3px"></div>';
+    if(inversion.pct > 0) html += '<div style="width:'+inversion.pct+'%;background:#8B5CF6;border-radius:3px"></div>';
     html += '</div>';
   }
 
-  // ── Tres columnas de categorías ──
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:0 16px 12px">';
+  // ── Tres tarjetas ──
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:0 16px 10px">';
 
-  // Banco — detalle por institución
+  // Banco
   html += '<div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15);border-radius:10px;padding:10px 12px">';
-  html += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px">';
-  html += '<span style="font-size:14px">🏦</span>';
-  html += '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(74,222,128,.7)">Banco</span>';
-  html += '</div>';
+  html += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:14px">🏦</span>';
+  html += '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(74,222,128,.7)">Banco</span></div>';
   html += '<div style="font-size:18px;font-weight:800;color:#4ADE80;letter-spacing:-.03em;line-height:1;margin-bottom:2px">'+fmt(banco.saldo)+'</div>';
   html += '<div style="font-size:10px;color:rgba(74,222,128,.5);margin-bottom:6px">'+banco.pct+'% del total</div>';
-  // items individuales
   (banco.items||[]).forEach(function(it){
     html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-top:1px solid rgba(74,222,128,.08)">';
     html += '<span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.6)">'+it.nombre+'</span>';
@@ -1098,12 +1105,10 @@ function renderPatrimonio(data){
   });
   html += '</div>';
 
-  // Efectivo — detalle
+  // Efectivo
   html += '<div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:10px;padding:10px 12px">';
-  html += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px">';
-  html += '<span style="font-size:14px">💵</span>';
-  html += '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(251,191,36,.7)">Efectivo</span>';
-  html += '</div>';
+  html += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:14px">💵</span>';
+  html += '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(251,191,36,.7)">Efectivo</span></div>';
   html += '<div style="font-size:18px;font-weight:800;color:#FBBF24;letter-spacing:-.03em;line-height:1;margin-bottom:2px">'+fmt(fisico.saldo)+'</div>';
   html += '<div style="font-size:10px;color:rgba(251,191,36,.5);margin-bottom:6px">'+fisico.pct+'% del total</div>';
   (fisico.items||[]).forEach(function(it){
@@ -1114,47 +1119,109 @@ function renderPatrimonio(data){
   });
   html += '</div>';
 
-  // Inversión — detalle
+  // Inversión
   html += '<div style="background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:10px;padding:10px 12px">';
-  html += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px">';
-  html += '<span style="font-size:14px">📈</span>';
-  html += '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(139,92,246,.7)">Inversión</span>';
-  html += '</div>';
+  html += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:14px">📈</span>';
+  html += '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(139,92,246,.7)">Inversión</span></div>';
   html += '<div style="font-size:18px;font-weight:800;color:#C4B5FD;letter-spacing:-.03em;line-height:1;margin-bottom:2px">'+fmt(inversion.saldo)+'</div>';
   html += '<div style="font-size:10px;color:rgba(139,92,246,.5);margin-bottom:6px">'+inversion.pct+'% del total</div>';
   if(inversion.rendimientoTotal > 0){
-    html += '<div style="font-size:10px;color:rgba(139,92,246,.6);padding:4px 0;border-top:1px solid rgba(139,92,246,.08)">';
-    html += 'Rendimiento: <b style="color:#C4B5FD">+'+fmt(inversion.rendimientoTotal)+'</b>';
-    html += '</div>';
+    html += '<div style="font-size:10px;color:rgba(139,92,246,.6);padding:4px 0;border-top:1px solid rgba(139,92,246,.08)">Rendimiento: <b style="color:#C4B5FD">+'+fmt(inversion.rendimientoTotal)+'</b></div>';
   }
-  (inversion.items||[]).slice(0,2).forEach(function(it){
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-top:1px solid rgba(139,92,246,.08)">';
-    html += '<span style="font-size:10px;color:rgba(255,255,255,.5)">'+it.instrumento+'</span>';
-    html += '<span style="font-size:11px;font-weight:700;color:#C4B5FD;font-variant-numeric:tabular-nums">'+fmt(it.saldo||0)+'</span>';
-    html += '</div>';
-  });
   if(!inversion.saldo){
     html += '<div style="font-size:10px;color:rgba(255,255,255,.2);margin-top:4px">Sin inversiones</div>';
   }
   html += '</div>';
-
   html += '</div>'; // /grid
 
   // ── Fondo de emergencia ──
   if(f.meta > 0){
-    html += '<div style="margin:0 16px 12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px">';
+    html += '<div style="margin:0 16px 10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px">';
     html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
-    html += '<span style="font-size:11px;color:var(--m)">🎯 Fondo de emergencia <span style="color:var(--m);font-size:10px">(3 meses de gasto)</span></span>';
+    html += '<span style="font-size:11px;color:var(--m)">🎯 Fondo de emergencia <span style="font-size:10px">(3 meses)</span></span>';
     html += '<span style="font-size:12px;font-weight:700;color:'+saludColor+'">'+(f.avance||0)+'% · '+saludLbl+'</span>';
     html += '</div>';
-    html += '<div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin-bottom:6px">';
-    html += '<div style="height:100%;width:'+Math.min(100,f.avance||0)+'%;background:'+saludColor+';border-radius:3px;transition:width .5s"></div>';
+    html += '<div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:5px">';
+    html += '<div style="height:100%;width:'+Math.min(100,f.avance||0)+'%;background:'+saludColor+';border-radius:2px;transition:width .5s"></div>';
     html += '</div>';
     html += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--m)">';
-    html += '<span>Actual en banco: <b style="color:rgba(255,255,255,.6)">'+fmt(banco.saldo)+'</b></span>';
-    html += '<span>Meta: <b style="color:rgba(255,255,255,.6)">'+fmt(f.meta)+'</b> · '+(f.meses||0)+' meses cubiertos</span>';
+    html += '<span>Banco: <b style="color:rgba(255,255,255,.6)">'+fmt(banco.saldo)+'</b></span>';
+    html += '<span>Meta: <b style="color:rgba(255,255,255,.6)">'+fmt(f.meta)+'</b> · '+(f.meses||0)+' meses</span>';
     html += '</div></div>';
   }
+
+  // ── Divider ──
+  html += '<div style="border-top:1px solid rgba(255,255,255,.06);margin:2px 0 4px"></div>';
+
+  // ── Saldos editables (ex-Bancos) ──
+  html += '<div style="padding:4px 0 0">';
+  // Calcular total disponible
+  var _fijosGlobal = window._fijosData || [];
+  if(_fijosGlobal.length){
+    var totalFijos  = _fijosGlobal.reduce(function(s,f){ return f.nombre==='P'?s:s+(f.monto||0); }, 0);
+    var totalDisp   = totalFijos - totalAp;
+    var hayP        = _fijosGlobal.some(function(f){ return f.nombre==='P'; });
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px 6px">';
+    html += '<div style="font-size:11px;font-weight:700;color:var(--m);text-transform:uppercase;letter-spacing:.06em">Saldos</div>';
+    html += '<div style="font-size:16px;font-weight:800;color:#4ADE80;letter-spacing:-.02em">'+fmt2(totalDisp)+'</div>';
+    html += '</div>';
+    _fijosGlobal.forEach(function(fi){
+      var excluido = fi.nombre==='P';
+      var bancKey  = (fi.nombre||'').trim().toUpperCase();
+      var apBanco  = apPorBanco[bancKey]||0;
+      var disp     = (fi.monto||0) - apBanco;
+      var {txt,cls} = fmtMoneda(fi.monto);
+      var {txt:dTxt} = fmtMoneda(disp);
+      html += '<div class="ente-row'+(excluido?' excluido-total':'')+'" onclick="togEnteEdit('+fi.fila+')" style="padding:10px 16px">';
+      html += '<div class="ente-nombre">'+fi.nombre+'</div>';
+      html += '<div class="ente-right">';
+      html += '<div style="text-align:right">';
+      html += '<div class="ente-monto '+cls+'" id="em-'+fi.fila+'">'+txt+'</div>';
+      if(!excluido && apBanco > 0){
+        html += '<div style="font-size:11px;color:var(--m);margin-top:1px">disponible: <span style="color:#4ADE80;font-weight:700;font-size:12px">'+dTxt+'</span></div>';
+      }
+      html += '</div>';
+      html += '<div class="ente-fecha">'+fmtDiaSemana(fi.fecha)+'</div>';
+      html += '</div></div>';
+      html += '<div class="ente-edit" id="ee-'+fi.fila+'">';
+      html += '<input type="number" value="'+(fi.monto!==null?fi.monto:'')+'" step="0.01" inputmode="decimal" id="ei-'+fi.fila+'" placeholder="0.00" onkeydown="if(event.key===\'Enter\')guardarEnte('+fi.fila+');if(event.key===\'Escape\')togEnteEdit('+fi.fila+')">';
+      html += '<button class="btn-check" id="ec-'+fi.fila+'" onclick="guardarEnte('+fi.fila+')"><i class="fas fa-check" id="ei-ico-'+fi.fila+'"></i></button>';
+      html += '</div>';
+    });
+    if(hayP) html += '<div class="ente-excluido-nota">* excluido del total</div>';
+  }
+
+  // ── Apartados ──
+  if((_apartadosData||[]).length){
+    html += '<div style="padding:8px 16px 4px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.06);margin-top:4px">';
+    html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m)">Apartados</div>';
+    html += '<span style="font-size:13px;font-weight:700;color:var(--warn)">'+fmt(totalAp)+'</span>';
+    html += '</div>';
+    var hoy = new Date(); hoy.setHours(0,0,0,0);
+    (_apartadosData||[]).forEach(function(ap){
+      var usado = ap.estado && ap.estado.toLowerCase()==='usado';
+      var metaStr = '';
+      if(ap.meta){
+        var diff = Math.floor((new Date(ap.meta) - hoy)/86400000);
+        metaStr = diff<0?'Vencido':diff===0?'Hoy':'en '+diff+' días';
+      }
+      html += '<div class="apartado-item '+(usado?'usado':'')+'">';
+      html += '<div class="apartado-icon">💰</div>';
+      html += '<div class="apartado-info">';
+      html += '<div class="apartado-nombre">'+ap.nombre+'</div>';
+      html += '<div class="apartado-meta">'+(ap.banco||'')+(ap.banco&&ap.categoria?' · ':''+(ap.categoria||''))+(metaStr?' · '+metaStr:'')+'</div>';
+      html += '</div>';
+      html += '<div>';
+      html += '<div class="apartado-monto">'+fmt(ap.monto)+'</div>';
+      if(!usado){
+        html += '<button onclick="_marcarApartadoUsado('+ap.fila+')" style="font-size:10px;padding:3px 10px;border-radius:var(--rad-pill);border:1px solid rgba(74,222,128,.25);background:rgba(74,222,128,.08);color:#4ADE80;cursor:pointer;font-family:inherit;margin-top:5px;display:block" onmouseover="this.style.background=\'rgba(74,222,128,.2)\'" onmouseout="this.style.background=\'rgba(74,222,128,.08)\'">Usar ✓</button>';
+      } else {
+        html += '<div style="font-size:10px;color:var(--m);margin-top:4px">Usado</div>';
+      }
+      html += '</div></div>';
+    });
+  }
+  html += '</div>'; // /saldos
 
   body.innerHTML = html;
 }
