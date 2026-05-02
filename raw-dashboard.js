@@ -26,7 +26,7 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.058
+/* RAW Entry — Dashboard v.5.059
    Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
 */
 
@@ -221,14 +221,14 @@ function refreshTodo(){
   Promise.all([api.getAll(),consultarSaldo()])
   .then(([d])=>{
     if(d&&d.catalogos)   onCats(d.catalogos);
-    if(d&&d.fijos)       renderEntes(d.fijos);
+    if(d&&d.apartados)   renderApartados(d.apartados);   // primero apartados para que _apartadosData esté listo
+    if(d&&d.fijos)       renderEntes(d.fijos);            // luego bancos, ya con apartados disponibles
     if(d&&d.datosMes)    onDatosMes(d.datosMes);
     if(d&&d.gastos)      renderAnualidad(d.gastos);
     if(d&&d.logros)      renderLogros(d.logros);
     if(d&&d.necesidades) renderNecesidades(d.necesidades);
     if(d&&d.flujoPorMes) renderFlujoMensual(d.flujoPorMes);
     if(d&&d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
-    if(d&&d.apartados)   renderApartados(d.apartados);
     api.getPensamientos().then(renderPensamientos).catch(()=>{});
     api.getRelaciones().then(renderRelaciones).catch(()=>{});
     api.getSalud().then(renderSalud).catch(()=>{});
