@@ -884,20 +884,7 @@ function _dibujarRadarYPiramideInline(niveles){
     piramideSVG+
   '</div>';
 
-  // Leyenda debajo
-  var leyenda = '<div style="display:flex;flex-wrap:wrap;gap:6px 12px;padding:0 16px 8px">';
-  NEC_NIVELES.forEach(function(niv){
-    var d   = _dataNivelInline(niv.key, niveles);
-    var abs = Math.abs(d.total||0);
-    var pct = totalSum > 0 ? Math.round(abs/totalSum*100) : 0;
-    leyenda += '<div style="display:flex;align-items:center;gap:4px">'+
-      '<div style="width:8px;height:8px;border-radius:2px;background:'+niv.color+';opacity:'+(abs===0?.3:1)+'"></div>'+
-      '<span style="font-size:10px;color:var(--m)">'+niv.label+'</span>'+
-      '<span style="font-size:10px;font-weight:700;color:#fff">'+pct+'%</span>'+
-    '</div>';
-  });
-  leyenda += '</div>';
-  wrap.insertAdjacentHTML('beforeend', leyenda);
+
 
   // Inicializar radar
   setTimeout(function(){
@@ -934,22 +921,7 @@ function _dibujarPiramideInline(niveles){
   var maxAbs = 1;
   NEC_NIVELES.forEach(function(n){ var v=Math.abs(_dataNivelInline(n.key,niveles).total||0); if(v>maxAbs) maxAbs=v; });
 
-  // Donut
-  var donutHTML = '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px 8px">';
-  donutHTML += '<canvas id="nec-donut-canvas" width="80" height="80" style="flex-shrink:0"></canvas>';
-  donutHTML += '<div style="flex:1">';
-  var sorted = NEC_NIVELES.map(function(n){ var d=_dataNivelInline(n.key,niveles); return {label:n.label,color:n.color,abs:Math.abs(d.total||0),pct:totalSum>0?(Math.abs(d.total||0)/totalSum*100):0}; }).sort(function(a,b){return b.abs-a.abs;});
-  sorted.forEach(function(n){
-    if(n.abs===0) return;
-    donutHTML += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">';
-    donutHTML += '<div style="width:6px;height:6px;border-radius:50%;background:'+n.color+';flex-shrink:0"></div>';
-    donutHTML += '<span style="font-size:10px;color:var(--m)">'+n.label+'</span>';
-    donutHTML += '<span style="font-size:10px;font-weight:700;color:#fff;margin-left:auto">'+Math.round(n.pct)+'%</span>';
-    donutHTML += '</div>';
-  });
-  donutHTML += '</div></div>';
-
-  // Barras con status fusionado
+  // Barras con status fusionado (sin donut)
   var pisos = NEC_NIVELES.slice().reverse();
   var barrasHTML = '<div style="padding:0 16px 12px">';
   pisos.forEach(function(niv){
@@ -980,25 +952,8 @@ function _dibujarPiramideInline(niveles){
   });
   barrasHTML += '</div>';
 
-  cont.innerHTML = donutHTML + barrasHTML;
+  cont.innerHTML = barrasHTML;
 
-  setTimeout(function(){
-    var dc = document.getElementById('nec-donut-canvas');
-    if(!dc || !window.Chart) return;
-    var vals   = NEC_NIVELES.map(function(n){ return Math.abs(_dataNivelInline(n.key,niveles).total||0); });
-    var colors = NEC_NIVELES.map(function(n){ return n.color; });
-    if(window._donutInlineChart){ try{window._donutInlineChart.destroy();}catch(e){} }
-    window._donutInlineChart = new Chart(dc,{
-      type:'doughnut',
-      data:{ datasets:[{ data:vals, backgroundColor:colors.map(function(c){ return c+'99'; }),
-        borderColor:colors, borderWidth:1.5, hoverOffset:4 }],
-        labels:NEC_NIVELES.map(function(n){ return n.label; }) },
-      options:{ responsive:false, cutout:'72%',
-        plugins:{ legend:{display:false},
-          tooltip:{ backgroundColor:'rgba(15,23,42,.95)', borderColor:'rgba(255,255,255,.1)', borderWidth:1,
-            callbacks:{ label:function(ctx){ return ' $ '+ctx.raw.toLocaleString('es-MX',{minimumFractionDigits:0}); }}}}}
-    });
-  }, 50);
 }
 
 function _dibujarRadarInline(niveles){
@@ -1034,4 +989,53 @@ function _dibujarRadarInline(niveles){
           color: function(ctx){ return colors[ctx.index]||'#94A3B8'; },
           callback: function(label, i){ return [label, '$'+Math.round(valores[i]/1000)+'k']; }}}}}
   });
+}
+
+
+
+// ══════════════════════════════════════════
+//  PATRIMONIO
+// ══════════════════════════════════════════
+function renderPatrimonio(data){
+  var body = document.getElementById('patrimonio-body');
+  if(!body) return;
+  if(!data||!data.ok){
+    body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m)">Sin datos — agrega en Nueva Entrada</div>';
+    return;
+  }
+  var fmtMXN = function(v){ return '$ '+Math.abs(v).toLocaleString('es-MX',{minimumFractionDigits:0}); };
+  var f = data.fondo||{};
+  var saludColor = f.salud==='ok'?'var(--ok)':f.salud==='warn'?'var(--warn)':'var(--err)';
+  var saludLbl = f.salud==='ok'?'Fondo completo':f.salud==='warn'?'Fondo parcial':'Sin fondo';
+  var total = data.total||0;
+  var banco    = data.banco    || {saldo:0,pct:0,items:[]};
+  var fisico   = data.fisico   || {saldo:0,pct:0,items:[]};
+  var inversion= data.inversion|| {saldo:0,pct:0,items:[]};
+  var bloques = [
+    {label:'Banco',    emoji:'💳', val:banco.saldo,    pct:banco.pct||0,    color:'#4ADE80'},
+    {label:'Efectivo', emoji:'💵', val:fisico.saldo,   pct:fisico.pct||0,   color:'#FBBF24'},
+    {label:'Inversión',emoji:'📈', val:inversion.saldo,pct:inversion.pct||0,color:'#8B5CF6'},
+  ];
+  var html = '<div style="padding:16px var(--pad) 8px">';
+  html += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:4px">Patrimonio total</div>';
+  html += '<div style="font-size:32px;font-weight:700;color:#fff">'+fmtMXN(total)+'</div>';
+  html += '<div style="font-size:11px;margin-top:4px"><span style="color:'+saludColor+'">● '+saludLbl+'</span><span style="color:var(--m);margin-left:8px">'+(f.meses||0)+' meses cubiertos</span></div>';
+  html += '</div>';
+  if(total>0){ html += '<div style="margin:0 var(--pad) 12px;height:8px;border-radius:4px;overflow:hidden;display:flex;gap:2px">'; bloques.forEach(function(b){ if(b.pct>0) html += '<div style="width:'+b.pct+'%;background:'+b.color+';border-radius:4px"></div>'; }); html += '</div>'; }
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 var(--pad) 12px">';
+  bloques.forEach(function(b){ html += '<div style="background:rgba(255,255,255,.04);border-radius:var(--rad);padding:12px;text-align:center"><div style="font-size:18px">'+b.emoji+'</div><div style="font-size:11px;color:var(--m);margin:4px 0">'+b.label+'</div><div style="font-size:16px;font-weight:700;color:'+b.color+'">'+fmtMXN(b.val)+'</div><div style="font-size:10px;color:var(--m)">'+b.pct+'%</div></div>'; });
+  html += '</div>';
+  if(f.meta>0){ html += '<div style="margin:0 var(--pad) 12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--rad)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:11px;color:var(--m)">🎯 Fondo emergencia</span><span style="font-size:11px;font-weight:700;color:'+saludColor+'">'+(f.avance||0)+'%</span></div><div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:'+Math.min(100,f.avance||0)+'%;background:'+saludColor+';border-radius:2px"></div></div><div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--m)"><span>Actual: '+fmtMXN(banco.saldo)+'</span><span>Meta: '+fmtMXN(f.meta)+'</span></div></div>'; }
+  var movs = [];
+  (banco.items||[]).forEach(function(i){ movs.push(Object.assign({},i,{_c:'#4ADE80',_e:'💳'})); });
+  (fisico.items||[]).forEach(function(i){ movs.push(Object.assign({},i,{_c:'#FBBF24',_e:'💵'})); });
+  (inversion.items||[]).forEach(function(i){ movs.push(Object.assign({},i,{_c:'#8B5CF6',_e:'📈'})); });
+  movs.sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
+  movs = movs.slice(0,8);
+  if(movs.length){
+    html += '<div style="padding:0 var(--pad) 4px"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px">Últimos movimientos</div>';
+    movs.forEach(function(m){ var mc=(m.monto||0)>=0?'var(--ok)':'var(--err)'; html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)"><div style="width:28px;height:28px;border-radius:8px;background:'+m._c+'22;display:flex;align-items:center;justify-content:center">'+m._e+'</div><div style="flex:1;min-width:0"><div style="font-size:13px;color:#fff">'+m.concepto+'</div><div style="font-size:10px;color:var(--m)">'+m.fecha+'</div></div><div style="text-align:right"><div style="font-size:13px;font-weight:700;color:'+mc+'">'+((m.monto||0)>=0?'+':'')+fmtMXN(m.monto||0)+'</div><div style="font-size:10px;color:var(--m)">'+fmtMXN(m.saldo||0)+'</div></div></div>'; });
+    html += '</div>';
+  }
+  body.innerHTML = html;
 }
