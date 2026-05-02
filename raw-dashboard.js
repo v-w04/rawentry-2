@@ -1,4 +1,4 @@
-/* RAW Entry — Dashboard v.5.052
+/* RAW Entry — Dashboard v.5.053
    Tablas Variables/Fijos · Flujo Mensual · Gráficas
    + Financiero Avanzado · Revisión · Relaciones · Salud · Apartados · Pensamientos
 */
@@ -740,178 +740,83 @@ function cargarScore(){
 function renderScore(data){
   var body = document.getElementById('score-body');
   if(!body) return;
-  if(!data||!data.ok){ body.innerHTML='<div style="padding:16px;color:var(--m);text-align:center">Error calculando score</div>'; return; }
+  if(!data || !data.ok){
+    body.innerHTML = '<div style="padding:20px;color:#EF4444;font-size:12px">Sin datos del score</div>';
+    return;
+  }
 
-  var fecha = document.getElementById('score-fecha');
-  if(fecha) fecha.textContent = data.timestamp || '';
-
-  var s   = data.score || {};
-  var des = s.desglose || {};
-  var mx  = s.maximos  || {};
-  var fin = data.finDetalle || {};
-  var pct = s.total || 0;
+  var pct   = (data.score||{}).total || 0;
+  var des   = (data.score||{}).desglose || {};
+  var mx    = (data.score||{}).maximos  || {dinero:25,habitos:25,salud:20,relaciones:15,mental:15};
+  var fin   = data.finDetalle || {};
   var color = pct>=70?'#4ADE80':pct>=55?'#F59E0B':'#EF4444';
+  var estado = (data.score||{}).estado || '';
 
-  var circleR = 54;
-  var circleC = 2 * Math.PI * circleR;
-  var dashOff = circleC * (1 - pct/100);
+  var R = 54, C = 2*Math.PI*R;
 
+  var html = '';
+
+  // Gauge
+  html += '<div style="display:flex;flex-direction:column;align-items:center;padding:20px 16px 8px">';
+  html += '<svg width="140" height="140" viewBox="0 0 140 140">';
+  html += '<circle cx="70" cy="70" r="'+R+'" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="12"/>';
+  html += '<circle cx="70" cy="70" r="'+R+'" fill="none" stroke="'+color+'" stroke-width="12"';
+  html += ' stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-pct/100)).toFixed(1)+'"';
+  html += ' stroke-linecap="round" transform="rotate(-90 70 70)" style="transition:stroke-dashoffset .8s ease"/>';
+  html += '<text x="70" y="65" text-anchor="middle" font-size="32" font-weight="700" fill="'+color+'" font-family="system-ui">'+pct+'</text>';
+  html += '<text x="70" y="82" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.4)" font-family="system-ui">/100</text>';
+  html += '</svg>';
+  html += '<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px">'+estado+'</div>';
+  html += '</div>';
+
+  // Alertas/positivos rápidos
+  var msgs = (data.alertas||[]).concat(data.positivos||[]);
+  if(msgs.length){
+    html += '<div style="padding:0 16px 8px">';
+    msgs.slice(0,3).forEach(function(m){
+      var c = m.nivel==='critico'?'#EF4444':m.nivel==='positivo'?'#4ADE80':'#F59E0B';
+      html += '<div style="font-size:11px;color:'+c+';padding:2px 0">'+m.area+' '+m.msg+'</div>';
+    });
+    html += '</div>';
+  }
+
+  // Estado
+  html += '<div style="text-align:center;font-size:10px;color:rgba(255,255,255,.25);padding:0 16px 8px;letter-spacing:.05em;text-transform:uppercase">'+estado+'</div>';
+
+  // Barras con desglose
   var areas = [
-    { key:'dinero',    label:'Dinero',     emoji:'💰', max:mx.dinero||25,    color:'#4ADE80',
-      detalle:[
-        {lbl:'% Ahorro',        val: fin.pctAhorro!=null    ? fin.pctAhorro+'%'    : null},
-        {lbl:'Runway',          val: fin.runway!=null        ? fin.runway+' días'   : null},
-        {lbl:'Vel. gasto',      val: fin.velGasto!=null      ? fin.velGasto+'%'     : null},
-      ]
-    },
-    { key:'habitos',   label:'Hábitos',    emoji:'⚡', max:mx.habitos||25,   color:'#3B82F6',
-      detalle:[
-        {lbl:'Checks semana',   val: fin.checksRecientes!=null ? fin.checksRecientes : null},
-      ]
-    },
-    { key:'salud',     label:'Salud',      emoji:'🏥', max:mx.salud||20,     color:'#EF4444',
-      detalle:[
-        {lbl:'Registros',       val: fin.numSalud!=null      ? fin.numSalud         : null},
-        {lbl:'Citas vencidas',  val: fin.citasVencidas!=null ? fin.citasVencidas    : null},
-      ]
-    },
-    { key:'relaciones',label:'Relaciones', emoji:'👥', max:mx.relaciones||15, color:'#06B6D4',
-      detalle:[
-        {lbl:'Personas',        val: fin.numPersonas!=null   ? fin.numPersonas      : null},
-        {lbl:'Recientes',       val: fin.interRecientes!=null? fin.interRecientes   : null},
-      ]
-    },
-    { key:'mental',    label:'Mental',     emoji:'🧠', max:mx.mental||15,    color:'#8B5CF6',
-      detalle:[
-        {lbl:'Logros completados', val: fin.logrosComp!=null  ? fin.logrosComp+'/'+(fin.logrosTotal||0) : null},
-      ]
-    },
+    {key:'dinero',    label:'Dinero',     icon:'💰', color:'#4ADE80', max:mx.dinero||25,
+     info:'Ahorro: '+fin.pctAhorro+'% · Runway: '+fin.runway+' días · Vel: '+fin.velGasto+'%'},
+    {key:'habitos',   label:'Hábitos',    icon:'⚡', color:'#3B82F6', max:mx.habitos||25,
+     info:'Checks esta semana: '+fin.checksRecientes},
+    {key:'salud',     label:'Salud',      icon:'🏥', color:'#EF4444', max:mx.salud||20,
+     info:'Registros: '+fin.numSalud+' · Citas vencidas: '+fin.citasVencidas},
+    {key:'relaciones',label:'Relaciones', icon:'👥', color:'#06B6D4', max:mx.relaciones||15,
+     info:'Personas: '+fin.numPersonas+' · Recientes: '+fin.interRecientes},
+    {key:'mental',    label:'Mental',     icon:'🧠', color:'#8B5CF6', max:mx.mental||15,
+     info:'Logros: '+fin.logrosComp+' de '+fin.logrosTotal},
   ];
 
-  // Limpiar y construir con DOM puro
-  body.innerHTML = '';
-
-  // -- Gauge --
-  var gaugeDiv = document.createElement('div');
-  gaugeDiv.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:24px 16px 8px';
-  gaugeDiv.innerHTML =
-    '<div style="position:relative;width:140px;height:140px">' +
-      '<svg width="140" height="140" viewBox="0 0 140 140" style="transform:rotate(-90deg)">' +
-        '<circle cx="70" cy="70" r="'+circleR+'" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="12"/>' +
-        '<circle cx="70" cy="70" r="'+circleR+'" fill="none" stroke="'+color+'" stroke-width="12"' +
-          ' stroke-dasharray="'+circleC.toFixed(1)+'" stroke-dashoffset="'+dashOff.toFixed(1)+'"' +
-          ' stroke-linecap="round" style="transition:stroke-dashoffset .8s ease"/>' +
-      '</svg>' +
-      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">' +
-        '<div style="font-size:36px;font-weight:700;color:'+color+';line-height:1">'+pct+'</div>' +
-        '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">/100</div>' +
-      '</div>' +
-    '</div>' +
-    '<div style="font-size:13px;font-weight:600;color:#fff;margin-top:8px">'+(s.estado||'')+'</div>';
-  body.appendChild(gaugeDiv);
-
-  // -- Barras --
-  var barsDiv = document.createElement('div');
-  barsDiv.style.cssText = 'padding:4px 16px 16px';
+  html += '<div style="padding:4px 16px 16px">';
   areas.forEach(function(a){
     var val  = des[a.key]||0;
-    var pctA = Math.min(100, Math.round(val/a.max*100));
-    var col  = a.color;
-
-    var row = document.createElement('div');
-    row.style.cssText = 'margin-bottom:14px';
-
-    // Header fila
-    var hdr = document.createElement('div');
-    hdr.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:5px';
-    hdr.innerHTML =
-      '<span style="font-size:13px;font-weight:600;color:#fff">'+a.emoji+' '+a.label+'</span>' +
-      '<span style="font-size:13px;font-weight:700;color:'+col+'">'+val+
-        '<span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:400">/'+a.max+'</span></span>';
-    row.appendChild(hdr);
-
-    // Barra
-    var barWrap = document.createElement('div');
-    barWrap.style.cssText = 'height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:5px';
-    var bar = document.createElement('div');
-    bar.style.cssText = 'height:100%;width:'+pctA+'%;background:'+col+';border-radius:2px;transition:width .6s ease';
-    barWrap.appendChild(bar);
-    row.appendChild(barWrap);
-
-    // Detalle
-    var detalleItems = a.detalle.filter(function(dt){ return dt.val !== null && dt.val !== undefined; });
-    if(detalleItems.length > 0){
-      var det = document.createElement('div');
-      det.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;align-items:center';
-      detalleItems.forEach(function(dt, idx){
-        var sp = document.createElement('span');
-        sp.style.cssText = 'font-size:10px;color:rgba(255,255,255,.4)';
-        sp.innerHTML = dt.lbl+': <b style="color:rgba(255,255,255,.7);font-weight:600">'+dt.val+'</b>';
-        det.appendChild(sp);
-        if(idx < detalleItems.length-1){
-          var dot = document.createElement('span');
-          dot.style.cssText = 'font-size:10px;color:rgba(255,255,255,.15)';
-          dot.textContent = '·';
-          det.appendChild(dot);
-        }
-      });
-      row.appendChild(det);
-    }
-
-    // Texto de desglose simple
-    var txt = document.createElement('div');
-    txt.style.cssText = 'font-size:11px;color:rgba(255,255,255,.45);margin-top:3px;padding-bottom:2px';
-    if(a.key==='dinero')     txt.textContent = '% Ahorro: '+(fin.pctAhorro||0)+'%  ·  Runway: '+(fin.runway||0)+' días  ·  Vel.gasto: '+(fin.velGasto||0)+'%';
-    if(a.key==='habitos')    txt.textContent = 'Checks esta semana: '+(fin.checksRecientes||0);
-    if(a.key==='salud')      txt.textContent = 'Registros: '+(fin.numSalud||0)+'  ·  Citas vencidas: '+(fin.citasVencidas||0);
-    if(a.key==='relaciones') txt.textContent = 'Personas: '+(fin.numPersonas||0)+'  ·  Recientes: '+(fin.interRecientes||0);
-    if(a.key==='mental')     txt.textContent = 'Logros: '+(fin.logrosComp||0)+' de '+(fin.logrosTotal||0);
-    if(txt.textContent) row.appendChild(txt);
-
-    barsDiv.appendChild(row);
+    var pctA = Math.min(100,Math.round(val/a.max*100));
+    html += '<div style="margin-bottom:14px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+    html += '<span style="font-size:13px;font-weight:600;color:#fff">'+a.icon+' '+a.label+'</span>';
+    html += '<span style="font-size:13px;font-weight:700;color:'+a.color+'">'+val+'<span style="font-size:10px;color:rgba(255,255,255,.3)">/'+a.max+'</span></span>';
+    html += '</div>';
+    html += '<div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:4px">';
+    html += '<div style="height:100%;width:'+pctA+'%;background:'+a.color+';border-radius:2px"></div>';
+    html += '</div>';
+    html += '<div style="font-size:10px;color:rgba(255,255,255,.4)">'+a.info+'</div>';
+    html += '</div>';
   });
-  body.appendChild(barsDiv);
+  html += '</div>';
 
-  // -- Alertas --
-  if((data.alertas||[]).length){
-    var altDiv = document.createElement('div');
-    altDiv.style.cssText = 'padding:0 16px 8px';
-    var altHtml = '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#EF4444;margin-bottom:8px">Alertas</div>';
-    altHtml += '<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:8px;overflow:hidden">';
-    data.alertas.forEach(function(a){
-      altHtml += '<div class="insight-item"><div class="insight-dot alerta"></div><span style="color:rgba(255,255,255,.8);font-size:12px">'+a.area+' '+a.msg+'</span></div>';
-    });
-    altHtml += '</div>';
-    altDiv.innerHTML = altHtml;
-    body.appendChild(altDiv);
-  }
-
-  // -- Positivos --
-  if((data.positivos||[]).length){
-    var posDiv = document.createElement('div');
-    posDiv.style.cssText = 'padding:0 16px 8px';
-    var posHtml = '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#4ADE80;margin-bottom:8px">Positivo</div>';
-    posHtml += '<div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15);border-radius:8px;overflow:hidden">';
-    data.positivos.forEach(function(p){
-      posHtml += '<div class="insight-item"><div class="insight-dot positivo"></div><span style="color:rgba(255,255,255,.8);font-size:12px">'+p.area+' '+p.msg+'</span></div>';
-    });
-    posHtml += '</div>';
-    posDiv.innerHTML = posHtml;
-    body.appendChild(posDiv);
-  }
-
-  // -- Insights --
-  if((data.insights||[]).length){
-    var insDiv = document.createElement('div');
-    insDiv.style.cssText = 'padding:0 16px 16px';
-    var insHtml = '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.4);margin-bottom:8px">Para reflexionar</div>';
-    data.insights.forEach(function(i){
-      insHtml += '<div style="padding:8px 12px;background:rgba(255,255,255,.03);border-radius:8px;margin-bottom:6px;font-size:12px;color:rgba(255,255,255,.7)">'+i.area+' '+i.msg+'</div>';
-    });
-    insDiv.innerHTML = insHtml;
-    body.appendChild(insDiv);
-  }
+  body.innerHTML = html;
 }
+
 
 // ══════════════════════════════════════════
 //  PATRIMONIO
