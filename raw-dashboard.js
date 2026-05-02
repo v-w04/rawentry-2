@@ -1,4 +1,4 @@
-/* RAW Entry — Dashboard v.5.044
+/* RAW Entry — Dashboard v.5.045
    Tablas Variables/Fijos · Flujo Mensual · Gráficas
    + Financiero Avanzado · Revisión · Relaciones · Salud · Apartados · Pensamientos
 */
@@ -856,7 +856,8 @@ function renderScore(data){
     </div>` : ''}
   `;
   // Renderizar barras por área fuera del template
-  _renderScoreAreas(document.getElementById('score-areas-wrap'), areas, d, areaColors);
+  var _desglose = (data.score||{}).desglose||{};
+  _renderScoreAreas(document.getElementById('score-areas-wrap'), areas, _desglose, areaColors);
 }
 
 function _renderScoreAreas(wrap, areas, desglose, colors){
