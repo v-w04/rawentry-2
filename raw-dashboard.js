@@ -26,7 +26,7 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.060
+/* RAW Entry — Dashboard v.5.061
    Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
 */
 
@@ -1070,88 +1070,93 @@ function renderPatrimonio(data){
 
   var html = '';
 
-  // ── Cabecera: total neto ──
-  html += '<div style="padding:14px 16px 8px">';
-  html += '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m);margin-bottom:4px">Patrimonio neto líquido</div>';
-  html += '<div style="font-size:30px;font-weight:800;letter-spacing:-.04em;color:#fff;line-height:1">'+fmt2(total)+'</div>';
-  if(prestamo > 0){
-    html += '<div style="font-size:11px;color:var(--m);margin-top:3px">Pasivo: <span style="color:#F59E0B">− '+fmt(prestamo)+'</span></div>';
+  // Calcular disponible real = total − apartados activos
+  var totalDisponible = total - totalAp;
+  var totalBruto      = total;
+
+  // ── CABECERA COMPACTA — cifra principal = disponible ──
+  html += '<div style="padding:14px 16px 10px">';
+
+  // Fila 1: disponible (número principal) + label
+  html += '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px">';
+  html += '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--m)">Disponible</div>';
+  if(totalAp > 0){
+    html += '<div style="font-size:9px;color:var(--m)">Bruto <span style="color:rgba(255,255,255,.35)">'+fmt2(totalBruto)+'</span> − Apartados <span style="color:#F59E0B">'+fmt(totalAp)+'</span></div>';
   }
   html += '</div>';
 
-  // Barra distribución
-  if(total > 0){
-    html += '<div style="margin:0 16px 10px;height:6px;border-radius:3px;overflow:hidden;display:flex;gap:1px">';
-    if(banco.pct > 0)     html += '<div style="width:'+banco.pct+'%;background:#4ADE80;border-radius:3px"></div>';
-    if(fisico.pct > 0)    html += '<div style="width:'+fisico.pct+'%;background:#FBBF24;border-radius:3px"></div>';
-    if(inversion.pct > 0) html += '<div style="width:'+inversion.pct+'%;background:#8B5CF6;border-radius:3px"></div>';
-    html += '</div>';
-  }
+  // Número principal: disponible
+  html += '<div style="font-size:34px;font-weight:800;letter-spacing:-.04em;color:#4ADE80;line-height:1.05">'+fmt2(totalDisponible)+'</div>';
 
-  // ── Tres tarjetas ──
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:0 16px 10px">';
-
-  // Banco
-  html += '<div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15);border-radius:10px;padding:10px 12px">';
-  html += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:14px">🏦</span>';
-  html += '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(74,222,128,.7)">Banco</span></div>';
-  html += '<div style="font-size:18px;font-weight:800;color:#4ADE80;letter-spacing:-.03em;line-height:1;margin-bottom:2px">'+fmt(banco.saldo)+'</div>';
-  html += '<div style="font-size:10px;color:rgba(74,222,128,.5);margin-bottom:6px">'+banco.pct+'% del total</div>';
+  // Fila 2: desglose en chips horizontales
+  html += '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">';
+  // Banco disponible
+  var bancDisp = (banco.saldo||0) - (apPorBanco['BBVA']||0) - (apPorBanco['BANCO']||0);
   (banco.items||[]).forEach(function(it){
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-top:1px solid rgba(74,222,128,.08)">';
-    html += '<span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.6)">'+it.nombre+'</span>';
-    html += '<span style="font-size:11px;font-weight:700;color:#4ADE80;font-variant-numeric:tabular-nums">'+fmt(it.monto)+'</span>';
+    var apIt = apPorBanco[(it.nombre||'').toUpperCase()]||0;
+    var dIt  = (it.monto||0) - apIt;
+    html += '<div style="padding:3px 10px;border-radius:6px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2)">';
+    html += '<div style="font-size:9px;color:rgba(74,222,128,.6);font-weight:600">'+it.nombre+'</div>';
+    html += '<div style="font-size:13px;font-weight:700;color:#4ADE80">'+fmt(dIt)+'</div>';
+    if(apIt>0) html += '<div style="font-size:9px;color:rgba(255,255,255,.25)">saldo '+fmt(it.monto)+'</div>';
     html += '</div>';
   });
-  html += '</div>';
-
-  // Efectivo
-  html += '<div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:10px;padding:10px 12px">';
-  html += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:14px">💵</span>';
-  html += '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(251,191,36,.7)">Efectivo</span></div>';
-  html += '<div style="font-size:18px;font-weight:800;color:#FBBF24;letter-spacing:-.03em;line-height:1;margin-bottom:2px">'+fmt(fisico.saldo)+'</div>';
-  html += '<div style="font-size:10px;color:rgba(251,191,36,.5);margin-bottom:6px">'+fisico.pct+'% del total</div>';
+  // Efectivo chips
   (fisico.items||[]).forEach(function(it){
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-top:1px solid rgba(251,191,36,.08)">';
-    html += '<span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.6)">'+it.nombre+'</span>';
-    html += '<span style="font-size:11px;font-weight:700;color:#FBBF24;font-variant-numeric:tabular-nums">'+fmt(it.monto)+'</span>';
+    var apIt = apPorBanco[(it.nombre||'').toUpperCase()]||0;
+    var dIt  = (it.monto||0) - apIt;
+    html += '<div style="padding:3px 10px;border-radius:6px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2)">';
+    html += '<div style="font-size:9px;color:rgba(251,191,36,.6);font-weight:600">'+it.nombre+'</div>';
+    html += '<div style="font-size:13px;font-weight:700;color:#FBBF24">'+fmt(dIt)+'</div>';
+    if(apIt>0) html += '<div style="font-size:9px;color:rgba(255,255,255,.25)">saldo '+fmt(it.monto)+'</div>';
     html += '</div>';
   });
-  html += '</div>';
-
-  // Inversión
-  html += '<div style="background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:10px;padding:10px 12px">';
-  html += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="font-size:14px">📈</span>';
-  html += '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(139,92,246,.7)">Inversión</span></div>';
-  html += '<div style="font-size:18px;font-weight:800;color:#C4B5FD;letter-spacing:-.03em;line-height:1;margin-bottom:2px">'+fmt(inversion.saldo)+'</div>';
-  html += '<div style="font-size:10px;color:rgba(139,92,246,.5);margin-bottom:6px">'+inversion.pct+'% del total</div>';
-  if(inversion.rendimientoTotal > 0){
-    html += '<div style="font-size:10px;color:rgba(139,92,246,.6);padding:4px 0;border-top:1px solid rgba(139,92,246,.08)">Rendimiento: <b style="color:#C4B5FD">+'+fmt(inversion.rendimientoTotal)+'</b></div>';
+  // Inversión chip (si hay)
+  if(inversion.saldo > 0){
+    html += '<div style="padding:3px 10px;border-radius:6px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2)">';
+    html += '<div style="font-size:9px;color:rgba(139,92,246,.6);font-weight:600">Inversión</div>';
+    html += '<div style="font-size:13px;font-weight:700;color:#C4B5FD">'+fmt(inversion.saldo)+'</div>';
+    if(inversion.rendimientoTotal>0) html += '<div style="font-size:9px;color:rgba(255,255,255,.25)">+'+fmt(inversion.rendimientoTotal)+' rend.</div>';
+    html += '</div>';
   }
-  if(!inversion.saldo){
-    html += '<div style="font-size:10px;color:rgba(255,255,255,.2);margin-top:4px">Sin inversiones</div>';
-  }
-  html += '</div>';
-  html += '</div>'; // /grid
+  html += '</div>'; // /chips
 
-  // ── Fondo de emergencia ──
+  html += '</div>'; // /cabecera
+
+  // Barra distribución (disponible real, no bruto)
+  if(totalDisponible > 0){
+    var pctBancoD  = Math.round((banco.saldo - (apPorBanco['BBVA']||0)) / totalDisponible * 100);
+    var pctFisicoD = Math.round(fisico.saldo / totalDisponible * 100);
+    var pctInvD    = Math.round(inversion.saldo / totalDisponible * 100);
+    html += '<div style="margin:0 16px 10px;height:5px;border-radius:3px;overflow:hidden;display:flex;gap:1px">';
+    if(pctBancoD > 0)  html += '<div style="width:'+pctBancoD+'%;background:#4ADE80"></div>';
+    if(pctFisicoD > 0) html += '<div style="width:'+pctFisicoD+'%;background:#FBBF24"></div>';
+    if(pctInvD > 0)    html += '<div style="width:'+pctInvD+'%;background:#8B5CF6"></div>';
+    if(totalAp > 0){
+      var pctAp = Math.round(totalAp / totalBruto * 100);
+      html += '<div style="width:'+Math.min(pctAp,100)+'%;background:rgba(245,158,11,.35)"></div>';
+    }
+    html += '</div>';
+  }
+
+  // ── Fondo de emergencia compacto ──
   if(f.meta > 0){
-    html += '<div style="margin:0 16px 10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
-    html += '<span style="font-size:11px;color:var(--m)">🎯 Fondo de emergencia <span style="font-size:10px">(3 meses)</span></span>';
-    html += '<span style="font-size:12px;font-weight:700;color:'+saludColor+'">'+(f.avance||0)+'% · '+saludLbl+'</span>';
+    html += '<div style="margin:0 16px 8px;padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">';
+    html += '<span style="font-size:10px;color:var(--m)">🎯 Fondo emergencia</span>';
+    html += '<span style="font-size:11px;font-weight:700;color:'+saludColor+'">'+(f.avance||0)+'% · '+saludLbl+'</span>';
     html += '</div>';
     html += '<div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:5px">';
-    html += '<div style="height:100%;width:'+Math.min(100,f.avance||0)+'%;background:'+saludColor+';border-radius:2px;transition:width .5s"></div>';
+    html += '<div style="height:100%;width:'+Math.min(100,f.avance||0)+'%;background:'+saludColor+';border-radius:2px"></div>';
     html += '</div>';
     html += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--m)">';
-    html += '<span>Banco: <b style="color:rgba(255,255,255,.6)">'+fmt(banco.saldo)+'</b></span>';
-    html += '<span>Meta: <b style="color:rgba(255,255,255,.6)">'+fmt(f.meta)+'</b> · '+(f.meses||0)+' meses</span>';
+    html += '<span>Banco: <b style="color:rgba(255,255,255,.5)">'+fmt(banco.saldo)+'</b></span>';
+    html += '<span>Meta: <b style="color:rgba(255,255,255,.5)">'+fmt(f.meta)+'</b> · '+(f.meses||0)+' meses</span>';
     html += '</div></div>';
   }
 
   // ── Divider ──
-  html += '<div style="border-top:1px solid rgba(255,255,255,.06);margin:2px 0 4px"></div>';
+  html += '<div style="border-top:1px solid rgba(255,255,255,.06);margin:2px 0 0"></div>';
 
   // ── Saldos editables (ex-Bancos) ──
   html += '<div style="padding:4px 0 0">';
