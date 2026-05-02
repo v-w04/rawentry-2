@@ -1192,3 +1192,14 @@ html.mob .hero-right{display:none !important}
     color:rgba(99,102,241,.7);
   }
 }
+
+/* ── Gráficas colapsables ── */
+.graf-toggle{
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  transition:background .15s;
+}
+.graf-toggle:hover{
+  background:rgba(255,255,255,.03);
+}
