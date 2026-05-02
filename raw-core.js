@@ -659,6 +659,8 @@ function guardar(){
         api.getFijos().then(renderEntes);
         api.getGastos().then(renderAnualidad);
         api.getDatosMes().then(onDatosMes);
+        // Cerrar popup automáticamente después de 800ms
+        setTimeout(cerrarEntrada, 800);
       }
     })
     .catch(e=>{progDone();setBtn(false);mostrarRes(false,'Error: '+e.message);showToast('Error',false);});
