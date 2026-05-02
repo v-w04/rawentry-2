@@ -879,43 +879,38 @@ function _dibujarRadarYPiramideInline(niveles){
 
   var totalSum = NEC_NIVELES.reduce(function(s,n){ return s+Math.abs(_dataNivelInline(n.key,niveles).total||0); },0);
 
-  // Pirámide SVG — cada nivel tiene ancho proporcional a su %
-  var pisos = NEC_NIVELES.slice().reverse(); // 5 arriba, 1 abajo
-  var svgH = 160;
-  var svgW = 160;
-  var nivH = svgH / pisos.length; // altura de cada piso
-  var rects = pisos.map(function(niv, i){
+  // Pirámide SVG con anchos proporcionales — de abajo hacia arriba
+  var pisos = NEC_NIVELES.slice().reverse(); // 5=arriba, 1=abajo
+  var svgW = 200, svgH = 170, nivH = svgH / pisos.length;
+  var svgRects = pisos.map(function(niv, i){
     var d   = _dataNivelInline(niv.key, niveles);
     var abs = Math.abs(d.total||0);
     var pct = totalSum > 0 ? abs/totalSum : 0;
-    // Ancho mínimo 8% para que se vea, máximo 100%
-    var w   = Math.max(0.08, pct) * svgW;
+    var w   = Math.max(0.1, pct) * svgW;
     var x   = (svgW - w) / 2;
     var y   = i * nivH;
-    return {niv:niv, abs:abs, pct:pct, w:w, x:x, y:y, h:nivH-2, vacio:abs===0};
-  });
-
-  var svgRects = rects.map(function(r){
-    var op = r.vacio ? 0.2 : 0.85;
-    return '<rect x="'+r.x.toFixed(1)+'" y="'+r.y.toFixed(1)+'" width="'+r.w.toFixed(1)+'" height="'+r.h.toFixed(1)+'" rx="3"'+
-      ' fill="'+r.niv.color+'" opacity="'+op+'"/>';
+    var op  = abs===0 ? 0.15 : 0.85;
+    return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+(nivH-3).toFixed(1)+'" rx="4"'+
+      ' fill="'+niv.color+'" opacity="'+op+'"/>'+
+      '<text x="'+((svgW/2)).toFixed(1)+'" y="'+(y+nivH/2+4).toFixed(1)+'" text-anchor="middle"'+
+      ' font-size="9" fill="rgba(255,255,255,.7)" font-family="system-ui" font-weight="600">'+niv.label+'</text>';
   }).join('');
 
-  var piramideSVG = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:160px;flex-shrink:0">'+
-    '<svg width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">'+
-      svgRects+
-    '</svg>'+
-    '<div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px;text-align:center">Distribución</div>'+
-  '</div>';
+  wrap.innerHTML =
+    '<div style="display:flex;align-items:stretch;justify-content:center;gap:16px;padding:16px">' +
+      // Radar
+      '<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">' +
+        '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:8px">Radar</div>' +
+        '<canvas id="radar-inline-canvas" style="width:100%;max-width:200px;height:200px"></canvas>' +
+      '</div>' +
+      // Pirámide
+      '<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">' +
+        '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:8px">Distribución</div>' +
+        '<svg width="100%" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg" style="max-width:200px">'+svgRects+'</svg>' +
+      '</div>' +
+    '</div>';
 
-  wrap.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px 16px 4px">'+
-    '<canvas id="radar-inline-canvas" style="width:160px;height:160px;flex-shrink:0"></canvas>'+
-    piramideSVG+
-  '</div>';
-
-
-
-  // Inicializar radar
+  // Radar Chart
   setTimeout(function(){
     var canvas = document.getElementById('radar-inline-canvas');
     if(!canvas || !window.Chart) return;
@@ -930,18 +925,20 @@ function _dibujarRadarYPiramideInline(niveles){
       data:{ labels:labels, datasets:[{ data:norm,
         backgroundColor:'rgba(139,92,246,.15)', borderColor:'rgba(139,92,246,.7)',
         borderWidth:2, pointBackgroundColor:colors, pointBorderColor:'#111',
-        pointBorderWidth:2, pointRadius:4, fill:true }]},
-      options:{ responsive:false, plugins:{ legend:{display:false},
-        tooltip:{ backgroundColor:'rgba(15,23,42,.95)', callbacks:{
-          label:function(ctx){ return ' $'+valores[ctx.dataIndex].toLocaleString('es-MX',{minimumFractionDigits:0}); }}}},
+        pointBorderWidth:2, pointRadius:5, fill:true }]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false},
+          tooltip:{ backgroundColor:'rgba(15,23,42,.95)', borderColor:'rgba(255,255,255,.1)', borderWidth:1,
+            callbacks:{ label:function(ctx){ return ' $'+valores[ctx.dataIndex].toLocaleString('es-MX',{minimumFractionDigits:0}); }}}},
         scales:{ r:{ min:0, max:100,
           angleLines:{color:'rgba(255,255,255,.06)'}, grid:{color:'rgba(255,255,255,.06)'},
           ticks:{display:false},
-          pointLabels:{ font:{size:9,weight:'600',family:'system-ui'},
+          pointLabels:{ font:{size:10,weight:'600',family:'system-ui'},
             color:function(ctx){ return colors[ctx.index]||'#94A3B8'; }}}}}
     });
   }, 80);
 }
+
 
 function _dibujarPiramideInline(niveles){
   var cont = document.getElementById('nec-inline-container');
@@ -950,40 +947,45 @@ function _dibujarPiramideInline(niveles){
   var maxAbs = 1;
   NEC_NIVELES.forEach(function(n){ var v=Math.abs(_dataNivelInline(n.key,niveles).total||0); if(v>maxAbs) maxAbs=v; });
 
-  // Barras con status fusionado (sin donut)
   var pisos = NEC_NIVELES.slice().reverse();
-  var barrasHTML = '<div style="padding:0 16px 12px">';
+  var html = '<div style="padding:0 16px 16px">';
+  html += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:12px;text-align:center">Detalle por nivel</div>';
+
   pisos.forEach(function(niv){
     var d    = _dataNivelInline(niv.key, niveles);
     var abs  = Math.abs(d.total||0);
     var pct  = totalSum>0 ? (abs/totalSum*100) : 0;
     var barW = maxAbs>0 ? (abs/maxAbs*100) : 0;
     var vacio= abs===0;
-    var tops = (d.conceptos||[]).slice(0,3).join(', ');
+    var tops = (d.conceptos||[]).slice(0,4).join(', ');
     var status = vacio
-      ? '<span style="font-size:9px;color:var(--warn);background:rgba(245,158,11,.1);padding:1px 6px;border-radius:8px">⚠</span>'
+      ? '<span style="font-size:9px;color:var(--warn);background:rgba(245,158,11,.1);padding:1px 7px;border-radius:10px;white-space:nowrap">⚠ descuidado</span>'
       : (pct>40
-        ? '<span style="font-size:9px;color:var(--err);background:rgba(239,68,68,.08);padding:1px 6px;border-radius:8px">Alto</span>'
-        : '<span style="font-size:9px;color:var(--ok);background:rgba(74,222,128,.08);padding:1px 6px;border-radius:8px">✓</span>');
-    barrasHTML += '<div style="margin-bottom:10px">';
-    barrasHTML += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">';
-    barrasHTML += '<div style="display:flex;align-items:center;gap:5px">';
-    barrasHTML += '<div style="width:7px;height:7px;border-radius:50%;background:'+(vacio?'var(--dim)':niv.color)+';flex-shrink:0"></div>';
-    barrasHTML += '<span style="font-size:12px;font-weight:600;color:'+(vacio?'var(--m)':'var(--t)')+'">'+niv.label+'</span>';
-    barrasHTML += status+'</div>';
-    barrasHTML += '<span style="font-size:12px;font-weight:700;color:'+(vacio?'var(--dim)':niv.color)+'">'+( vacio?'—':'$ '+abs.toLocaleString('es-MX',{minimumFractionDigits:0}))+'<span style="font-size:10px;color:var(--m);font-weight:400"> '+Math.round(pct)+'%</span></span>';
-    barrasHTML += '</div>';
-    barrasHTML += '<div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">';
-    barrasHTML += '<div style="height:100%;width:'+barW.toFixed(1)+'%;background:'+niv.color+';border-radius:3px;opacity:'+(vacio?.2:.85)+'"></div>';
-    barrasHTML += '</div>';
-    if(tops) barrasHTML += '<div style="font-size:10px;color:var(--m);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">↳ '+tops+'</div>';
-    barrasHTML += '</div>';
+        ? '<span style="font-size:9px;color:var(--err);background:rgba(239,68,68,.08);padding:1px 7px;border-radius:10px;white-space:nowrap">Alto</span>'
+        : '<span style="font-size:9px;color:var(--ok);background:rgba(74,222,128,.08);padding:1px 7px;border-radius:10px;white-space:nowrap">✓ OK</span>');
+
+    html += '<div style="margin-bottom:14px">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">';
+    html += '<div style="display:flex;align-items:center;gap:7px">';
+    html += '<div style="width:9px;height:9px;border-radius:50%;background:'+(vacio?'rgba(255,255,255,.15)':niv.color)+';flex-shrink:0"></div>';
+    html += '<span style="font-size:13px;font-weight:600;color:'+(vacio?'var(--m)':'#fff')+'">'+niv.label+'</span>';
+    html += status;
+    html += '</div>';
+    html += '<span style="font-size:14px;font-weight:700;color:'+(vacio?'rgba(255,255,255,.2)':niv.color)+';font-variant-numeric:tabular-nums">';
+    html += (vacio ? '—' : '$ '+abs.toLocaleString('es-MX',{minimumFractionDigits:0}));
+    html += '<span style="font-size:11px;color:rgba(255,255,255,.3);font-weight:400"> '+Math.round(pct)+'%</span></span>';
+    html += '</div>';
+    html += '<div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin-bottom:4px">';
+    html += '<div style="height:100%;width:'+barW.toFixed(1)+'%;background:'+niv.color+';border-radius:3px;opacity:'+(vacio?.15:.9)+';transition:width .5s ease"></div>';
+    html += '</div>';
+    if(tops) html += '<div style="font-size:10px;color:rgba(255,255,255,.4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">↳ '+tops+'</div>';
+    html += '</div>';
   });
-  barrasHTML += '</div>';
 
-  cont.innerHTML = barrasHTML;
-
+  html += '</div>';
+  cont.innerHTML = html;
 }
+
 
 function _dibujarRadarInline(niveles){
   var wrap = document.getElementById('nec-inline-radar-wrap');
