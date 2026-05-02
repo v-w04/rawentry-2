@@ -171,11 +171,13 @@ function _guardarNutricion(){
       res.textContent = r.ok ? '✓ Guardado' : '✗ '+r.mensaje;
       res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
       if(r.ok){
+        showToast('✓ Nutrición guardada');
         document.getElementById('nut-comida').value='';
         ['nut-cal','nut-prot','nut-carbos','nut-grasa','nut-agua','nut-fast','nut-notas'].forEach(function(id){
           var el = document.getElementById(id); if(el) el.value='';
         });
         api.getNutricion().then(renderNutricion).catch(function(){});
+        setTimeout(cerrarEntrada, 800);
       }
     }).catch(function(){ res.textContent='Error'; res.style.color='var(--err)'; });
 }
@@ -202,10 +204,12 @@ function _guardarEntrenamiento(){
       res.textContent = r.ok ? '✓ Guardado' : '✗ '+r.mensaje;
       res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
       if(r.ok){
+        showToast('✓ Entrenamiento guardado');
         document.getElementById('ent-ejercicio').value='';
         document.getElementById('ent-dur').value='';
         ['ent-series','ent-reps','ent-peso'].forEach(function(id){ document.getElementById(id).value=''; });
         api.getEntrenamiento().then(renderEntrenamiento).catch(function(){});
+        setTimeout(cerrarEntrada, 800);
       }
     }).catch(function(){ res.textContent='Error'; res.style.color='var(--err)'; });
 }
@@ -240,8 +244,6 @@ document.addEventListener('click', function(e){
   const dd = document.getElementById('entrada-dropdown');
   const btn = document.getElementById('btn-nueva-entrada');
   if(!dd || !dd.classList.contains('show')) return;
-  const inner = document.querySelector('.entrada-dropdown-inner');
-  // Si el click fue en el overlay (dd) pero fuera del inner — cerrar
   if(e.target === dd){
     dd.classList.remove('show');
     dd.style.display = 'none';
@@ -263,7 +265,6 @@ document.addEventListener('keydown', function(e){
 
 // ── Nueva Entrada — form en col1, sin popup ──
 function abrirEntrada(){
-  // Siempre mostrar paso1 primero
   const paso1 = document.getElementById('entrada-paso1');
   const paso2 = document.getElementById('entrada-paso2');
   if(paso1) paso1.style.display = 'block';
@@ -276,7 +277,6 @@ function cerrarEntrada(){
   const btn = document.getElementById('btn-nueva-entrada');
   if(dd){ dd.classList.remove('show'); dd.style.display='none'; }
   if(btn) btn.classList.remove('active');
-  // Regresar a paso1 para la próxima vez
   const paso1 = document.getElementById('entrada-paso1');
   const paso2 = document.getElementById('entrada-paso2');
   if(paso1) paso1.style.display = 'block';
@@ -321,27 +321,22 @@ function togGraf(bodyId){
   if(!body) return;
   var isOpen = body.style.display !== 'none';
   body.style.display = isOpen ? 'none' : 'block';
-  // Rotar chevron
   var chevId = bodyId.replace('-body','-chev');
   var chev = document.getElementById(chevId);
   if(chev) chev.style.transform = isOpen ? '' : 'rotate(180deg)';
-  // Trigger resize en canvas para que Chart.js se redibuje
   if(!isOpen){
     setTimeout(function(){
       var canvas = body.querySelector('canvas');
       if(canvas && canvas._chart) canvas._chart.resize();
-      // También disparar resize global para Chart.js
       window.dispatchEvent(new Event('resize'));
     }, 50);
   }
 }
 window.addEventListener('DOMContentLoaded',()=>{
   const hoy=fmtD(new Date());
-  // fecha is inside popup — set it safely
   const fechaEl=document.getElementById('fecha');
   if(fechaEl) fechaEl.value=hoy;
   _inyectarToggleModo();
-  // saldo se inicializa desde _renderCFO
 
   setChip('load','Cargando');
   api.getAll()
@@ -364,7 +359,6 @@ window.addEventListener('DOMContentLoaded',()=>{
       if(d.activityCheck){ _actData=d.activityCheck; }
       if(d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
       if(d.apartados) renderApartados(d.apartados);
-      // Cargar módulos lazy
       api.getPensamientos().then(renderPensamientos).catch(()=>{});
       api.getRelaciones().then(renderRelaciones).catch(()=>{});
       api.getSalud().then(renderSalud).catch(()=>{});
@@ -617,13 +611,12 @@ function consultarSaldo(){
 }
 
 // ══════════════════════════════════════════
-//  GUARDAR
+//  GUARDAR (RAW / Editar)
 // ══════════════════════════════════════════
 function guardar(){
   const fecha=document.getElementById('fecha').value;
   const concepto=document.getElementById('cv-concepto').classList.contains('empty')?'':document.getElementById('cv-concepto').textContent.trim();
   const monto=(parseFloat(document.getElementById('monto').value)||0)*sign;
-  // En modo editar solo validar que haya ID cargado
   if(_modoEditar){
     if(!_filaEditar){ mostrarRes(false,'Busca un ID primero'); return; }
   } else {
@@ -659,7 +652,6 @@ function guardar(){
         api.getFijos().then(renderEntes);
         api.getGastos().then(renderAnualidad);
         api.getDatosMes().then(onDatosMes);
-        // Cerrar popup automáticamente después de 800ms
         setTimeout(cerrarEntrada, 800);
       }
     })
@@ -703,18 +695,16 @@ function irASheet(){
 }
 
 // ══════════════════════════════════════════
-//  SHEETS EMBED — config de hojas
+//  SHEETS EMBED
 // ══════════════════════════════════════════
 const SHEETS_CONFIG = [
   {
     id:    'raw',
     label: 'RAW',
     emoji: '📄',
-    gid:   '0',   // gid de la pestaña RAW en tu Sheets
+    gid:   '0',
     spreadsheetId: '15T14Hb7tvmv24ZAaC3su1NRtDwVS6-dWbJGxQYUGP1o',
   },
-  // Para agregar más hojas en el futuro:
-  // { id:'pagos', label:'Pagos', emoji:'💳', gid:'123456789', spreadsheetId:'...' },
 ];
 
 function _sheetEmbedUrl(cfg){
@@ -727,17 +717,13 @@ function irASheets(sheetId){
   _setPantalla('sheets_'+sheetId);
   const cfg = SHEETS_CONFIG.find(s=>s.id===sheetId);
   if(!cfg) return;
-  // Render iframe
   const cont = document.getElementById('sheets-iframe-cont');
   if(cont){
-    // Google Sheets embed URL
     var embedUrl = 'https://docs.google.com/spreadsheets/d/' + cfg.spreadsheetId + '/htmlview?gid=' + cfg.gid + '&widget=true';
     cont.innerHTML = '<iframe src="' + embedUrl + '" style="width:100%;height:100%;border:none;display:block" allowfullscreen scrolling="yes"></iframe>';
   }
-  // Update header label
   const lbl = document.getElementById('sheets-panel-label');
   if(lbl) lbl.textContent = cfg.emoji + ' ' + cfg.label;
-  // Update open-in-sheets link
   const btn = document.getElementById('sheets-open-btn');
   if(btn) btn.href = `https://docs.google.com/spreadsheets/d/${cfg.spreadsheetId}/edit#gid=${cfg.gid}`;
 }
@@ -764,7 +750,6 @@ function _inyectarToggleModo(){
   const body = document.getElementById('sec-entrada-body') || document.getElementById('entrada-paso2') || document.getElementById('wrap-entrada');
   if(body) body.insertBefore(wrap, body.firstChild);
 
-  // ID input (hidden by default)
   const idWrap = document.createElement('div');
   idWrap.id = 'editar-id-wrap';
   idWrap.style.cssText = 'display:none;padding:12px var(--pad) 0;';
@@ -782,7 +767,6 @@ function _inyectarToggleModo(){
     <div id="editar-id-msg" style="font-size:11px;margin-top:6px;color:var(--m)"></div>`;
   if(body) body.insertBefore(idWrap, wrap.nextSibling);
 
-  // Wraps para tabs alternativos
   ['pensamiento','persona','salud','apartado','patrimonio','nutricion','entrenamiento'].forEach(tab=>{
     const tw = document.createElement('div');
     tw.id = tab+'-wrap';
@@ -802,29 +786,23 @@ function setModoEntrada(modo){
   _tabEntrada  = modo;
   _modoEditar  = (modo === 'editar');
 
-  // Cambiar de paso1 a paso2
   const paso1 = document.getElementById('entrada-paso1');
   const paso2 = document.getElementById('entrada-paso2');
   if(paso1) paso1.style.display = 'none';
   if(paso2) paso2.style.display = 'block';
 
-  // Título del paso2
   const titulos = {nueva:'💸 RAW',editar:'✏️ Editar',pensamiento:'💭 Pensamiento',persona:'👥 Persona',salud:'🏥 Salud',apartado:'💰 Apartado',patrimonio:'🏦 Patrimonio',bancos:'🏛️ Bancos',nutricion:'🥗 Nutrición',entrenamiento:'💪 Entrenamiento'};
   const tituloEl = document.getElementById('entrada-paso2-titulo');
   if(tituloEl) tituloEl.textContent = titulos[modo] || modo;
 
-  // Actualizar tabs
   ['nueva','editar','pensamiento','persona','salud','apartado','patrimonio','bancos','nutricion','entrenamiento'].forEach(t=>{
     const btn = document.getElementById('btn-tab-'+t);
     if(btn) btn.classList.toggle('on', t===modo);
   });
 
-  // Ocultar todos los wraps especiales
   const wraps = ['editar-id-wrap','pensamiento-wrap','persona-wrap','salud-wrap','apartado-wrap'];
   wraps.forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
 
-  // Mostrar/ocultar campos base según tab
-  const camposBase = document.getElementById('sec-entrada-body');
   const formActions = document.querySelector('.form-actions');
 
   if(modo==='nueva'){
@@ -843,7 +821,6 @@ function setModoEntrada(modo){
     if(btnG) btnG.innerHTML='<div class="spin-sm" id="spin"></div><i class="fas fa-pen" id="bico"></i> Actualizar';
     limpiar(false);
   } else {
-    // Tabs de módulos alternativos — ocultar campos base del formulario financiero
     _mostrarCamposBase(false);
     if(formActions) formActions.style.display='none';
     const wrap = document.getElementById(modo+'-wrap');
@@ -911,11 +888,12 @@ function _guardarBancosForm(){
       res.textContent = r.ok ? '✓ Guardado' : '✗ '+(r.mensaje||'Error');
       res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
       if(r.ok){
+        showToast('✓ Banco guardado');
         document.getElementById('banco-nombre').value='';
         document.getElementById('banco-monto').value='';
         document.getElementById('banco-fecha').value = fmtD(new Date());
         api.getFijos().then(renderEntes);
-        showToast('✓ Banco guardado');
+        setTimeout(cerrarEntrada, 800);
       }
     }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
 }
@@ -1005,6 +983,7 @@ function _guardarPatrimonio(){
     res.textContent = r.ok ? '✓ Guardado — Saldo: $'+r.saldo.toLocaleString('es-MX') : '✗ '+r.mensaje;
     res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
     if(r.ok){
+      showToast('✓ Patrimonio guardado');
       document.getElementById('pat-concepto').value='';
       document.getElementById('pat-monto').value='';
       api.getPatrimonio()
@@ -1014,6 +993,7 @@ function _guardarPatrimonio(){
           fisico:{saldo:0,pct:0,items:[]},
           inversion:{saldo:0,pct:0,rendimientoTotal:0,items:[]},
           fondo:{meta:0,avance:0,meses:0,salud:'err'}}));
+      setTimeout(cerrarEntrada, 800);
     }
   }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
 }
@@ -1158,9 +1138,15 @@ function _guardarPensamiento(){
     .then(r=>{
       res.textContent = r.ok ? '✓ Guardado' : '✗ '+r.mensaje;
       res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
-      if(r.ok){ document.getElementById('p-texto').value=''; document.getElementById('p-etiquetas').value='';
+      if(r.ok){
+        showToast('✓ Pensamiento guardado');
+        document.getElementById('p-texto').value='';
+        document.getElementById('p-etiquetas').value='';
         document.querySelectorAll('#p-cat-opts .opt,#p-energia-opts .opt').forEach(b=>b.classList.remove('on'));
-        document.getElementById('p-cat').value=''; document.getElementById('p-energia').value=''; }
+        document.getElementById('p-cat').value='';
+        document.getElementById('p-energia').value='';
+        setTimeout(cerrarEntrada, 800);
+      }
     }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
 }
 
@@ -1208,9 +1194,15 @@ function _guardarPersona(){
     .then(r=>{
       res.textContent = r.ok ? '✓ '+r.mensaje : '✗ '+r.mensaje;
       res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
-      if(r.ok){ document.getElementById('per-nombre').value=''; document.getElementById('per-notas').value='';
+      if(r.ok){
+        showToast('✓ Interacción guardada');
+        document.getElementById('per-nombre').value='';
+        document.getElementById('per-notas').value='';
         document.querySelectorAll('#per-tipo-opts .opt,#per-energia-opts .opt').forEach(b=>b.classList.remove('on'));
-        document.getElementById('per-tipo').value=''; document.getElementById('per-energia').value=''; }
+        document.getElementById('per-tipo').value='';
+        document.getElementById('per-energia').value='';
+        setTimeout(cerrarEntrada, 800);
+      }
     }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
 }
 
@@ -1263,10 +1255,16 @@ function _guardarSalud(){
     .then(r=>{
       res.textContent = r.ok ? '✓ Guardado' : '✗ '+r.mensaje;
       res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
-      if(r.ok){ document.getElementById('sal-desc').value=''; document.getElementById('sal-doctor').value='';
-        document.getElementById('sal-proxima').value=''; document.getElementById('sal-notas').value='';
+      if(r.ok){
+        showToast('✓ Salud guardada');
+        document.getElementById('sal-desc').value='';
+        document.getElementById('sal-doctor').value='';
+        document.getElementById('sal-proxima').value='';
+        document.getElementById('sal-notas').value='';
         document.querySelectorAll('#sal-tipo-opts .opt').forEach(b=>b.classList.remove('on'));
-        document.getElementById('sal-tipo').value=''; }
+        document.getElementById('sal-tipo').value='';
+        setTimeout(cerrarEntrada, 800);
+      }
     }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
 }
 
@@ -1313,9 +1311,16 @@ function _guardarApartado(){
     .then(r=>{
       res.textContent = r.ok ? '✓ Guardado' : '✗ '+r.mensaje;
       res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
-      if(r.ok){ document.getElementById('ap-nombre').value=''; document.getElementById('ap-categoria').value='';
-        document.getElementById('ap-monto').value=''; document.getElementById('ap-banco').value='';
-        document.getElementById('ap-meta').value=''; document.getElementById('ap-notas').value=''; }
+      if(r.ok){
+        showToast('✓ Apartado guardado');
+        document.getElementById('ap-nombre').value='';
+        document.getElementById('ap-categoria').value='';
+        document.getElementById('ap-monto').value='';
+        document.getElementById('ap-banco').value='';
+        document.getElementById('ap-meta').value='';
+        document.getElementById('ap-notas').value='';
+        setTimeout(cerrarEntrada, 800);
+      }
     }).catch(()=>{ res.textContent='Error'; res.style.color='var(--err)'; });
 }
 
@@ -1340,39 +1345,31 @@ function buscarFilaId(){
       _idEditar   = r.id;
       msg.textContent='✓ ID '+r.id+' encontrado — fila '+r.fila;
       msg.style.color='var(--ok)';
-      // Populate fields
       document.getElementById('fecha').value = r.fecha || fmtD(new Date());
       marcarDone('fecha');
-      // Proyecto
       proxSel = r.proyecto;
       setFieldVal('proyecto', r.proyecto, !r.proyecto);
       _selectOpt('sw-proyecto', r.proyecto);
       marcarDone('proyecto');
-      // Contacto
       contactoSel = r.contacto;
       setFieldVal('contacto', r.contacto, !r.contacto);
       _selectOpt('sw-contacto', r.contacto);
       marcarDone('contacto');
-      // Concepto
       setFieldVal('concepto', r.concepto, !r.concepto);
       marcarDone('concepto');
-      // Monto
       const m = r.monto || 0;
       sign = m >= 0 ? 1 : -1;
       document.getElementById('monto').value = Math.abs(m);
       document.getElementById('sbp').className='msign'+(sign===1?' pos':'');
       document.getElementById('sbn').className='msign'+(sign===-1?' neg':'');
       upM(); marcarDone('monto');
-      // Recurrencia
       recSel = r.recurrencia;
       setFieldVal('recurrencia', r.recurrencia, !r.recurrencia);
       _selectOpt('sw-recurrencia', r.recurrencia);
       marcarDone('recurrencia');
-      // Clave
       document.getElementById('clave').value = r.clave || '';
       setFieldVal('clave', r.clave||'', !r.clave);
       if(r.clave) marcarDone('clave');
-      // Necesidad
       necesidadSel = r.necesidad || '';
       if(r.necesidad){ setFieldVal('necesidad', r.necesidad.slice(0,30), false); marcarDone('necesidad'); }
     })
@@ -1449,26 +1446,18 @@ function activarSOS(){
   const btn = document.getElementById('btn-sos');
   if(btn){ btn.disabled=true; btn.textContent='Enviando…'; }
   const msg = '🚨 Necesito ayuda — enviado desde RAW Entry';
-  // Intentar obtener ubicación
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(
       function(pos){
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
-        var acc = pos.coords.accuracy; // metros de precisión
         var loc = 'https://maps.google.com/?q=' + lat + ',' + lng;
-        console.log('GPS accuracy: ' + acc + 'm');
         _doEnviarSOS(msg, loc, btn);
       },
       function(err){
-        console.warn('Geolocation error:', err.code, err.message);
         _doEnviarSOS(msg, '', btn);
       },
-      {
-        enableHighAccuracy: true,  // fuerza GPS chip si disponible
-        timeout: 15000,            // espera más tiempo para GPS real
-        maximumAge: 0              // no usar caché — ubicación fresca
-      }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   } else {
     _doEnviarSOS(msg, '', btn);
