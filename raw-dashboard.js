@@ -1,4 +1,4 @@
-/* RAW Entry — Dashboard v.5.049
+/* RAW Entry — Dashboard v.5.050
    Tablas Variables/Fijos · Flujo Mensual · Gráficas
    + Financiero Avanzado · Revisión · Relaciones · Salud · Apartados · Pensamientos
 */
@@ -857,6 +857,16 @@ function renderScore(data){
       });
       row.appendChild(det);
     }
+
+    // Texto de desglose simple
+    var txt = document.createElement('div');
+    txt.style.cssText = 'font-size:11px;color:rgba(255,255,255,.45);margin-top:3px;padding-bottom:2px';
+    if(a.key==='dinero')     txt.textContent = '% Ahorro: '+(fin.pctAhorro||0)+'%  ·  Runway: '+(fin.runway||0)+' días  ·  Vel.gasto: '+(fin.velGasto||0)+'%';
+    if(a.key==='habitos')    txt.textContent = 'Checks esta semana: '+(fin.checksRecientes||0);
+    if(a.key==='salud')      txt.textContent = 'Registros: '+(fin.numSalud||0)+'  ·  Citas vencidas: '+(fin.citasVencidas||0);
+    if(a.key==='relaciones') txt.textContent = 'Personas: '+(fin.numPersonas||0)+'  ·  Recientes: '+(fin.interRecientes||0);
+    if(a.key==='mental')     txt.textContent = 'Logros: '+(fin.logrosComp||0)+' de '+(fin.logrosTotal||0);
+    if(txt.textContent) row.appendChild(txt);
 
     barsDiv.appendChild(row);
   });
