@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.5.047
+/* RAW Entry — Core v.5.048
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Detectar móvil
@@ -1413,6 +1413,7 @@ function _selectOpt(swId, val){
 //  ENTES (Bancos)
 // ══════════════════════════════════════════
 function renderEntes(data){
+  window._fijosData = data || []; // guardar globalmente para renderPatrimonio
   const body=document.getElementById('entes-list');
   if(!data||!data.length){body.innerHTML='<div style="padding:16px;color:var(--m);text-align:center">Sin datos</div>';return;}
 
