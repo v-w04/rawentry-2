@@ -1,3 +1,4 @@
+/* RAW Entry — Logros v.5.044 */
 // RAW Entry — Logros + Activity + Maslow
 // ══════════════════════════════════════════
 //  ESTADO
@@ -76,6 +77,10 @@ function irAMaslow(){
 function irAActivity(){
   if(_pantalla==='activity'){ volverAlAnverso(); return; }
   _setPantalla('activity');
+  // Reset diario de Electronics
+  if(typeof api !== 'undefined' && api.resetearElectronics){
+    api.resetearElectronics().catch(function(){});
+  }
   if(_actData) renderActivity();
   else {
     var grid = document.getElementById('act-container');
