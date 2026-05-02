@@ -37,7 +37,7 @@ function _initNecInlineSelectors(){
 //  ANUALIDAD (Fijos — tabla K:P)
 // ══════════════════════════════════════════
 function renderAnualidad(data){
-  const body=document.getElementById('anualidad-body');
+  const body=document.getElementById('gastos-body');
   if(!data.ok||!data.grupos||!data.grupos.length){
     body.innerHTML='<div style="padding:16px;color:var(--m);text-align:center">Sin datos</div>';return;
   }
@@ -105,7 +105,7 @@ function renderAnualidad(data){
 // ══════════════════════════════════════════
 function onDatosMes(data){datosMes=data;renderGastos();initGraficas(data);}
 function renderGastos(){
-  const body=document.getElementById('gastos-body');
+  const body=document.getElementById('anualidad-body');
   const data=datosMes;
   if(!data.meses||!data.meses.length){body.innerHTML='<div style="padding:16px;color:var(--m);text-align:center">Sin datos</div>';return;}
   const esMob=document.documentElement.classList.contains('mob')||window.innerWidth<900;
