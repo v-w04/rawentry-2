@@ -53,14 +53,7 @@ html.encom body::before {
   opacity: .18;
 }
 
-/* ── Fondo hex sutil en sections ── */
-html.encom .section {
-  background-image: url('https://v-w04.github.io/rawentry-2/hex.png');
-  background-size: 120px;
-  background-repeat: repeat;
-  background-blend-mode: overlay;
-  background-color: rgba(0,0,0,.92) !important;
-}
+/* hex background removido */
 
 /* ════════════════════════
    HERO
@@ -855,4 +848,41 @@ html.encom #rev-sel-sem:hover {
 }
 html.encom .section {
   animation: encBorderPulse 4s ease-in-out infinite !important;
+}
+
+/* ════════════════════════
+   COMPONENTES ENCOM — visibilidad
+════════════════════════ */
+
+/* Ocultos por default, visibles en modo Encom */
+#enc-clock-fin,
+#enc-ticker-fin,
+#enc-swirls-fin,
+#enc-swirls-activity {
+  display: none !important;
+}
+
+html.encom #enc-clock-fin {
+  display: block !important;
+}
+html.encom #enc-ticker-fin {
+  display: flex !important;
+}
+html.encom #enc-swirls-fin {
+  display: block !important;
+}
+html.encom #enc-swirls-activity {
+  display: block !important;
+}
+
+/* Header line animada */
+.enc-hdr-line {
+  display: none;
+  height: 1px;
+  width: 0;
+  background: linear-gradient(90deg, #00eeee, transparent);
+  margin: 0;
+}
+html.encom .enc-hdr-line {
+  display: block;
 }
