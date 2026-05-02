@@ -828,33 +828,16 @@ var _necInlineData = null;
 var _necInlineVista = 'piramide';
 var _radarInlineChart = null;
 
-function switchNecInline(vista){
-  _necInlineVista = vista;
-  var bp = document.getElementById('nec-inline-btn-piramide');
-  var br = document.getElementById('nec-inline-btn-radar');
-  [bp,br].forEach(function(b){ if(!b) return;
-    b.style.background='none'; b.style.borderColor='rgba(255,255,255,.1)'; b.style.color='var(--m)'; b.style.fontWeight='500';
-  });
-  var activeBtn = vista==='piramide' ? bp : br;
-  if(activeBtn){ activeBtn.style.background='rgba(139,92,246,.25)'; activeBtn.style.borderColor='rgba(139,92,246,.4)'; activeBtn.style.color='#C4B5FD'; activeBtn.style.fontWeight='700'; }
-  var p = document.getElementById('maslow-inline-piramide');
-  var r = document.getElementById('maslow-inline-radar');
-  if(p) p.style.display = vista==='piramide' ? 'block' : 'none';
-  if(r) r.style.display = vista==='radar'    ? 'block' : 'none';
-  if(_necInlineData) _dibujarNecInline(_necInlineData);
-}
+// switchNecInline eliminado — vista única sin toggle
 
 function renderNecesidadesInline(data){
   if(!data) return;
   _necInlineData = data;
-  _dibujarNecInline(data);
-}
-
-function _dibujarNecInline(data){
   var niveles = data.niveles || [];
-  if(_necInlineVista === 'piramide') _dibujarPiramideInline(niveles);
-  else _dibujarRadarInline(niveles);
-  _dibujarTablaInline(niveles);
+  // Radar arriba
+  _dibujarRadarInline(niveles);
+  // Pirámide con resumen fusionado abajo
+  _dibujarPiramideInline(niveles);
 }
 
 function _dataNivelInline(key, arr){
@@ -864,42 +847,82 @@ function _dataNivelInline(key, arr){
 function _dibujarPiramideInline(niveles){
   var cont = document.getElementById('nec-inline-container');
   if(!cont) return;
+  var totalSum = NEC_NIVELES.reduce(function(s,n){ return s+Math.abs(_dataNivelInline(n.key,niveles).total||0); },0);
   var maxAbs = 1;
   NEC_NIVELES.forEach(function(n){ var v=Math.abs(_dataNivelInline(n.key,niveles).total||0); if(v>maxAbs) maxAbs=v; });
-  var totalSum = NEC_NIVELES.reduce(function(s,n){ return s+Math.abs(_dataNivelInline(n.key,niveles).total||0); },0);
+
+  // Donut
+  var donutHTML = '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px 8px">';
+  donutHTML += '<canvas id="nec-donut-canvas" width="80" height="80" style="flex-shrink:0"></canvas>';
+  donutHTML += '<div style="flex:1">';
+  var sorted = NEC_NIVELES.map(function(n){ var d=_dataNivelInline(n.key,niveles); return {label:n.label,color:n.color,abs:Math.abs(d.total||0),pct:totalSum>0?(Math.abs(d.total||0)/totalSum*100):0}; }).sort(function(a,b){return b.abs-a.abs;});
+  sorted.forEach(function(n){
+    if(n.abs===0) return;
+    donutHTML += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">';
+    donutHTML += '<div style="width:6px;height:6px;border-radius:50%;background:'+n.color+';flex-shrink:0"></div>';
+    donutHTML += '<span style="font-size:10px;color:var(--m)">'+n.label+'</span>';
+    donutHTML += '<span style="font-size:10px;font-weight:700;color:#fff;margin-left:auto">'+Math.round(n.pct)+'%</span>';
+    donutHTML += '</div>';
+  });
+  donutHTML += '</div></div>';
+
+  // Barras con status fusionado
   var pisos = NEC_NIVELES.slice().reverse();
-  var html = '';
+  var barrasHTML = '<div style="padding:0 16px 12px">';
   pisos.forEach(function(niv){
     var d    = _dataNivelInline(niv.key, niveles);
     var abs  = Math.abs(d.total||0);
     var pct  = totalSum>0 ? (abs/totalSum*100) : 0;
     var barW = maxAbs>0 ? (abs/maxAbs*100) : 0;
-    var vacio = abs===0;
+    var vacio= abs===0;
     var tops = (d.conceptos||[]).slice(0,3).join(', ');
-    html += '<div style="margin-bottom:12px">';
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">';
-    html += '<div style="display:flex;align-items:center;gap:6px">';
-    html += '<div style="width:8px;height:8px;border-radius:50%;background:'+(vacio?'var(--dim)':niv.color)+';flex-shrink:0"></div>';
-    html += '<span style="font-size:12px;font-weight:600;color:'+(vacio?'var(--m)':'var(--t)')+'">'+niv.label+'</span>';
-    if(vacio) html += '<span style="font-size:10px;color:var(--warn)">⚠ descuidado</span>';
-    html += '</div>';
-    html += '<div>';
-    html += '<span style="font-size:13px;font-weight:700;color:'+(vacio?'var(--dim)':'var(--t)')+'">'+(vacio?'—':'$ '+abs.toLocaleString('es-MX',{minimumFractionDigits:0}))+'</span>';
-    html += '<span style="font-size:10px;color:var(--m);margin-left:6px">'+(vacio?'':Math.round(pct)+'%')+'</span>';
-    html += '</div></div>';
-    html += '<div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">';
-    html += '<div style="height:100%;width:'+barW.toFixed(1)+'%;background:'+niv.color+';border-radius:2px;opacity:'+(vacio?.25:.8)+'"></div>';
-    html += '</div>';
-    if(tops) html += '<div style="font-size:10px;color:var(--m);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">↳ '+tops+'</div>';
-    html += '</div>';
+    var status = vacio
+      ? '<span style="font-size:9px;color:var(--warn);background:rgba(245,158,11,.1);padding:1px 6px;border-radius:8px">⚠</span>'
+      : (pct>40
+        ? '<span style="font-size:9px;color:var(--err);background:rgba(239,68,68,.08);padding:1px 6px;border-radius:8px">Alto</span>'
+        : '<span style="font-size:9px;color:var(--ok);background:rgba(74,222,128,.08);padding:1px 6px;border-radius:8px">✓</span>');
+    barrasHTML += '<div style="margin-bottom:10px">';
+    barrasHTML += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">';
+    barrasHTML += '<div style="display:flex;align-items:center;gap:5px">';
+    barrasHTML += '<div style="width:7px;height:7px;border-radius:50%;background:'+(vacio?'var(--dim)':niv.color)+';flex-shrink:0"></div>';
+    barrasHTML += '<span style="font-size:12px;font-weight:600;color:'+(vacio?'var(--m)':'var(--t)')+'">'+niv.label+'</span>';
+    barrasHTML += status+'</div>';
+    barrasHTML += '<span style="font-size:12px;font-weight:700;color:'+(vacio?'var(--dim)':niv.color)+'">'+( vacio?'—':'$ '+abs.toLocaleString('es-MX',{minimumFractionDigits:0}))+'<span style="font-size:10px;color:var(--m);font-weight:400"> '+Math.round(pct)+'%</span></span>';
+    barrasHTML += '</div>';
+    barrasHTML += '<div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">';
+    barrasHTML += '<div style="height:100%;width:'+barW.toFixed(1)+'%;background:'+niv.color+';border-radius:3px;opacity:'+(vacio?.2:.85)+'"></div>';
+    barrasHTML += '</div>';
+    if(tops) barrasHTML += '<div style="font-size:10px;color:var(--m);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">↳ '+tops+'</div>';
+    barrasHTML += '</div>';
   });
-  cont.innerHTML = '<div style="padding:8px 16px">'+html+'</div>';
+  barrasHTML += '</div>';
+
+  cont.innerHTML = donutHTML + barrasHTML;
+
+  setTimeout(function(){
+    var dc = document.getElementById('nec-donut-canvas');
+    if(!dc || !window.Chart) return;
+    var vals   = NEC_NIVELES.map(function(n){ return Math.abs(_dataNivelInline(n.key,niveles).total||0); });
+    var colors = NEC_NIVELES.map(function(n){ return n.color; });
+    if(window._donutInlineChart){ try{window._donutInlineChart.destroy();}catch(e){} }
+    window._donutInlineChart = new Chart(dc,{
+      type:'doughnut',
+      data:{ datasets:[{ data:vals, backgroundColor:colors.map(function(c){ return c+'99'; }),
+        borderColor:colors, borderWidth:1.5, hoverOffset:4 }],
+        labels:NEC_NIVELES.map(function(n){ return n.label; }) },
+      options:{ responsive:false, cutout:'72%',
+        plugins:{ legend:{display:false},
+          tooltip:{ backgroundColor:'rgba(15,23,42,.95)', borderColor:'rgba(255,255,255,.1)', borderWidth:1,
+            callbacks:{ label:function(ctx){ return ' $ '+ctx.raw.toLocaleString('es-MX',{minimumFractionDigits:0}); }}}}}
+    });
+  }, 50);
 }
 
 function _dibujarRadarInline(niveles){
-  var cont = document.getElementById('nec-inline-container');
+  var cont = document.getElementById('nec-inline-radar-wrap');
   if(!cont) return;
-  cont.innerHTML = '<canvas id="radar-inline-canvas" style="max-height:280px;padding:8px 16px"></canvas>';
+  cont.innerHTML = '<canvas id="radar-inline-canvas" style="max-height:260px;width:100%"></canvas>';
+  setTimeout(function(){
   var canvas = document.getElementById('radar-inline-canvas');
   if(!canvas || !window.Chart) return;
   var labels  = NEC_NIVELES.map(function(n){ return n.label; });
@@ -925,6 +948,7 @@ function _dibujarRadarInline(niveles){
         pointLabels:{ font:{size:11,weight:'600',family:'system-ui'},
           color:function(ctx){ return colors[ctx.index]||'#94A3B8'; }}}}}
   });
+  }, 80);
 }
 
 function _dibujarTablaInline(niveles){
