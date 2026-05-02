@@ -26,6 +26,19 @@
     if(!raw) return;
     var layout;
     try { layout = JSON.parse(raw); } catch(e){ return; }
+
+    // Validar que el layout tiene las 4 columnas con al menos 1 sección cada una
+    var cols = ['col1-wrap','col-1','col-3','col-4'];
+    var totalSecs = 0;
+    cols.forEach(function(c){ totalSecs += (layout[c]||[]).length; });
+    var colsWithSecs = cols.filter(function(c){ return (layout[c]||[]).length > 0; }).length;
+
+    // Si menos de 2 columnas tienen secciones, el layout está roto — resetear
+    if(colsWithSecs < 2 || totalSecs < 4){
+      try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
+      return;
+    }
+
     Object.keys(layout).forEach(function(colId){
       var col = document.getElementById(colId);
       if(!col) return;
