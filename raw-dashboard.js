@@ -26,7 +26,7 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.061
+/* RAW Entry — Dashboard v.5.062
    Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
 */
 
@@ -1058,7 +1058,6 @@ function renderPatrimonio(data){
   var saludColor = f.salud==='ok'?'#4ADE80':f.salud==='warn'?'#F59E0B':'#EF4444';
   var saludLbl   = f.salud==='ok'?'Fondo completo':f.salud==='warn'?'Fondo parcial':'Sin fondo';
 
-  // Apartados por banco para el disponible
   var apPorBanco = {};
   var totalAp = 0;
   (_apartadosData||[]).forEach(function(ap){
@@ -1068,83 +1067,72 @@ function renderPatrimonio(data){
     totalAp += (ap.monto||0);
   });
 
-  var html = '';
-
-  // Calcular disponible real = total − apartados activos
   var totalDisponible = total - totalAp;
   var totalBruto      = total;
+  var html = '';
 
-  // ── CABECERA COMPACTA — cifra principal = disponible ──
-  html += '<div style="padding:14px 16px 10px">';
-
-  // Fila 1: disponible (número principal) + label
-  html += '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px">';
-  html += '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--m)">Disponible</div>';
+  // ── CABECERA — misma estructura que Financiero ──
+  html += '<div style="padding:14px 16px 12px;border-bottom:1px solid rgba(255,255,255,.06)">';
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">';
+  html += '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--m)">Disponible</div>';
   if(totalAp > 0){
-    html += '<div style="font-size:9px;color:var(--m)">Bruto <span style="color:rgba(255,255,255,.35)">'+fmt2(totalBruto)+'</span> − Apartados <span style="color:#F59E0B">'+fmt(totalAp)+'</span></div>';
+    html += '<div style="font-size:10px;color:var(--m);margin-left:auto">Bruto <span style="color:rgba(255,255,255,.4);font-weight:600">'+fmt2(totalBruto)+'</span> − Apartados <span style="color:#F59E0B;font-weight:600">'+fmt(totalAp)+'</span></div>';
   }
   html += '</div>';
 
-  // Número principal: disponible
-  html += '<div style="font-size:34px;font-weight:800;letter-spacing:-.04em;color:#4ADE80;line-height:1.05">'+fmt2(totalDisponible)+'</div>';
+  html += '<div style="display:flex;align-items:center;width:100%">';
+  html += '<div style="flex:0 0 auto"><div style="font-size:34px;font-weight:800;letter-spacing:-.04em;color:#4ADE80;line-height:1;white-space:nowrap">'+fmt2(totalDisponible)+'</div></div>';
 
-  // Fila 2: desglose en chips horizontales
-  html += '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">';
-  // Banco disponible
-  var bancDisp = (banco.saldo||0) - (apPorBanco['BBVA']||0) - (apPorBanco['BANCO']||0);
+  var chipItems = [];
   (banco.items||[]).forEach(function(it){
     var apIt = apPorBanco[(it.nombre||'').toUpperCase()]||0;
-    var dIt  = (it.monto||0) - apIt;
-    html += '<div style="padding:3px 10px;border-radius:6px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2)">';
-    html += '<div style="font-size:9px;color:rgba(74,222,128,.6);font-weight:600">'+it.nombre+'</div>';
-    html += '<div style="font-size:13px;font-weight:700;color:#4ADE80">'+fmt(dIt)+'</div>';
-    if(apIt>0) html += '<div style="font-size:9px;color:rgba(255,255,255,.25)">saldo '+fmt(it.monto)+'</div>';
-    html += '</div>';
+    chipItems.push({ nombre:it.nombre, disp:(it.monto||0)-apIt, saldo:it.monto||0, color:'#4ADE80', apIt:apIt });
   });
-  // Efectivo chips
   (fisico.items||[]).forEach(function(it){
     var apIt = apPorBanco[(it.nombre||'').toUpperCase()]||0;
-    var dIt  = (it.monto||0) - apIt;
-    html += '<div style="padding:3px 10px;border-radius:6px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2)">';
-    html += '<div style="font-size:9px;color:rgba(251,191,36,.6);font-weight:600">'+it.nombre+'</div>';
-    html += '<div style="font-size:13px;font-weight:700;color:#FBBF24">'+fmt(dIt)+'</div>';
-    if(apIt>0) html += '<div style="font-size:9px;color:rgba(255,255,255,.25)">saldo '+fmt(it.monto)+'</div>';
+    chipItems.push({ nombre:it.nombre, disp:(it.monto||0)-apIt, saldo:it.monto||0, color:'#FBBF24', apIt:apIt });
+  });
+  if(inversion.saldo > 0){
+    chipItems.push({ nombre:'Inversión', disp:inversion.saldo, saldo:inversion.saldo, color:'#C4B5FD', apIt:0 });
+  }
+  chipItems.forEach(function(ch){
+    html += '<div style="width:1px;height:32px;background:rgba(255,255,255,.1);margin:0 16px;flex-shrink:0"></div>';
+    html += '<div style="flex:1;min-width:0">';
+    html += '<div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:3px">'+ch.nombre+'</div>';
+    html += '<div style="font-size:18px;font-weight:700;color:'+ch.color+';letter-spacing:-.02em;line-height:1">'+fmt(ch.disp)+'</div>';
+    if(ch.apIt > 0) html += '<div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:1px">saldo '+fmt(ch.saldo)+'</div>';
     html += '</div>';
   });
-  // Inversión chip (si hay)
-  if(inversion.saldo > 0){
-    html += '<div style="padding:3px 10px;border-radius:6px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2)">';
-    html += '<div style="font-size:9px;color:rgba(139,92,246,.6);font-weight:600">Inversión</div>';
-    html += '<div style="font-size:13px;font-weight:700;color:#C4B5FD">'+fmt(inversion.saldo)+'</div>';
-    if(inversion.rendimientoTotal>0) html += '<div style="font-size:9px;color:rgba(255,255,255,.25)">+'+fmt(inversion.rendimientoTotal)+' rend.</div>';
-    html += '</div>';
-  }
-  html += '</div>'; // /chips
+  html += '</div>';
+  html += '</div>';
 
-  html += '</div>'; // /cabecera
-
-  // Barra distribución (disponible real, no bruto)
-  if(totalDisponible > 0){
-    var pctBancoD  = Math.round((banco.saldo - (apPorBanco['BBVA']||0)) / totalDisponible * 100);
-    var pctFisicoD = Math.round(fisico.saldo / totalDisponible * 100);
-    var pctInvD    = Math.round(inversion.saldo / totalDisponible * 100);
+  // Barra
+  if(totalBruto > 0){
     html += '<div style="margin:0 16px 10px;height:5px;border-radius:3px;overflow:hidden;display:flex;gap:1px">';
-    if(pctBancoD > 0)  html += '<div style="width:'+pctBancoD+'%;background:#4ADE80"></div>';
-    if(pctFisicoD > 0) html += '<div style="width:'+pctFisicoD+'%;background:#FBBF24"></div>';
-    if(pctInvD > 0)    html += '<div style="width:'+pctInvD+'%;background:#8B5CF6"></div>';
-    if(totalAp > 0){
-      var pctAp = Math.round(totalAp / totalBruto * 100);
-      html += '<div style="width:'+Math.min(pctAp,100)+'%;background:rgba(245,158,11,.35)"></div>';
+    (banco.items||[]).forEach(function(it){
+      var apIt = apPorBanco[(it.nombre||'').toUpperCase()]||0;
+      var dispPct = Math.round(((it.monto||0)-apIt)/totalBruto*100);
+      var apPct   = Math.round(apIt/totalBruto*100);
+      if(dispPct>0) html += '<div style="width:'+dispPct+'%;background:#4ADE80"></div>';
+      if(apPct>0)   html += '<div style="width:'+apPct+'%;background:rgba(245,158,11,.4)"></div>';
+    });
+    (fisico.items||[]).forEach(function(it){
+      var pct = Math.round((it.monto||0)/totalBruto*100);
+      if(pct>0) html += '<div style="width:'+pct+'%;background:#FBBF24"></div>';
+    });
+    if(inversion.saldo>0){
+      var pct = Math.round(inversion.saldo/totalBruto*100);
+      if(pct>0) html += '<div style="width:'+pct+'%;background:#8B5CF6"></div>';
     }
     html += '</div>';
   }
 
-  // ── Fondo de emergencia compacto ──
+  // Fondo emergencia
   if(f.meta > 0){
-    html += '<div style="margin:0 16px 8px;padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px">';
+    html += '<div style="margin:0 16px 10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px">';
     html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">';
-    html += '<span style="font-size:10px;color:var(--m)">🎯 Fondo emergencia</span>';
-    html += '<span style="font-size:11px;font-weight:700;color:'+saludColor+'">'+(f.avance||0)+'% · '+saludLbl+'</span>';
+    html += '<span style="font-size:11px;color:var(--m)">🎯 Fondo emergencia</span>';
+    html += '<span style="font-size:12px;font-weight:700;color:'+saludColor+'">'+(f.avance||0)+'% · '+saludLbl+'</span>';
     html += '</div>';
     html += '<div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:5px">';
     html += '<div style="height:100%;width:'+Math.min(100,f.avance||0)+'%;background:'+saludColor+';border-radius:2px"></div>';
@@ -1155,19 +1143,17 @@ function renderPatrimonio(data){
     html += '</div></div>';
   }
 
-  // ── Divider ──
   html += '<div style="border-top:1px solid rgba(255,255,255,.06);margin:2px 0 0"></div>';
 
-  // ── Saldos editables (ex-Bancos) ──
+  // Saldos editables
   html += '<div style="padding:4px 0 0">';
-  // Calcular total disponible
   var _fijosGlobal = window._fijosData || [];
   if(_fijosGlobal.length){
-    var totalFijos  = _fijosGlobal.reduce(function(s,f){ return f.nombre==='P'?s:s+(f.monto||0); }, 0);
-    var totalDisp   = totalFijos - totalAp;
-    var hayP        = _fijosGlobal.some(function(f){ return f.nombre==='P'; });
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px 6px">';
-    html += '<div style="font-size:11px;font-weight:700;color:var(--m);text-transform:uppercase;letter-spacing:.06em">Saldos</div>';
+    var totalFijos = _fijosGlobal.reduce(function(s,fi){ return fi.nombre==='P'?s:s+(fi.monto||0); }, 0);
+    var totalDisp  = totalFijos - totalAp;
+    var hayP       = _fijosGlobal.some(function(fi){ return fi.nombre==='P'; });
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px 6px">';
+    html += '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--m)">Saldos</div>';
     html += '<div style="font-size:16px;font-weight:800;color:#4ADE80;letter-spacing:-.02em">'+fmt2(totalDisp)+'</div>';
     html += '</div>';
     _fijosGlobal.forEach(function(fi){
@@ -1175,15 +1161,15 @@ function renderPatrimonio(data){
       var bancKey  = (fi.nombre||'').trim().toUpperCase();
       var apBanco  = apPorBanco[bancKey]||0;
       var disp     = (fi.monto||0) - apBanco;
-      var {txt,cls} = fmtMoneda(fi.monto);
-      var {txt:dTxt} = fmtMoneda(disp);
+      var montoFmt = (fi.monto||0) >= 0 ? '$ '+Math.abs(fi.monto||0).toLocaleString('es-MX',{minimumFractionDigits:2}) : '− $ '+Math.abs(fi.monto||0).toLocaleString('es-MX',{minimumFractionDigits:2});
+      var montoColor = excluido ? '#EF4444' : '#4ADE80';
       html += '<div class="ente-row'+(excluido?' excluido-total':'')+'" onclick="togEnteEdit('+fi.fila+')" style="padding:10px 16px">';
       html += '<div class="ente-nombre">'+fi.nombre+'</div>';
       html += '<div class="ente-right">';
       html += '<div style="text-align:right">';
-      html += '<div class="ente-monto '+cls+'" id="em-'+fi.fila+'">'+txt+'</div>';
+      html += '<div class="ente-monto" id="em-'+fi.fila+'" style="color:'+montoColor+'">'+montoFmt+'</div>';
       if(!excluido && apBanco > 0){
-        html += '<div style="font-size:11px;color:var(--m);margin-top:1px">disponible: <span style="color:#4ADE80;font-weight:700;font-size:12px">'+dTxt+'</span></div>';
+        html += '<div style="font-size:11px;color:var(--m);margin-top:1px">disponible: <span style="color:#4ADE80;font-weight:700;font-size:12px">'+fmt(disp)+'</span></div>';
       }
       html += '</div>';
       html += '<div class="ente-fecha">'+fmtDiaSemana(fi.fecha)+'</div>';
@@ -1196,10 +1182,10 @@ function renderPatrimonio(data){
     if(hayP) html += '<div class="ente-excluido-nota">* excluido del total</div>';
   }
 
-  // ── Apartados ──
+  // Apartados
   if((_apartadosData||[]).length){
     html += '<div style="padding:8px 16px 4px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.06);margin-top:4px">';
-    html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m)">Apartados</div>';
+    html += '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--m)">Apartados</div>';
     html += '<span style="font-size:13px;font-weight:700;color:var(--warn)">'+fmt(totalAp)+'</span>';
     html += '</div>';
     var hoy = new Date(); hoy.setHours(0,0,0,0);
@@ -1214,10 +1200,9 @@ function renderPatrimonio(data){
       html += '<div class="apartado-icon">💰</div>';
       html += '<div class="apartado-info">';
       html += '<div class="apartado-nombre">'+ap.nombre+'</div>';
-      html += '<div class="apartado-meta">'+(ap.banco||'')+(ap.banco&&ap.categoria?' · ':''+(ap.categoria||''))+(metaStr?' · '+metaStr:'')+'</div>';
+      html += '<div class="apartado-meta">'+(ap.banco||'')+(ap.categoria?' · '+ap.categoria:'')+(metaStr?' · '+metaStr:'')+'</div>';
       html += '</div>';
-      html += '<div>';
-      html += '<div class="apartado-monto">'+fmt(ap.monto)+'</div>';
+      html += '<div><div class="apartado-monto">'+fmt(ap.monto)+'</div>';
       if(!usado){
         html += '<button onclick="_marcarApartadoUsado('+ap.fila+')" style="font-size:10px;padding:3px 10px;border-radius:var(--rad-pill);border:1px solid rgba(74,222,128,.25);background:rgba(74,222,128,.08);color:#4ADE80;cursor:pointer;font-family:inherit;margin-top:5px;display:block" onmouseover="this.style.background=\'rgba(74,222,128,.2)\'" onmouseout="this.style.background=\'rgba(74,222,128,.08)\'">Usar ✓</button>';
       } else {
@@ -1226,7 +1211,7 @@ function renderPatrimonio(data){
       html += '</div></div>';
     });
   }
-  html += '</div>'; // /saldos
+  html += '</div>';
 
   body.innerHTML = html;
 }
