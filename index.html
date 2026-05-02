@@ -19,7 +19,7 @@
       <button class="hero-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
       <div class="hero-brand">
         <div class="hero-title">Life<span style="color:var(--p)">OS</span></div>
-        <div class="hero-sub">v.5.056 · Trello · Sheets</div>
+        <div class="hero-sub">v.5.057 · Trello · Sheets</div>
       </div>
     </div>
 
@@ -27,7 +27,7 @@
       <div id="chip" class="hero-chip load"><span id="chip-txt">Cargando</span></div>
       <button class="btn-flip btn-nueva-entrada-hero" id="btn-nueva-entrada" onclick="toggleEntradaDropdown()" title="Nueva Entrada" style="background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#A5B4FC"><i class="fas fa-plus"></i> Nueva</button>
       <button class="btn-flip" id="btn-logros" onclick="irALogros()" title="Logros"><i class="fas fa-trophy"></i> Logros</button>
-      <button class="btn-flip" id="btn-maslow" onclick="irAMaslow()" title="Maslow">⬡ Maslow</button>
+      <button class="btn-flip" id="btn-maslow" onclick="irABitacora()" title="Bitácora"><i class="fas fa-book-open"></i> Bitácora</button>
       <button class="btn-flip" id="btn-activity" onclick="irAActivity()" title="Activity Check">⚡ Activity</button>
       <button class="nav-btn sos" id="btn-sos" onclick="activarSOS()" title="SOS"><i class="fas fa-circle-exclamation"></i> SOS</button>
       <button class="btn-flip" id="btn-nutricion" onclick="irANutricion()" title="Nutrición" style="background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.3);color:#4ADE80"><i class="fas fa-leaf"></i> Nutrición</button>
@@ -355,13 +355,13 @@
   </div>
 
   <!-- PANEL MASLOW -->
-  <div class="board-face panel-maslow" id="board-maslow" style="overflow-y:auto;overflow-x:hidden;">
+  <div class="board-face panel-bitacora" id="board-bitacora" style="overflow-y:auto;overflow-x:hidden;">
     <div class="reverso-header">
       <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(139,92,246,.08));border:1px solid rgba(139,92,246,.3);display:flex;align-items:center;justify-content:center;font-size:14px">🧠</div>
+        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(139,92,246,.08));border:1px solid rgba(139,92,246,.3);display:flex;align-items:center;justify-content:center;font-size:14px"><i class="fas fa-book-open" style="color:#C4B5FD;font-size:14px"></i></div>
         <div>
-          <div class="reverso-title">Necesidades</div>
-          <div style="font-size:10px;color:var(--m)">Pirámide de Maslow</div>
+          <div class="reverso-title">Bitácora</div>
+          <div style="font-size:10px;color:var(--m)">Tu registro personal</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:6px">
@@ -375,10 +375,7 @@
         <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
       </div>
     </div>
-    <div id="nec-container" style="padding:0 20px"></div>
-    <div id="nec-tabla" style="display:none"></div>
-
-    <!-- 5 columnas con drag & drop dentro de Maslow -->
+    <!-- 5 columnas Bitácora -->
     <div class="maslow-cols" id="maslow-sections">
 
       <div id="mcol-1">
@@ -542,9 +539,9 @@
     <div class="mob-tab-icon"><i class="fas fa-trophy"></i></div>
     <div class="mob-tab-label">Logros</div>
   </button>
-  <button class="mob-tab" data-tab="maslow" onclick="irAMaslow()">
-    <div class="mob-tab-icon">⬡</div>
-    <div class="mob-tab-label">Maslow</div>
+  <button class="mob-tab" data-tab="bitacora" onclick="irABitacora()">
+    <div class="mob-tab-icon"><i class="fas fa-book-open"></i></div>
+    <div class="mob-tab-label">Bitácora</div>
   </button>
   <button class="mob-tab" data-tab="activity" onclick="irAActivity()">
     <div class="mob-tab-icon"><i class="fas fa-bolt"></i></div>
