@@ -19,7 +19,7 @@
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(layout)); } catch(e){}
   }
 
-  // Restaurar layout guardado
+  // Restaurar layout guardado — NUNCA borrar, siempre respetar lo que el usuario guardó
   function restoreLayout(){
     var raw;
     try { raw = localStorage.getItem(STORAGE_KEY); } catch(e){}
@@ -27,24 +27,13 @@
     var layout;
     try { layout = JSON.parse(raw); } catch(e){ return; }
 
-    // Validar que el layout tiene las 4 columnas con al menos 1 sección cada una
-    var cols = ['col1-wrap','col-1','col-3','col-4'];
-    var totalSecs = 0;
-    cols.forEach(function(c){ totalSecs += (layout[c]||[]).length; });
-    var colsWithSecs = cols.filter(function(c){ return (layout[c]||[]).length > 0; }).length;
-
-    // Si menos de 2 columnas tienen secciones, el layout está roto — resetear
-    if(colsWithSecs < 2 || totalSecs < 4){
-      try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
-      return;
-    }
-
+    // Solo mover secciones que existen en el DOM — sin validar ni resetear
     Object.keys(layout).forEach(function(colId){
       var col = document.getElementById(colId);
       if(!col) return;
       layout[colId].forEach(function(secId){
         var sec = document.getElementById(secId);
-        if(sec && sec.parentElement !== col) col.appendChild(sec);
+        if(sec) col.appendChild(sec);
       });
     });
   }
