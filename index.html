@@ -19,7 +19,7 @@
       <button class="hero-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
       <div class="hero-brand">
         <div class="hero-title">Life<span style="color:var(--p)">OS</span></div>
-        <div class="hero-sub">v.5.043 · Trello · Sheets</div>
+        <div class="hero-sub">v.5.044 · Trello · Sheets</div>
       </div>
     </div>
 
@@ -270,8 +270,12 @@
       </div>
       <div class="sec-body" id="sec-gastos-body">
         <div id="anualidad-body"></div>
-        <div class="sec-sub-hdr"><div class="sec-sub-hdr-icon"><i class="fas fa-chart-line"></i></div><span>Variables</span></div>
-        <div style="padding:8px var(--pad) 4px">
+        <div class="sec-sub-hdr graf-toggle" onclick="togGraf('graf-variables-body')" id="graf-variables-hdr">
+          <div class="sec-sub-hdr-icon"><i class="fas fa-chart-line"></i></div>
+          <span>Variables</span>
+          <i class="fas fa-chevron-down" style="font-size:10px;color:var(--m);margin-left:auto;transition:transform .25s" id="graf-variables-chev"></i>
+        </div>
+        <div id="graf-variables-body" style="display:none;padding:8px var(--pad) 4px">
           <div id="graf-loading" style="text-align:center;padding:24px;color:var(--m)">Cargando gráfica…</div>
           <canvas id="graf-canvas" style="display:none;max-height:260px"></canvas>
           <div id="graf-leyenda" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px var(--pad) 4px"></div>
@@ -288,8 +292,12 @@
       </div>
       <div class="sec-body" id="sec-anualidad-body">
         <div id="gastos-body"></div>
-        <div class="sec-sub-hdr"><div class="sec-sub-hdr-icon"><i class="fas fa-chart-bar"></i></div><span>Fijos</span></div>
-        <div style="padding:4px var(--pad) 8px">
+        <div class="sec-sub-hdr graf-toggle" onclick="togGraf('graf-fijos-body')" id="graf-fijos-hdr">
+          <div class="sec-sub-hdr-icon"><i class="fas fa-chart-bar"></i></div>
+          <span>Fijos</span>
+          <i class="fas fa-chevron-down" style="font-size:10px;color:var(--m);margin-left:auto;transition:transform .25s" id="graf-fijos-chev"></i>
+        </div>
+        <div id="graf-fijos-body" style="display:none;padding:4px var(--pad) 8px">
           <div id="graf-fijos-loading" style="text-align:center;padding:16px;color:var(--m)">Cargando gráfica…</div>
           <canvas id="graf-fijos-canvas" style="display:none;max-height:240px"></canvas>
           <div id="graf-fijos-leyenda" style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 0"></div>
