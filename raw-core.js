@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.5.044
+/* RAW Entry — Core v.5.045
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Detectar móvil
@@ -377,7 +377,33 @@ window.addEventListener('DOMContentLoaded',()=>{
   initTooltip();
   _initMobTablero();
   const bfEl=document.getElementById('banco-fecha'); if(bfEl) bfEl.value=fmtD(new Date());
+  // Restaurar tema Encom si estaba activo
+  _initEncomTheme();
 });
+
+// ══════════════════════════════════════════
+//  ENCOM THEME TOGGLE
+// ══════════════════════════════════════════
+function _initEncomTheme(){
+  if(localStorage.getItem('lifeos_theme') === 'encom'){
+    document.documentElement.classList.add('encom');
+    _updateEncomBtn(true);
+  }
+}
+
+function toggleEncomTheme(){
+  const isEncom = document.documentElement.classList.toggle('encom');
+  localStorage.setItem('lifeos_theme', isEncom ? 'encom' : 'default');
+  _updateEncomBtn(isEncom);
+  showToast(isEncom ? '⬡ ENCOM MODE ON' : '● Default Mode', true);
+}
+
+function _updateEncomBtn(active){
+  const btn = document.getElementById('btn-encom-toggle');
+  if(!btn) return;
+  btn.textContent = active ? '⬡ ENCOM' : '⬡ ENCOM';
+  btn.title = active ? 'Desactivar Encom Mode' : 'Activar Encom Mode';
+}
 
 function mostrarErrorConexion(msg){
   const d=document.createElement('div');
