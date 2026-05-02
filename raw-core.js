@@ -358,6 +358,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       renderAnualidad(d.gastos);
       renderLogros(d.logros);
       renderNecesidades(d.necesidades);
+      if(typeof renderNecesidadesInline==='function') renderNecesidadesInline(d.necesidades);
       renderFlujoMensual(d.flujoPorMes);
       renderApartados(d.apartados||{items:[],totalApartado:0});
       if(d.activityCheck){ _actData=d.activityCheck; }
