@@ -20,7 +20,7 @@
       <button class="hero-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
       <div class="hero-brand">
         <div class="hero-title">Life<span style="color:var(--p)">OS</span></div>
-        <div class="hero-sub">v.5.64 · Trello · Sheets</div>
+        <div class="hero-sub">v.5.65 · Trello · Sheets</div>
       </div>
     </div>
 
@@ -215,15 +215,15 @@
           <div class="sec-hdr-icon" style="background:rgba(74,222,128,.12);color:var(--ok)"><i class="fas fa-chart-line"></i></div>
           <span class="sec-hdr-title">Financiero</span>
           <!-- Encom clock (visible solo en modo encom) -->
-          <canvas id="enc-clock-fin" width="56" height="56"
-            style="display:none;opacity:.7;margin-left:6px;flex-shrink:0"></canvas>
+          <canvas id="enc-clock-fin" width="80" height="80"
+            style="display:none;opacity:.85;margin-left:10px;flex-shrink:0"></canvas>
           <!-- Encom ticker -->
           <div id="enc-ticker-fin"
-            style="display:none;flex-direction:column;align-items:flex-start;margin-left:8px;line-height:1">
+            style="display:none;flex-direction:column;align-items:flex-start;margin-left:10px;line-height:1.1">
             <div class="enc-tick-lbl"
-              style="font-size:7px;color:rgba(0,238,238,.5);letter-spacing:.12em;text-transform:uppercase;font-family:Inconsolata,monospace">SYS</div>
+              style="font-size:9px;color:rgba(0,238,238,.6);letter-spacing:.14em;text-transform:uppercase;font-family:Inconsolata,monospace">SYS</div>
             <div class="enc-tick-val"
-              style="font-size:13px;font-weight:700;color:#00eeee;font-family:Inconsolata,monospace;letter-spacing:-.02em">+0.0</div>
+              style="font-size:20px;font-weight:700;color:#00eeee;font-family:Inconsolata,monospace;letter-spacing:-.02em;line-height:1">+0.0</div>
           </div>
         </div>
         <div class="sec-hdr-right" onclick="event.stopPropagation()" style="gap:6px">
@@ -246,9 +246,6 @@
         </div>
       </div>
       <div class="sec-body" id="sec-financiero-body">
-        <!-- Encom swirls en financiero (solo modo encom) -->
-        <div id="enc-swirls-fin"
-          style="display:none;height:100px;border-bottom:1px solid rgba(0,238,238,.1);overflow:hidden;position:relative"></div>
         <div id="fin-avanzado-body">
           <div style="padding:24px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:var(--ok)"></i></div>
         </div>
