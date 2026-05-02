@@ -26,8 +26,8 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.055
-   CFO Module rediseñado · fix Apartados
+/* RAW Entry — Dashboard v.5.056
+   CFO bloque saldo: fila única, ancho completo
 */
 
 // ══════════════════════════════════════════
@@ -320,41 +320,49 @@ function _renderCFO(){
   const insightsFiltrados = ins.filter(i => !i.msg.includes('Buen ritmo de ahorro'));
 
   body.innerHTML = `
-    <!-- ① SALDO + SEMÁFORO -->
-    <div style="padding:14px 16px 10px;border-bottom:1px solid rgba(255,255,255,.06)">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--m)">SALDO</div>
-            <input type="date" id="saldo-fecha"
-              onchange="consultarSaldo()"
-              style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;
-              color:var(--t);font-family:inherit;font-size:10px;padding:2px 6px;outline:none;cursor:pointer;-webkit-appearance:none">
-            <button onclick="consultarSaldo()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
-              border-radius:20px;color:var(--m);cursor:pointer;font-size:10px;padding:2px 8px;font-family:inherit;line-height:1.4">
-              <i class="fas fa-arrows-rotate"></i>
-            </button>
-            <button onclick="irASheet()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
-              border-radius:20px;color:var(--m);cursor:pointer;font-size:10px;padding:2px 8px;font-family:inherit;line-height:1.4">
-              <i class="fas fa-table-cells"></i>
-            </button>
-          </div>
-          <div id="saldo-val" style="font-size:30px;font-weight:800;letter-spacing:-.04em;color:${saldo>=0?'#4ADE80':'#EF4444'};line-height:1">
-            ${fmtM2(saldo)}
-          </div>
-          <div style="font-size:10px;color:var(--m);margin-top:4px">
-            Gasto promedio: <b style="color:rgba(255,255,255,.6)">${fmtM(gastoDia)}/día</b>
-          </div>
+    <!-- ① SALDO — fila completa, todo integrado -->
+    <div style="padding:14px 16px 12px;border-bottom:1px solid rgba(255,255,255,.06)">
+
+      <!-- Fila superior: etiqueta SALDO + controles + semáforo alineado a la derecha -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--m)">SALDO</div>
+        <input type="date" id="saldo-fecha" onchange="consultarSaldo()"
+          style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;
+          color:var(--t);font-family:inherit;font-size:10px;padding:2px 6px;outline:none;cursor:pointer;-webkit-appearance:none">
+        <button onclick="consultarSaldo()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+          border-radius:20px;color:var(--m);cursor:pointer;font-size:10px;padding:2px 8px;font-family:inherit;line-height:1.6">
+          <i class="fas fa-arrows-rotate"></i>
+        </button>
+        <button onclick="irASheet()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+          border-radius:20px;color:var(--m);cursor:pointer;font-size:10px;padding:2px 8px;font-family:inherit;line-height:1.6">
+          <i class="fas fa-table-cells"></i>
+        </button>
+        <!-- Semáforo integrado en la misma línea, empujado a la derecha -->
+        <div style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;
+          background:${saludColor}15;border:1px solid ${saludColor}35">
+          <span style="color:${saludColor};font-size:10px">${saludIcon}</span>
+          <span style="font-size:11px;font-weight:700;color:${saludColor}">${saludLabel}</span>
         </div>
-        <!-- Semáforo único — reemplaza los dos porcentajes duplicados -->
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          <div style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;
-            background:${saludColor}15;border:1px solid ${saludColor}35">
-            <span style="color:${saludColor};font-size:11px">${saludIcon}</span>
-            <span style="font-size:12px;font-weight:700;color:${saludColor}">${saludLabel}</span>
-          </div>
-          <div style="font-size:10px;color:var(--m);text-align:right">
-            Runway: <b style="color:${runwayColor}">${runway !== null ? runway+' días' : '—'}</b>
+      </div>
+
+      <!-- Fila inferior: saldo grande + gasto/día + runway, todo en una línea -->
+      <div style="display:flex;align-items:baseline;gap:0;flex-wrap:nowrap">
+        <div id="saldo-val" style="font-size:36px;font-weight:800;letter-spacing:-.04em;
+          color:${saldo>=0?'#4ADE80':'#EF4444'};line-height:1;white-space:nowrap;flex-shrink:0">
+          ${fmtM2(saldo)}
+        </div>
+        <!-- Separador vertical -->
+        <div style="width:1px;height:28px;background:rgba(255,255,255,.1);margin:0 16px;flex-shrink:0;align-self:center"></div>
+        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Gasto/día prom.</div>
+          <div style="font-size:16px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:-.02em">${fmtM(gastoDia)}</div>
+        </div>
+        <!-- Separador vertical -->
+        <div style="width:1px;height:28px;background:rgba(255,255,255,.1);margin:0 16px;flex-shrink:0;align-self:center"></div>
+        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Runway</div>
+          <div style="font-size:16px;font-weight:700;color:${runwayColor};letter-spacing:-.02em">
+            ${runway !== null ? runway+' días' : '—'}
           </div>
         </div>
       </div>
