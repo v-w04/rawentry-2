@@ -314,6 +314,27 @@ function guardarBanco(){
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
+
+// ── Toggle gráficas colapsables ──
+function togGraf(bodyId){
+  var body = document.getElementById(bodyId);
+  if(!body) return;
+  var isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  // Rotar chevron
+  var chevId = bodyId.replace('-body','-chev');
+  var chev = document.getElementById(chevId);
+  if(chev) chev.style.transform = isOpen ? '' : 'rotate(180deg)';
+  // Trigger resize en canvas para que Chart.js se redibuje
+  if(!isOpen){
+    setTimeout(function(){
+      var canvas = body.querySelector('canvas');
+      if(canvas && canvas._chart) canvas._chart.resize();
+      // También disparar resize global para Chart.js
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+  }
+}
 window.addEventListener('DOMContentLoaded',()=>{
   const hoy=fmtD(new Date());
   // fecha is inside popup — set it safely
