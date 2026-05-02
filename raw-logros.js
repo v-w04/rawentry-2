@@ -25,7 +25,7 @@ function _setPantalla(p){
   _boardFlipped = (p !== 'anverso');
   const anv    = document.getElementById('board-anverso');
   const logros = document.getElementById('board-logros');
-  const maslow = document.getElementById('board-maslow');
+  const maslow = document.getElementById('board-bitacora');
   const act    = document.getElementById('board-activity');
   const sheets = document.getElementById('board-sheets');
   anv.classList.remove('slide-left','slide-right');
@@ -38,7 +38,7 @@ function _setPantalla(p){
   const nutP = document.getElementById('board-nutricion');
   if(nutP) nutP.classList.remove('active');
   if(p === 'logros'){ anv.classList.add('slide-left'); if(logros) logros.classList.add('active'); }
-  else if(p === 'maslow'){ anv.classList.add('slide-right'); if(maslow) maslow.classList.add('active'); }
+  else if(p === 'bitacora'){ anv.classList.add('slide-right'); if(maslow) maslow.classList.add('active'); }
   else if(p === 'activity'){ anv.classList.add('slide-right'); if(act) act.classList.add('active'); }
   else if(p.startsWith('sheets_')){ anv.classList.add('slide-right'); if(sheets) sheets.classList.add('active'); }
   else if(p === 'score'){
@@ -53,7 +53,7 @@ function _setPantalla(p){
   const bS  = document.getElementById('btn-sheets');
   const bSc = document.getElementById('btn-score');
   if(bL)  bL.classList.toggle('active', p==='logros');
-  if(bM)  bM.classList.toggle('active', p==='maslow');
+  if(bM)  bM.classList.toggle('active', p==='bitacora');
   if(bA)  bA.classList.toggle('active', p==='activity');
   if(bS)  bS.classList.toggle('active', p.startsWith('sheets_'));
   if(bSc) bSc.classList.toggle('active', p==='score');
@@ -63,9 +63,12 @@ function _setPantalla(p){
 }
 
 function irALogros(){ if(_pantalla==='logros'){ volverAlAnverso(); return; } _setPantalla('logros'); pintarReverso(); }
-function irAMaslow(){
-  if(_pantalla==='maslow'){ volverAlAnverso(); return; }
-  _setPantalla('maslow');
+function irABitacora(){
+  irAMaslowLegacy();
+}
+function irAMaslowLegacy(){
+  if(_pantalla==='bitacora'){ volverAlAnverso(); return; }
+  _setPantalla('bitacora');
   poblarFiltrosMes();
   dibujarNecesidades();
   // Lazy load nutrición y entrenamiento
@@ -178,7 +181,7 @@ function pintarReverso(){
       ${tag?`<div class="inv-tag">${tag}</div>`:''}
     </div>`;
   }).join('');
-  if(_pantalla==='maslow') dibujarNecesidades();
+  if(_pantalla==='bitacora') dibujarNecesidades();
 }
 
 function toggleLogroReverso(uid){
@@ -316,7 +319,7 @@ const NEC_NIVELES = [
 
 let _necMesesSeleccionados = new Set();
 
-function renderNecesidades(data){ _necData = data; if(_pantalla==='maslow'){ poblarFiltrosMes(); dibujarNecesidades(); } }
+function renderNecesidades(data){ _necData = data; if(_pantalla==='bitacora'){ poblarFiltrosMes(); dibujarNecesidades(); } }
 
 function poblarFiltrosMes(){
   const cont = document.getElementById('nec-filtros-mes');
@@ -493,7 +496,7 @@ function mobTab(tab){
   _mobTabActivo = tab;
   document.querySelectorAll('.mob-tab').forEach(b=>{ b.classList.toggle('active', b.dataset.tab===tab); });
   if(tab==='logros'){ irALogros(); return; }
-  if(tab==='maslow'){ irAMaslow(); return; }
+  if(tab==='bitacora'){ irAMaslow(); return; }
   if(tab==='activity'){ irAActivity(); return; }
   if(tab==='score'){ irAScore(); return; }
   if(tab==='sheets'){ irASheets('raw'); return; }
@@ -514,7 +517,7 @@ function mobTab(tab){
 }
 
 function _syncMobTab(p){
-  const map = {anverso:'entrada', logros:'logros', maslow:'maslow', activity:'activity', score:'score', nutricion:'nutricion'};
+  const map = {anverso:'entrada', logros:'logros', maslow:'bitacora', activity:'activity', score:'score', nutricion:'nutricion'};
   const t = p.startsWith('sheets_') ? 'sheets' : (map[p]||'entrada');
   document.querySelectorAll('.mob-tab').forEach(b=>{ b.classList.toggle('active', b.dataset.tab===t); });
 }
