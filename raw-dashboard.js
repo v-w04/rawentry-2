@@ -864,9 +864,8 @@ function renderNecesidadesInline(data){
   if(!data) return;
   _necInlineData = data;
   _initNecInlineSelectors();
-  var niveles = data.niveles || [];
-  _dibujarRadarYPiramideInline(niveles);
-  _dibujarPiramideInline(niveles);
+  // Forzar recálculo con mes actual via GAS
+  actualizarNecInline();
 }
 
 function _dataNivelInline(key, arr){
