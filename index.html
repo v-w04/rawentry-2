@@ -313,20 +313,13 @@
           <div class="sec-hdr-icon" style="background:rgba(139,92,246,.12);color:#C4B5FD"><i class="fas fa-layer-group"></i></div>
           <span class="sec-hdr-title">Necesidades</span>
         </div>
-        <div class="sec-hdr-right" onclick="event.stopPropagation()" style="gap:4px">
-          <button id="nec-inline-btn-piramide" onclick="switchNecInline('piramide')" style="padding:3px 10px;border-radius:16px;font-size:10px;font-weight:700;background:rgba(139,92,246,.25);border:1px solid rgba(139,92,246,.4);color:#C4B5FD;cursor:pointer;font-family:inherit">▲ Pirámide</button>
-          <button id="nec-inline-btn-radar" onclick="switchNecInline('radar')" style="padding:3px 10px;border-radius:16px;font-size:10px;font-weight:500;background:none;border:1px solid rgba(255,255,255,.1);color:var(--m);cursor:pointer;font-family:inherit">◈ Radar</button>
+        <div class="sec-hdr-right">
           <i class="fas fa-chevron-down sec-chevron"></i>
         </div>
       </div>
       <div class="sec-body" id="sec-maslow-inline-body">
-        <div id="maslow-inline-piramide">
-          <div id="nec-inline-container" style="padding:8px 16px"></div>
-        </div>
-        <div id="maslow-inline-radar" style="display:none">
-          <canvas id="nec-inline-radar-canvas" style="max-height:220px;padding:8px 16px"></canvas>
-        </div>
-        <div id="nec-inline-tabla" style="padding:8px 16px 12px"></div>
+        <div id="nec-inline-radar-wrap" style="padding:8px 16px 4px"></div>
+        <div id="nec-inline-container" style="padding:0"></div>
       </div>
     </div>
     </div>
