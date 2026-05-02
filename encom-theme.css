@@ -1,0 +1,858 @@
+/* ═══════════════════════════════════════════════════════
+   ENCOM THEME — LifeOS v1.0
+   Overlay sobre raw-app.css · activado con html.encom class
+   Inspirado en arscan/encom-boardroom (Tron: Legacy)
+   Default = apagado · se activa con botón en hero
+═══════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;600;700&display=swap');
+
+@font-face {
+  font-family: 'terminator';
+  src: url('https://v-w04.github.io/rawentry-2/terminator.woff') format('woff');
+}
+
+/* ── Variables Encom ── */
+html.encom {
+  --bg:    #000000;
+  --bg2:   #050505;
+  --card:  #080808;
+  --card2: #0a0a0a;
+  --border: rgba(0,238,238,.2);
+  --ok:    #00eeee;
+  --err:   #ff3333;
+  --warn:  #ffcc00;
+  --t:     #ffffff;
+  --m:     #4a8a8a;
+  --dim:   #1a3a3a;
+  --p:     #00eeee;
+  --s:     rgba(0,238,238,.6);
+  --rad:        0px;
+  --rad-lg:     0px;
+  --rad-pill:   0px;
+  --shadow: rgba(0,238,238,.08) 0px 0px 12px 0px;
+  --shadow-md: rgba(0,238,238,.15) 0px 0px 20px 0px;
+}
+
+/* ── Font global ── */
+html.encom,
+html.encom body,
+html.encom * {
+  font-family: 'Inconsolata', monospace !important;
+  letter-spacing: .04em;
+}
+
+/* ── Fondo con scanlines ── */
+html.encom body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: url('https://v-w04.github.io/rawentry-2/scanlines.png') repeat;
+  opacity: .18;
+}
+
+/* ── Fondo hex sutil en sections ── */
+html.encom .section {
+  background-image: url('https://v-w04.github.io/rawentry-2/hex.png');
+  background-size: 120px;
+  background-repeat: repeat;
+  background-blend-mode: overlay;
+  background-color: rgba(0,0,0,.92) !important;
+}
+
+/* ════════════════════════
+   HERO
+════════════════════════ */
+html.encom .hero {
+  background: rgba(0,0,0,.92) !important;
+  border-bottom: 1px solid #00eeee !important;
+  backdrop-filter: none !important;
+}
+
+html.encom .hero::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #00eeee;
+  opacity: .3;
+  box-shadow: 0 0 8px #00eeee;
+}
+
+/* Logo LifeOS en modo Encom */
+html.encom .hero-title {
+  font-family: 'terminator', 'Inconsolata', monospace !important;
+  color: #00eeee !important;
+  text-shadow: 0 0 10px #00eeee, 0 0 20px rgba(0,238,238,.4);
+  letter-spacing: .12em !important;
+  font-size: 15px !important;
+}
+
+html.encom .hero-title span {
+  color: #ffcc00 !important;
+  text-shadow: 0 0 10px #ffcc00, 0 0 20px rgba(255,204,0,.4);
+}
+
+html.encom .hero-sub {
+  color: #4a8a8a !important;
+  letter-spacing: .08em !important;
+}
+
+/* Chip de estado */
+html.encom .hero-chip {
+  border-radius: 0 !important;
+  border-color: #00eeee !important;
+  background: rgba(0,238,238,.08) !important;
+  color: #00eeee !important;
+}
+html.encom .hero-chip.ok {
+  background: rgba(0,238,238,.15) !important;
+  box-shadow: 0 0 8px rgba(0,238,238,.3), inset 0 0 4px rgba(0,238,238,.1);
+}
+html.encom .hero-chip.err {
+  border-color: #ff3333 !important;
+  background: rgba(255,51,51,.1) !important;
+  color: #ff3333 !important;
+}
+
+/* Botones del hero */
+html.encom .btn-flip {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.06) !important;
+  border: 1px solid rgba(0,238,238,.3) !important;
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  font-size: 10px !important;
+  letter-spacing: .08em !important;
+  transition: all .15s !important;
+}
+html.encom .btn-flip:hover {
+  background: rgba(0,238,238,.15) !important;
+  box-shadow: 0 0 8px rgba(0,238,238,.4) !important;
+  color: #fff !important;
+}
+html.encom .btn-flip.active {
+  background: #00eeee !important;
+  color: #000 !important;
+  box-shadow: 0 0 12px rgba(0,238,238,.6) !important;
+}
+
+html.encom .btn-refresh {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.3) !important;
+  background: rgba(0,238,238,.06) !important;
+  color: #00eeee !important;
+}
+html.encom .btn-refresh:hover {
+  box-shadow: 0 0 8px rgba(0,238,238,.4) !important;
+  color: #fff !important;
+}
+
+/* SOS */
+html.encom #btn-sos {
+  border-radius: 0 !important;
+  background: rgba(255,51,51,.12) !important;
+  border-color: #ff3333 !important;
+  color: #ff3333 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .08em !important;
+}
+html.encom #btn-sos:hover {
+  box-shadow: 0 0 10px rgba(255,51,51,.5) !important;
+}
+
+/* ════════════════════════
+   SECTIONS
+════════════════════════ */
+html.encom .section {
+  border: 1px solid rgba(0,238,238,.25) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 8px rgba(0,238,238,.06), inset 0 0 6px rgba(0,238,238,.03) !important;
+}
+html.encom .section:hover {
+  border-color: rgba(0,238,238,.5) !important;
+  box-shadow: 0 0 14px rgba(0,238,238,.12) !important;
+}
+
+html.encom .sec-hdr {
+  border-bottom-color: rgba(0,238,238,.15) !important;
+}
+html.encom .sec-hdr.open {
+  border-bottom-color: rgba(0,238,238,.3) !important;
+}
+
+html.encom .sec-hdr-title {
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  letter-spacing: .1em !important;
+  font-size: 11px !important;
+}
+
+html.encom .sec-hdr-icon {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.08) !important;
+  border: 1px solid rgba(0,238,238,.2) !important;
+  color: #00eeee !important;
+}
+html.encom .sec-hdr-icon.amber {
+  background: rgba(255,204,0,.08) !important;
+  border-color: rgba(255,204,0,.3) !important;
+  color: #ffcc00 !important;
+}
+
+html.encom .sec-hdr-val.pos { color: #00eeee !important; }
+html.encom .sec-hdr-val.neg { color: #ff3333 !important; }
+
+/* ════════════════════════
+   BANCOS — ente rows
+════════════════════════ */
+html.encom .ente-row {
+  border-bottom-color: rgba(0,238,238,.08) !important;
+}
+html.encom .ente-row:hover {
+  background: rgba(0,238,238,.04) !important;
+}
+html.encom .ente-nombre {
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  font-size: 13px !important;
+  letter-spacing: .06em !important;
+}
+html.encom .ente-monto.pos { color: #00eeee !important; }
+html.encom .ente-monto.neg { color: #ff3333 !important; }
+html.encom .ente-fecha { color: #4a8a8a !important; }
+
+html.encom .ente-edit {
+  background: rgba(0,238,238,.03) !important;
+  border-top-color: rgba(0,238,238,.15) !important;
+}
+html.encom .ente-edit input {
+  border-color: rgba(0,238,238,.3) !important;
+  border-radius: 0 !important;
+  color: #00eeee !important;
+  background: #000 !important;
+}
+html.encom .ente-edit input:focus {
+  border-color: #00eeee !important;
+  box-shadow: 0 0 8px rgba(0,238,238,.3) !important;
+}
+html.encom .btn-check {
+  border-radius: 0 !important;
+  background: #00eeee !important;
+  color: #000 !important;
+}
+
+/* ════════════════════════
+   FORMULARIO NUEVA ENTRADA
+════════════════════════ */
+html.encom .entrada-dropdown-inner {
+  border-radius: 0 !important;
+  border: 1px solid #00eeee !important;
+  background: #000 !important;
+  box-shadow: 0 0 20px rgba(0,238,238,.2) !important;
+}
+html.encom .entrada-selector-hdr {
+  border-bottom-color: rgba(0,238,238,.2) !important;
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  letter-spacing: .08em !important;
+}
+html.encom .entrada-tipo-btn {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  background: rgba(0,238,238,.04) !important;
+  transition: all .15s !important;
+}
+html.encom .entrada-tipo-btn:hover {
+  border-color: #00eeee !important;
+  background: rgba(0,238,238,.12) !important;
+  box-shadow: 0 0 10px rgba(0,238,238,.2) !important;
+  transform: none !important;
+}
+html.encom .entrada-tipo-ico { color: #00eeee !important; }
+html.encom .entrada-tipo-lbl { color: #fff !important; text-transform: uppercase !important; font-size: 10px !important; letter-spacing: .06em !important; }
+html.encom .entrada-tipo-sub { color: #4a8a8a !important; }
+
+/* CF rows */
+html.encom .cf {
+  border-bottom-color: rgba(0,238,238,.08) !important;
+}
+html.encom .cf:hover { background: rgba(0,238,238,.03) !important; }
+html.encom .cf.active { background: rgba(0,238,238,.05) !important; }
+html.encom .cf-label {
+  color: #4a8a8a !important;
+  letter-spacing: .1em !important;
+}
+html.encom .cf-val { color: #00eeee !important; }
+html.encom .cf-val.empty { color: #1a3a3a !important; }
+html.encom .cf-date,
+html.encom .cf-text { color: #00eeee !important; }
+
+/* Monto */
+html.encom .monto-input { color: #00eeee !important; font-size: 22px !important; }
+html.encom .msign.pos {
+  border-color: rgba(0,238,238,.4) !important;
+  background: rgba(0,238,238,.08) !important;
+  color: #00eeee !important;
+  border-radius: 0 !important;
+}
+html.encom .msign.neg {
+  border-radius: 0 !important;
+}
+html.encom .mprev.pos { color: #00eeee !important; }
+
+/* Opts */
+html.encom .opt {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  background: rgba(0,238,238,.04) !important;
+  color: #4a8a8a !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+}
+html.encom .opt:hover {
+  border-color: #00eeee !important;
+  color: #00eeee !important;
+  background: rgba(0,238,238,.1) !important;
+}
+html.encom .opt.on {
+  background: #00eeee !important;
+  border-color: #00eeee !important;
+  color: #000 !important;
+  font-weight: 700 !important;
+}
+
+/* Botón guardar */
+html.encom .btn-save {
+  border-radius: 0 !important;
+  background: #00eeee !important;
+  color: #000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .1em !important;
+  box-shadow: 0 0 12px rgba(0,238,238,.4) !important;
+  font-weight: 700 !important;
+}
+html.encom .btn-save:hover {
+  background: #fff !important;
+  box-shadow: 0 0 20px rgba(0,238,238,.6) !important;
+  transform: none !important;
+}
+
+html.encom .btn-sm.sec {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  background: rgba(0,238,238,.04) !important;
+  color: #4a8a8a !important;
+}
+html.encom .btn-sm.sec:hover {
+  color: #00eeee !important;
+  border-color: #00eeee !important;
+}
+
+/* Save result */
+html.encom .save-res.ok {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.08) !important;
+  border-color: rgba(0,238,238,.3) !important;
+  color: #00eeee !important;
+}
+html.encom .save-res.err {
+  border-radius: 0 !important;
+}
+
+/* Form actions */
+html.encom .form-actions {
+  border-top-color: rgba(0,238,238,.12) !important;
+}
+
+/* ════════════════════════
+   POPUP CONCEPTO
+════════════════════════ */
+html.encom .popup-overlay {
+  backdrop-filter: none !important;
+  background: rgba(0,0,0,.85) !important;
+}
+html.encom .popup-box {
+  border-radius: 0 !important;
+  border: 1px solid #00eeee !important;
+  background: #000 !important;
+  box-shadow: 0 0 24px rgba(0,238,238,.25) !important;
+}
+html.encom .popup-hdr {
+  border-bottom-color: rgba(0,238,238,.2) !important;
+}
+html.encom .popup-title {
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  letter-spacing: .1em !important;
+}
+html.encom .popup-close {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.08) !important;
+  color: #00eeee !important;
+}
+html.encom .popup-close:hover {
+  background: rgba(255,51,51,.15) !important;
+  color: #ff3333 !important;
+}
+html.encom .pop-search {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.3) !important;
+  background: #000 !important;
+  color: #00eeee !important;
+}
+html.encom .pop-search:focus {
+  border-color: #00eeee !important;
+  box-shadow: 0 0 8px rgba(0,238,238,.2) !important;
+}
+html.encom .pop-grupo-lbl {
+  color: #4a8a8a !important;
+  background: #000 !important;
+  letter-spacing: .1em !important;
+}
+html.encom .pop-item {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.15) !important;
+  background: rgba(0,238,238,.03) !important;
+  color: #4a8a8a !important;
+}
+html.encom .pop-item:hover {
+  border-color: #00eeee !important;
+  color: #00eeee !important;
+  background: rgba(0,238,238,.08) !important;
+}
+html.encom .pop-item.on {
+  background: #00eeee !important;
+  color: #000 !important;
+  border-color: #00eeee !important;
+}
+
+/* ════════════════════════
+   PANEL GESTIONAR LISTA
+════════════════════════ */
+html.encom .panel {
+  border-radius: 0 !important;
+  background: #000 !important;
+  border-left: 1px solid #00eeee !important;
+  box-shadow: -4px 0 20px rgba(0,238,238,.1) !important;
+}
+html.encom .panel-head {
+  border-bottom-color: rgba(0,238,238,.2) !important;
+}
+html.encom .panel-title {
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  letter-spacing: .1em !important;
+}
+html.encom .panel-close {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+}
+html.encom .panel-close:hover {
+  background: rgba(255,51,51,.15) !important;
+  border-color: #ff3333 !important;
+  color: #ff3333 !important;
+}
+html.encom .panel-group {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.03) !important;
+  border: 1px solid rgba(0,238,238,.12) !important;
+}
+html.encom .panel-group-name { color: #4a8a8a !important; text-transform: uppercase !important; }
+html.encom .panel-cnt {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.12) !important;
+  color: #00eeee !important;
+}
+html.encom .panel-add input {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  background: #000 !important;
+  color: #00eeee !important;
+}
+html.encom .panel-add input:focus {
+  border-color: #00eeee !important;
+}
+html.encom .btn-add {
+  border-radius: 0 !important;
+  background: #00eeee !important;
+  color: #000 !important;
+}
+html.encom .chip {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.15) !important;
+  color: #4a8a8a !important;
+}
+html.encom .chip.new {
+  border-color: #00eeee !important;
+  color: #00eeee !important;
+  background: rgba(0,238,238,.1) !important;
+}
+
+/* ════════════════════════
+   TOAST
+════════════════════════ */
+html.encom .toast {
+  border-radius: 0 !important;
+  background: #000 !important;
+  border: 1px solid #00eeee !important;
+  box-shadow: 0 0 16px rgba(0,238,238,.3) !important;
+  color: #00eeee !important;
+}
+html.encom .toast.ok i { color: #00eeee !important; }
+html.encom .toast.err {
+  border-color: #ff3333 !important;
+  box-shadow: 0 0 16px rgba(255,51,51,.3) !important;
+}
+html.encom .toast.err i { color: #ff3333 !important; }
+
+/* ════════════════════════
+   TABLAS
+════════════════════════ */
+html.encom .tbl th {
+  background: rgba(0,238,238,.06) !important;
+  border-bottom-color: rgba(0,238,238,.2) !important;
+  color: #00eeee !important;
+  letter-spacing: .08em !important;
+}
+html.encom .tbl th.mes-actual {
+  background: rgba(0,238,238,.12) !important;
+  color: #fff !important;
+  border-bottom-color: #00eeee !important;
+}
+html.encom .tbl td { border-bottom-color: rgba(0,238,238,.05) !important; }
+html.encom .tbl td:first-child {
+  background: #000 !important;
+  color: #00eeee !important;
+  border-right-color: rgba(0,238,238,.1) !important;
+}
+html.encom .tbl tr:hover td { background: rgba(0,238,238,.03) !important; }
+html.encom .tbl tr:hover td:first-child { background: rgba(0,238,238,.06) !important; }
+html.encom .tbl td.pos { color: #00eeee !important; }
+html.encom .tbl td.neg { color: #ff3333 !important; }
+html.encom .tbl td.mes-actual { background: rgba(0,238,238,.05) !important; }
+
+/* ════════════════════════
+   CARDS (móvil)
+════════════════════════ */
+html.encom .kard {
+  border-radius: 0 !important;
+  background: #080808 !important;
+  border: 1px solid rgba(0,238,238,.15) !important;
+}
+html.encom .kard:hover { box-shadow: 0 0 10px rgba(0,238,238,.12) !important; }
+html.encom .kard-name { color: #00eeee !important; text-transform: uppercase !important; letter-spacing: .06em !important; }
+html.encom .kard-val.pos { color: #00eeee !important; }
+html.encom .kard-val.neg { color: #ff3333 !important; }
+html.encom .kard-prog { background: rgba(0,238,238,.08) !important; }
+html.encom .kard-prog-fill { background: #00eeee !important; }
+
+/* ════════════════════════
+   FINANCIERO / CFO
+════════════════════════ */
+html.encom .fin-card {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.04) !important;
+  border: 1px solid rgba(0,238,238,.15) !important;
+}
+html.encom .fin-card-label {
+  color: #4a8a8a !important;
+  letter-spacing: .1em !important;
+}
+html.encom .fin-card-val { color: #00eeee !important; }
+html.encom .fin-card.ok .fin-card-val { color: #00eeee !important; }
+html.encom .fin-card.warn .fin-card-val { color: #ffcc00 !important; }
+html.encom .fin-card.alerta .fin-card-val { color: #ff3333 !important; }
+
+/* Insight items */
+html.encom .insight-item { border-bottom-color: rgba(0,238,238,.06) !important; }
+html.encom .insight-dot.positivo { background: #00eeee !important; }
+html.encom .insight-dot.alerta   { background: #ff3333 !important; }
+html.encom .insight-dot.identidad { background: #ffcc00 !important; }
+
+/* ════════════════════════
+   REVERSO — Logros / Bitácora / Activity
+════════════════════════ */
+html.encom .reverso-header {
+  background: rgba(0,0,0,.9) !important;
+  border-bottom: 1px solid rgba(0,238,238,.2) !important;
+  backdrop-filter: none !important;
+}
+html.encom .reverso-title {
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  letter-spacing: .1em !important;
+  text-shadow: 0 0 8px rgba(0,238,238,.4) !important;
+}
+
+/* Inv items (Logros) */
+html.encom .inv-item {
+  border-radius: 0 !important;
+  background: #080808 !important;
+  border: 1px solid rgba(0,238,238,.15) !important;
+}
+html.encom .inv-item::before { display: none !important; }
+html.encom .inv-item:hover {
+  border-color: #00eeee !important;
+  box-shadow: 0 0 14px rgba(0,238,238,.2) !important;
+  transform: none !important;
+}
+html.encom .inv-item.done {
+  background: rgba(0,238,238,.04) !important;
+  border-color: rgba(0,238,238,.3) !important;
+}
+html.encom .inv-icon {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.06) !important;
+  border-color: rgba(0,238,238,.2) !important;
+}
+html.encom .inv-item.done .inv-icon { border-color: rgba(0,238,238,.4) !important; }
+html.encom .inv-label { color: #00eeee !important; text-transform: uppercase !important; font-size: 10px !important; letter-spacing: .05em !important; }
+html.encom .inv-item.done .inv-label { color: #4a8a8a !important; }
+html.encom .inv-monto { color: #ffcc00 !important; }
+html.encom .inv-tag {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  color: #4a8a8a !important;
+}
+html.encom .inv-corner.done {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.1) !important;
+  border-color: rgba(0,238,238,.3) !important;
+  color: #00eeee !important;
+}
+html.encom .inv-corner.pend {
+  border-radius: 0 !important;
+}
+
+/* Rev pills */
+html.encom .rev-pill {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  background: rgba(0,238,238,.04) !important;
+  color: #4a8a8a !important;
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+}
+html.encom .rev-pill:hover {
+  border-color: #00eeee !important;
+  color: #00eeee !important;
+  background: rgba(0,238,238,.1) !important;
+}
+html.encom .rev-pill.on {
+  background: #00eeee !important;
+  border-color: #00eeee !important;
+  color: #000 !important;
+}
+
+/* ════════════════════════
+   PROG BAR
+════════════════════════ */
+html.encom .prog-bar { background: #00eeee !important; }
+html.encom .prog-bar.ind { background: #00eeee !important; }
+
+/* ════════════════════════
+   PROGRESS BAR wrapper
+════════════════════════ */
+html.encom #prog {
+  background: rgba(0,238,238,.15) !important;
+}
+
+/* ════════════════════════
+   SCROLLBAR
+════════════════════════ */
+html.encom *::-webkit-scrollbar-track { background: rgba(0,238,238,.03) !important; }
+html.encom *::-webkit-scrollbar-thumb { background: rgba(0,238,238,.2) !important; }
+html.encom *::-webkit-scrollbar-thumb:hover { background: rgba(0,238,238,.4) !important; }
+
+/* ════════════════════════
+   FLUJO MENSUAL
+════════════════════════ */
+html.encom #flujo-tbl th {
+  color: #4a8a8a !important;
+  letter-spacing: .08em !important;
+  border-bottom-color: rgba(0,238,238,.15) !important;
+}
+html.encom #flujo-tbl td { border-bottom-color: rgba(0,238,238,.05) !important; }
+html.encom #flujo-tbl tr:hover td { background: rgba(0,238,238,.03) !important; }
+
+/* ════════════════════════
+   APARTADOS
+════════════════════════ */
+html.encom .apartado-item { border-bottom-color: rgba(0,238,238,.06) !important; }
+html.encom .apartado-icon {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.08) !important;
+}
+html.encom .apartado-nombre { color: #00eeee !important; text-transform: uppercase !important; letter-spacing: .06em !important; }
+html.encom .apartado-monto { color: #00eeee !important; }
+html.encom .apartado-meta { color: #4a8a8a !important; }
+
+/* ════════════════════════
+   RELACIONES
+════════════════════════ */
+html.encom .rel-item { border-bottom-color: rgba(0,238,238,.06) !important; }
+html.encom .rel-item:hover { background: rgba(0,238,238,.03) !important; }
+html.encom .rel-avatar {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.08) !important;
+  color: #00eeee !important;
+}
+html.encom .rel-avatar.positivo { background: rgba(0,238,238,.12) !important; color: #00eeee !important; }
+html.encom .rel-avatar.negativo { background: rgba(255,51,51,.1) !important; color: #ff3333 !important; }
+html.encom .rel-nombre { color: #fff !important; }
+html.encom .rel-meta { color: #4a8a8a !important; }
+html.encom .rel-energia.pos { color: #00eeee !important; }
+html.encom .rel-energia.neg { color: #ff3333 !important; }
+html.encom .rel-energia.neu { color: #4a8a8a !important; }
+
+/* ════════════════════════
+   SALUD
+════════════════════════ */
+html.encom .salud-item { border-bottom-color: rgba(0,238,238,.06) !important; }
+html.encom .salud-tipo-badge {
+  border-radius: 0 !important;
+}
+html.encom .salud-tipo-badge.Cita { background: rgba(0,238,238,.1) !important; color: #00eeee !important; }
+html.encom .proxima-cita {
+  border-radius: 0 !important;
+  background: rgba(255,204,0,.06) !important;
+  border-color: rgba(255,204,0,.25) !important;
+}
+
+/* ════════════════════════
+   PATRIMONIO
+════════════════════════ */
+html.encom #patrimonio-body div[style*="border-radius:10px"] {
+  border-radius: 0 !important;
+}
+
+/* ════════════════════════
+   MOB TABBAR
+════════════════════════ */
+html.encom .mob-tabbar {
+  background: rgba(0,0,0,.95) !important;
+  border-top: 1px solid rgba(0,238,238,.25) !important;
+  backdrop-filter: none !important;
+}
+html.encom .mob-tab { color: rgba(0,238,238,.3) !important; }
+html.encom .mob-tab.active { color: #00eeee !important; }
+html.encom .mob-tab-label {
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+  font-size: 8px !important;
+}
+
+/* ════════════════════════
+   MASLOW COLS
+════════════════════════ */
+html.encom .maslow-cols .section {
+  border-color: rgba(0,238,238,.2) !important;
+}
+
+/* ════════════════════════
+   SEC-SUB-HDR (gráficas)
+════════════════════════ */
+html.encom .sec-sub-hdr { border-top-color: rgba(0,238,238,.1) !important; }
+html.encom .sec-sub-hdr-icon {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  background: rgba(0,238,238,.06) !important;
+  color: #00eeee !important;
+}
+html.encom .sec-sub-hdr span {
+  color: #4a8a8a !important;
+  letter-spacing: .1em !important;
+}
+
+/* ════════════════════════
+   THUMBPRINT — decorativo
+════════════════════════ */
+html.encom #encom-thumbprint {
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  opacity: .25;
+  pointer-events: none;
+  z-index: 100;
+  background: url('https://v-w04.github.io/rawentry-2/thumbprint.png') no-repeat center/contain;
+  animation: encPulsate 4s ease-in-out infinite;
+}
+@keyframes encPulsate {
+  0%,100% { opacity: .15; }
+  50%      { opacity: .45; }
+}
+
+/* ════════════════════════
+   BOTÓN TOGGLE ENCOM
+════════════════════════ */
+#btn-encom-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: var(--rad-pill);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.5);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s;
+  white-space: nowrap;
+}
+#btn-encom-toggle:hover {
+  background: rgba(0,238,238,.1);
+  border-color: rgba(0,238,238,.4);
+  color: #00eeee;
+}
+html.encom #btn-encom-toggle {
+  background: rgba(0,238,238,.12) !important;
+  border: 1px solid #00eeee !important;
+  color: #00eeee !important;
+  border-radius: 0 !important;
+  font-family: 'terminator', 'Inconsolata', monospace !important;
+  letter-spacing: .1em !important;
+  box-shadow: 0 0 8px rgba(0,238,238,.3) !important;
+}
+html.encom #btn-encom-toggle:hover {
+  background: rgba(0,238,238,.22) !important;
+  box-shadow: 0 0 14px rgba(0,238,238,.5) !important;
+}
+
+/* ════════════════════════
+   SELECTS de revisión en modo Encom
+════════════════════════ */
+html.encom #rev-sel-anio,
+html.encom #rev-sel-mes,
+html.encom #rev-sel-sem {
+  background-color: #000 !important;
+  border-color: rgba(0,238,238,.3) !important;
+  color: #00eeee !important;
+  border-radius: 0 !important;
+}
+html.encom #rev-sel-anio:hover,
+html.encom #rev-sel-mes:hover,
+html.encom #rev-sel-sem:hover {
+  border-color: #00eeee !important;
+  box-shadow: 0 0 6px rgba(0,238,238,.2) !important;
+}
+
+/* ════════════════════════
+   GLOW ANIMADO en bordes de sección activa
+════════════════════════ */
+@keyframes encBorderPulse {
+  0%,100% { box-shadow: 0 0 6px rgba(0,238,238,.06); }
+  50%      { box-shadow: 0 0 14px rgba(0,238,238,.15); }
+}
+html.encom .section {
+  animation: encBorderPulse 4s ease-in-out infinite !important;
+}
