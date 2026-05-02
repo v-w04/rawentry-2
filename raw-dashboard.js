@@ -1,3 +1,33 @@
+// ══════════════════════════════════════════
+//  NECESIDADES INLINE — control de período
+// ══════════════════════════════════════════
+function actualizarNecInline(){
+  var anio = document.getElementById('nec-inline-anio');
+  var mes  = document.getElementById('nec-inline-mes');
+  if(!anio) return;
+  var a = anio.value;
+  var m = mes ? mes.value : '';
+  // Llamar al GAS con el período seleccionado
+  api.getNecesidades(a, m).then(function(data){
+    _necInlineData = data;
+    if(data && data.ok){
+      var niveles = data.niveles || [];
+      _dibujarRadarYPiramideInline(niveles);
+      _dibujarPiramideInline(niveles);
+    }
+  }).catch(function(){});
+}
+
+// Inicializar selector con mes actual
+function _initNecInlineSelectors(){
+  var anioEl = document.getElementById('nec-inline-anio');
+  var mesEl  = document.getElementById('nec-inline-mes');
+  if(!anioEl || !mesEl) return;
+  var hoy = new Date();
+  anioEl.value = hoy.getFullYear();
+  mesEl.value  = hoy.getMonth() + 1;
+}
+
 /* RAW Entry — Dashboard v.5.054
    Tablas Variables/Fijos · Flujo Mensual · Gráficas
    + Financiero Avanzado · Revisión · Relaciones · Salud · Apartados · Pensamientos
@@ -833,10 +863,9 @@ var _radarInlineChart = null;
 function renderNecesidadesInline(data){
   if(!data) return;
   _necInlineData = data;
+  _initNecInlineSelectors();
   var niveles = data.niveles || [];
-  // Radar y pirámide visual en mismo renglón
   _dibujarRadarYPiramideInline(niveles);
-  // Barras con detalle abajo
   _dibujarPiramideInline(niveles);
 }
 
