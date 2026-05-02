@@ -146,6 +146,21 @@
     initColumns();
     restoreLayout();
     updateEmptyColumns();
+    saveDefaultLayout();
+  }
+
+  // Guardar layout default si no hay nada guardado
+  function saveDefaultLayout(){
+    try {
+      if(localStorage.getItem(STORAGE_KEY)) return;
+      var layout = {};
+      ['col1-wrap','col-1','col-3','col-4'].forEach(function(colId){
+        var col = document.getElementById(colId);
+        if(!col) return;
+        layout[colId] = Array.from(col.querySelectorAll('.section')).map(function(s){ return s.id; });
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
+    } catch(e){}
   }
 
   // Llamar init cuando la app termina de cargar
