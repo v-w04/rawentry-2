@@ -879,38 +879,32 @@ function _dibujarRadarYPiramideInline(niveles){
 
   var totalSum = NEC_NIVELES.reduce(function(s,n){ return s+Math.abs(_dataNivelInline(n.key,niveles).total||0); },0);
 
-  // Pirámide SVG con anchos proporcionales — de abajo hacia arriba
-  var pisos = NEC_NIVELES.slice().reverse(); // 5=arriba, 1=abajo
-  var svgW = 200, svgH = 170, nivH = svgH / pisos.length;
+  // Pirámide SVG
+  var pisos = NEC_NIVELES.slice().reverse();
   var svgRects = pisos.map(function(niv, i){
     var d   = _dataNivelInline(niv.key, niveles);
     var abs = Math.abs(d.total||0);
     var pct = totalSum > 0 ? abs/totalSum : 0;
-    var w   = Math.max(0.1, pct) * svgW;
-    var x   = (svgW - w) / 2;
-    var y   = i * nivH;
+    var w   = Math.max(16, pct * 200);
+    var x   = (200 - w) / 2;
+    var y   = i * 34;
     var op  = abs===0 ? 0.15 : 0.85;
-    return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+(nivH-3).toFixed(1)+'" rx="4"'+
-      ' fill="'+niv.color+'" opacity="'+op+'"/>'+
-      '<text x="'+((svgW/2)).toFixed(1)+'" y="'+(y+nivH/2+4).toFixed(1)+'" text-anchor="middle"'+
-      ' font-size="9" fill="rgba(255,255,255,.7)" font-family="system-ui" font-weight="600">'+niv.label+'</text>';
+    return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="30" rx="4" fill="'+niv.color+'" opacity="'+op+'"/>'+
+      '<text x="100" y="'+(y+20).toFixed(1)+'" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.8)" font-family="system-ui" font-weight="600">'+niv.label+'</text>';
   }).join('');
 
   wrap.innerHTML =
-    '<div style="display:flex;align-items:stretch;justify-content:center;gap:16px;padding:16px">' +
-      // Radar
-      '<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">' +
-        '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:8px">Radar</div>' +
-        '<canvas id="radar-inline-canvas" style="width:100%;max-width:200px;height:200px"></canvas>' +
+    '<div style="display:flex;align-items:flex-start;justify-content:center;gap:24px;padding:20px 16px 8px;width:100%;box-sizing:border-box">' +
+      '<div style="display:flex;flex-direction:column;align-items:center;width:200px;flex-shrink:0">' +
+        '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:10px">Radar</div>' +
+        '<div style="width:200px;height:200px"><canvas id="radar-inline-canvas" width="200" height="200"></canvas></div>' +
       '</div>' +
-      // Pirámide
-      '<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">' +
-        '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:8px">Distribución</div>' +
-        '<svg width="100%" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg" style="max-width:200px">'+svgRects+'</svg>' +
+      '<div style="display:flex;flex-direction:column;align-items:center;width:200px;flex-shrink:0">' +
+        '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:10px">Distribución</div>' +
+        '<svg width="200" height="170" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg">'+svgRects+'</svg>' +
       '</div>' +
     '</div>';
 
-  // Radar Chart
   setTimeout(function(){
     var canvas = document.getElementById('radar-inline-canvas');
     if(!canvas || !window.Chart) return;
@@ -926,7 +920,7 @@ function _dibujarRadarYPiramideInline(niveles){
         backgroundColor:'rgba(139,92,246,.15)', borderColor:'rgba(139,92,246,.7)',
         borderWidth:2, pointBackgroundColor:colors, pointBorderColor:'#111',
         pointBorderWidth:2, pointRadius:5, fill:true }]},
-      options:{ responsive:true, maintainAspectRatio:false,
+      options:{ responsive:false, maintainAspectRatio:false,
         plugins:{ legend:{display:false},
           tooltip:{ backgroundColor:'rgba(15,23,42,.95)', borderColor:'rgba(255,255,255,.1)', borderWidth:1,
             callbacks:{ label:function(ctx){ return ' $'+valores[ctx.dataIndex].toLocaleString('es-MX',{minimumFractionDigits:0}); }}}},
