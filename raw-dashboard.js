@@ -26,7 +26,7 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.064
+/* RAW Entry — Dashboard v.5.065
    Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
 */
 
@@ -1034,7 +1034,7 @@ function _dibujarRadarInline(niveles){
   });
 }
 
-════════════════════
+// ══════════════════════════════════════════
 //  NECESIDADES INLINE — control de período
 // ══════════════════════════════════════════
 function actualizarNecInline(){
@@ -1062,7 +1062,7 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.064
+/* RAW Entry — Dashboard v.5.065
    Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
 */
 
