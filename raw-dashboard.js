@@ -897,7 +897,7 @@ function _dibujarRadarYPiramideInline(niveles){
     '<div style="display:flex;align-items:flex-start;justify-content:center;gap:24px;padding:20px 16px 8px;width:100%;box-sizing:border-box">' +
       '<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">' +
         '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:10px">Radar</div>' +
-        '<div style="width:480px;height:480px;max-width:100%"><canvas id="radar-inline-canvas" width="480" height="480"></canvas></div>' +
+        '<div style="width:240px;height:240px;max-width:100%"><canvas id="radar-inline-canvas" width="240" height="240"></canvas></div>' +
       '</div>' +
       '<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">' +
         '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:10px">Distribución</div>' +
