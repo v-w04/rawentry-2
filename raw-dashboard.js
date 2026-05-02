@@ -834,14 +834,97 @@ function renderNecesidadesInline(data){
   if(!data) return;
   _necInlineData = data;
   var niveles = data.niveles || [];
-  // Radar arriba
-  _dibujarRadarInline(niveles);
-  // Pirámide con resumen fusionado abajo
+  // Radar y pirámide visual en mismo renglón
+  _dibujarRadarYPiramideInline(niveles);
+  // Barras con detalle abajo
   _dibujarPiramideInline(niveles);
 }
 
 function _dataNivelInline(key, arr){
   return (arr||[]).find(function(n){ return n.key===key; }) || {key:key,total:0,conceptos:[]};
+}
+
+function _dibujarRadarYPiramideInline(niveles){
+  var wrap = document.getElementById('nec-inline-radar-wrap');
+  if(!wrap) return;
+
+  var totalSum = NEC_NIVELES.reduce(function(s,n){ return s+Math.abs(_dataNivelInline(n.key,niveles).total||0); },0);
+
+  // Pirámide SVG — cada nivel tiene ancho proporcional a su %
+  var pisos = NEC_NIVELES.slice().reverse(); // 5 arriba, 1 abajo
+  var svgH = 160;
+  var svgW = 160;
+  var nivH = svgH / pisos.length; // altura de cada piso
+  var rects = pisos.map(function(niv, i){
+    var d   = _dataNivelInline(niv.key, niveles);
+    var abs = Math.abs(d.total||0);
+    var pct = totalSum > 0 ? abs/totalSum : 0;
+    // Ancho mínimo 8% para que se vea, máximo 100%
+    var w   = Math.max(0.08, pct) * svgW;
+    var x   = (svgW - w) / 2;
+    var y   = i * nivH;
+    return {niv:niv, abs:abs, pct:pct, w:w, x:x, y:y, h:nivH-2, vacio:abs===0};
+  });
+
+  var svgRects = rects.map(function(r){
+    var op = r.vacio ? 0.2 : 0.85;
+    return '<rect x="'+r.x.toFixed(1)+'" y="'+r.y.toFixed(1)+'" width="'+r.w.toFixed(1)+'" height="'+r.h.toFixed(1)+'" rx="3"'+
+      ' fill="'+r.niv.color+'" opacity="'+op+'"/>';
+  }).join('');
+
+  var piramideSVG = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:160px;flex-shrink:0">'+
+    '<svg width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">'+
+      svgRects+
+    '</svg>'+
+    '<div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px;text-align:center">Distribución</div>'+
+  '</div>';
+
+  wrap.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px 16px 4px">'+
+    '<canvas id="radar-inline-canvas" style="width:160px;height:160px;flex-shrink:0"></canvas>'+
+    piramideSVG+
+  '</div>';
+
+  // Leyenda debajo
+  var leyenda = '<div style="display:flex;flex-wrap:wrap;gap:6px 12px;padding:0 16px 8px">';
+  NEC_NIVELES.forEach(function(niv){
+    var d   = _dataNivelInline(niv.key, niveles);
+    var abs = Math.abs(d.total||0);
+    var pct = totalSum > 0 ? Math.round(abs/totalSum*100) : 0;
+    leyenda += '<div style="display:flex;align-items:center;gap:4px">'+
+      '<div style="width:8px;height:8px;border-radius:2px;background:'+niv.color+';opacity:'+(abs===0?.3:1)+'"></div>'+
+      '<span style="font-size:10px;color:var(--m)">'+niv.label+'</span>'+
+      '<span style="font-size:10px;font-weight:700;color:#fff">'+pct+'%</span>'+
+    '</div>';
+  });
+  leyenda += '</div>';
+  wrap.insertAdjacentHTML('beforeend', leyenda);
+
+  // Inicializar radar
+  setTimeout(function(){
+    var canvas = document.getElementById('radar-inline-canvas');
+    if(!canvas || !window.Chart) return;
+    var labels  = NEC_NIVELES.map(function(n){ return n.label; });
+    var valores = NEC_NIVELES.map(function(n){ return Math.abs(_dataNivelInline(n.key,niveles).total||0); });
+    var colors  = NEC_NIVELES.map(function(n){ return n.color; });
+    var maxVal  = Math.max.apply(null, valores.concat([1]));
+    var norm    = valores.map(function(v){ return v/maxVal*100; });
+    if(_radarInlineChart){ try{_radarInlineChart.destroy();}catch(e){} _radarInlineChart=null; }
+    _radarInlineChart = new Chart(canvas,{
+      type:'radar',
+      data:{ labels:labels, datasets:[{ data:norm,
+        backgroundColor:'rgba(139,92,246,.15)', borderColor:'rgba(139,92,246,.7)',
+        borderWidth:2, pointBackgroundColor:colors, pointBorderColor:'#111',
+        pointBorderWidth:2, pointRadius:4, fill:true }]},
+      options:{ responsive:false, plugins:{ legend:{display:false},
+        tooltip:{ backgroundColor:'rgba(15,23,42,.95)', callbacks:{
+          label:function(ctx){ return ' $'+valores[ctx.dataIndex].toLocaleString('es-MX',{minimumFractionDigits:0}); }}}},
+        scales:{ r:{ min:0, max:100,
+          angleLines:{color:'rgba(255,255,255,.06)'}, grid:{color:'rgba(255,255,255,.06)'},
+          ticks:{display:false},
+          pointLabels:{ font:{size:9,weight:'600',family:'system-ui'},
+            color:function(ctx){ return colors[ctx.index]||'#94A3B8'; }}}}}
+    });
+  }, 80);
 }
 
 function _dibujarPiramideInline(niveles){
@@ -919,10 +1002,9 @@ function _dibujarPiramideInline(niveles){
 }
 
 function _dibujarRadarInline(niveles){
-  var cont = document.getElementById('nec-inline-radar-wrap');
-  if(!cont) return;
-  cont.innerHTML = '<canvas id="radar-inline-canvas" style="max-height:260px;width:100%"></canvas>';
-  setTimeout(function(){
+  var wrap = document.getElementById('nec-inline-radar-wrap');
+  if(!wrap) return;
+  wrap.innerHTML = '<canvas id="radar-inline-canvas" style="max-height:300px"></canvas>';
   var canvas = document.getElementById('radar-inline-canvas');
   if(!canvas || !window.Chart) return;
   var labels  = NEC_NIVELES.map(function(n){ return n.label; });
@@ -931,371 +1013,25 @@ function _dibujarRadarInline(niveles){
   var maxVal  = Math.max.apply(null, valores.concat([1]));
   var norm    = valores.map(function(v){ return v/maxVal*100; });
   if(_radarInlineChart){ try{_radarInlineChart.destroy();}catch(e){} _radarInlineChart=null; }
-  _radarInlineChart = new Chart(canvas,{
-    type:'radar',
-    data:{ labels:labels, datasets:[{ label:'Gasto', data:norm,
-      backgroundColor:'rgba(139,92,246,.12)', borderColor:'rgba(139,92,246,.6)',
-      borderWidth:1.5, pointBackgroundColor:colors, pointBorderColor:'#111',
-      pointBorderWidth:2, pointRadius:5, fill:true }]},
-    options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.3,
-      plugins:{ legend:{display:false},
-        tooltip:{ backgroundColor:'rgba(15,23,42,.95)', borderColor:'rgba(139,92,246,.3)', borderWidth:1,
-          titleColor:'#fff', bodyColor:'#94A3B8', padding:10,
-          callbacks:{ label:function(ctx){ return ' '+NEC_NIVELES[ctx.dataIndex].emoji+' $ '+valores[ctx.dataIndex].toLocaleString('es-MX',{minimumFractionDigits:0}); }}}},
-      scales:{ r:{ min:0, max:100, backgroundColor:'rgba(0,0,0,.15)',
-        angleLines:{color:'rgba(255,255,255,.06)'}, grid:{color:'rgba(255,255,255,.06)'},
-        ticks:{display:false},
-        pointLabels:{ font:{size:11,weight:'600',family:'system-ui'},
-          color:function(ctx){ return colors[ctx.index]||'#94A3B8'; }}}}}
+  _radarInlineChart = new Chart(canvas, {
+    type: 'radar',
+    data: { labels: labels, datasets: [{ label: 'Gasto', data: norm,
+      backgroundColor: 'rgba(139,92,246,.12)', borderColor: 'rgba(139,92,246,.6)',
+      borderWidth: 1.5, pointBackgroundColor: colors, pointBorderColor: '#111',
+      pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7, fill: true }]},
+    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 1.3,
+      plugins: { legend: {display: false},
+        tooltip: { backgroundColor: 'rgba(15,23,42,.95)', borderColor: 'rgba(139,92,246,.3)',
+          borderWidth: 1, titleColor: '#fff', bodyColor: '#94A3B8', padding: 10,
+          callbacks: { label: function(ctx) {
+            return ' ' + NEC_NIVELES[ctx.dataIndex].emoji + ' $ ' + valores[ctx.dataIndex].toLocaleString('es-MX',{minimumFractionDigits:0});
+          }}}},
+      scales: { r: { min: 0, max: 100, backgroundColor: 'rgba(0,0,0,.15)',
+        angleLines: {color: 'rgba(255,255,255,.06)', lineWidth: 1},
+        grid: {color: 'rgba(255,255,255,.06)'},
+        ticks: {display: false, stepSize: 25},
+        pointLabels: { font: {size: 11, weight: '600', family: 'system-ui'},
+          color: function(ctx){ return colors[ctx.index]||'#94A3B8'; },
+          callback: function(label, i){ return [label, '$'+Math.round(valores[i]/1000)+'k']; }}}}}
   });
-  }, 80);
-}
-
-function _dibujarTablaInline(niveles){
-  var cont = document.getElementById('nec-inline-tabla');
-  if(!cont) return;
-  var total = NEC_NIVELES.reduce(function(s,n){ return s+Math.abs(_dataNivelInline(n.key,niveles).total||0); },0);
-  var sorted = NEC_NIVELES.map(function(n){ var d=_dataNivelInline(n.key,niveles); return {label:n.label,color:n.color,total:d.total||0,conceptos:d.conceptos||[]}; })
-    .sort(function(a,b){ return Math.abs(b.total)-Math.abs(a.total); });
-  var rows = '';
-  sorted.forEach(function(n){
-    var abs  = Math.abs(n.total);
-    var pct  = total>0 ? (abs/total*100).toFixed(1) : 0;
-    var tops = n.conceptos.slice(0,3).join(', ')||'—';
-    var vacio= abs===0;
-    var status = vacio
-      ? '<span style="font-size:10px;color:var(--warn);background:rgba(245,158,11,.08);padding:2px 8px;border-radius:10px;border:1px solid rgba(245,158,11,.15)">⚠ Descuidado</span>'
-      : (pct>40
-        ? '<span style="font-size:10px;color:var(--err);background:rgba(239,68,68,.08);padding:2px 8px;border-radius:10px;border:1px solid rgba(239,68,68,.15)">Alto</span>'
-        : '<span style="font-size:10px;color:var(--ok);background:rgba(74,222,128,.08);padding:2px 8px;border-radius:10px;border:1px solid rgba(74,222,128,.15)">✓ OK</span>');
-    rows += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">';
-    rows += '<div style="width:8px;height:8px;border-radius:50%;background:'+n.color+';flex-shrink:0"></div>';
-    rows += '<div style="flex:1;min-width:0">';
-    rows += '<div style="font-size:12px;font-weight:600;color:'+(vacio?'var(--m)':'var(--t)')+'">'+n.label+'</div>';
-    rows += '<div style="font-size:10px;color:var(--m);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+tops+'</div>';
-    rows += '</div>';
-    rows += '<div style="text-align:right;flex-shrink:0">';
-    rows += '<div style="font-size:13px;font-weight:700;color:'+(vacio?'var(--dim)':'var(--t)')+'">'+( vacio?'—':'$ '+abs.toLocaleString('es-MX',{minimumFractionDigits:0}))+'</div>';
-    rows += '<div style="font-size:10px;color:var(--m)">'+pct+'%</div>';
-    rows += '</div>';
-    rows += '<div style="flex-shrink:0">'+status+'</div>';
-    rows += '</div>';
-  });
-  cont.innerHTML = '<div style="padding:0 16px 12px"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px;padding-top:4px">Resumen · <span style="color:var(--t)">$ '+total.toLocaleString('es-MX',{minimumFractionDigits:0})+'</span></div>'+rows+'</div>';
-}
-
-// ══════════════════════════════════════════
-//  PATRIMONIO
-// ══════════════════════════════════════════
-function renderPatrimonio(data){
-  const body = document.getElementById('patrimonio-body');
-  if(!body) return;
-  if(!data||!data.ok){
-    body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m)">Sin datos — agrega movimientos con el tab 🏦</div>';
-    return;
-  }
-  // Hojas vacías = datos válidos con saldo 0
-  const totalPatrimonio = (data.banco?.saldo||0) + (data.fisico?.saldo||0) + (data.inversion?.saldo||0);
-  if(totalPatrimonio === 0 && !(data.banco?.items?.length) && !(data.fisico?.items?.length) && !(data.inversion?.items?.length)){
-    body.innerHTML='<div style="padding:24px;text-align:center;color:var(--m)">' +
-      '<div style="font-size:32px;margin-bottom:12px">🏦</div>' +
-      '<div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:6px">Sin movimientos aún</div>' +
-      '<div style="font-size:12px">Usa el tab 🏦 en Nueva Entrada para registrar tu primer ahorro, efectivo o inversión</div>' +
-      '</div>';
-    return;
-  }
-
-  const fmtMXN = v => '$ ' + Math.abs(v).toLocaleString('es-MX',{minimumFractionDigits:0});
-  const f = data.fondo || {};
-
-  // Salud del fondo
-  const saludColor = f.salud==='ok'?'var(--ok)':f.salud==='warn'?'var(--warn)':'var(--err)';
-  const saludEmoji = f.salud==='ok'?'🟢':f.salud==='warn'?'🟡':'🔴';
-  const saludLbl   = f.salud==='ok'?'Fondo completo':f.salud==='warn'?'Fondo parcial':'Sin fondo';
-
-  // Barras de distribución
-  const bloques = [
-    { label:'💳 Banco',     val:data.banco?.saldo||0,     pct:data.banco?.pct||0,     color:'#4ADE80' },
-    { label:'💵 Efectivo',  val:data.fisico?.saldo||0,    pct:data.fisico?.pct||0,    color:'#FBBF24' },
-    { label:'📈 Inversión', val:data.inversion?.saldo||0, pct:data.inversion?.pct||0, color:'#8B5CF6' },
-  ];
-
-  const totalHtml = `
-    <div style="padding:16px var(--pad) 8px">
-      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:6px">Patrimonio total</div>
-      <div style="font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.03em;color:#fff">
-        ${fmtMXN(data.total||0)}
-      </div>
-      <div style="font-size:11px;margin-top:4px">
-        <span style="color:${saludColor}">${saludEmoji} ${saludLbl}</span>
-        <span style="color:var(--m);margin-left:8px">${f.meses||0} meses cubiertos</span>
-      </div>
-    </div>`;
-
-  // Barra de distribución visual
-  const barHtml = data.total > 0 ? `
-    <div style="margin:0 var(--pad) 12px;height:8px;border-radius:4px;overflow:hidden;display:flex;gap:2px">
-      ${bloques.map(b=>b.pct>0?`<div style="width:${b.pct}%;background:${b.color};border-radius:4px;transition:width .6s ease"></div>`:'').join('')}
-    </div>` : '';
-
-  // Cards por tipo
-  const cardsHtml = `
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 var(--pad) 12px">
-      ${bloques.map(b=>`
-        <div style="background:var(--card2);border-radius:var(--rad);padding:12px;text-align:center">
-          <div style="font-size:18px;margin-bottom:4px">${b.label.split(' ')[0]}</div>
-          <div style="font-size:11px;font-weight:600;color:var(--m);margin-bottom:6px">${b.label.split(' ')[1]}</div>
-          <div style="font-size:16px;font-weight:700;color:${b.color};font-variant-numeric:tabular-nums">${fmtMXN(b.val)}</div>
-          <div style="font-size:10px;color:var(--m);margin-top:2px">${b.pct}% del total</div>
-        </div>`).join('')}
-    </div>`;
-
-  // Meta fondo emergencia
-  const metaHtml = f.meta > 0 ? `
-    <div style="margin:0 var(--pad) 12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--rad)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="font-size:11px;font-weight:600;color:var(--m)">🎯 Fondo de emergencia (3 meses)</div>
-        <div style="font-size:11px;font-weight:700;color:${saludColor}">${f.avance||0}%</div>
-      </div>
-      <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
-        <div style="height:100%;width:${Math.min(100,f.avance||0)}%;background:${saludColor};border-radius:2px;transition:width .6s ease"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--m)">
-        <span>Actual: ${fmtMXN(data.banco?.saldo||0)}</span>
-        <span>Meta: ${fmtMXN(f.meta)}</span>
-      </div>
-    </div>` : '';
-
-  // Últimos movimientos combinados
-  const movs = [
-    ...(data.banco?.items||[]).map(i=>({...i,_tipo:'banco'})),
-    ...(data.fisico?.items||[]).map(i=>({...i,_tipo:'efectivo'})),
-    ...(data.inversion?.items||[]).map(i=>({...i,_tipo:'inversion'})),
-  ].sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,8);
-
-  const movsHtml = movs.length ? `
-    <div style="padding:0 var(--pad) 4px">
-      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px">Últimos movimientos</div>
-      ${movs.map(m=>{
-        const tipoColor = m._tipo==='banco'?'#4ADE80':m._tipo==='efectivo'?'#FBBF24':'#8B5CF6';
-        const tipoEmoji = m._tipo==='banco'?'💳':m._tipo==='efectivo'?'💵':'📈';
-        const montoColor = (m.monto||0)>=0?'var(--ok)':'var(--err)';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-          <div style="width:28px;height:28px;border-radius:8px;background:${tipoColor}22;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${tipoEmoji}</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:500;color:#fff">${m.concepto}</div>
-            <div style="font-size:10px;color:var(--m)">${m.fecha}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:13px;font-weight:700;color:${montoColor};font-variant-numeric:tabular-nums">${(m.monto||0)>=0?'+':''}${fmtMXN(m.monto||0)}</div>
-            <div style="font-size:10px;color:var(--m)">${fmtMXN(m.saldo||0)}</div>
-          </div>
-        </div>`;
-      }).join('')}
-    </div>` : '<div style="padding:16px var(--pad);color:var(--m);font-size:13px">Sin movimientos — agrega con el tab 🏦</div>';
-
-  body.innerHTML = totalHtml + barHtml + cardsHtml + metaHtml + movsHtml;
-}
-
-// ══════════════════════════════════════════
-//  NUTRICIÓN (Lose It! style)
-// ══════════════════════════════════════════
-var _nutMetas = null;
-var _nutData  = null;
-var _nutVista = 'hoy'; // hoy | semana
-
-function renderNutricion(data, metas){
-  _nutData  = data  || _nutData;
-  _nutMetas = metas || _nutMetas || { calorias:1800, proteina:150, carbos:180, grasa:60, agua:2.5 };
-  // Escribir en el panel activo: panel nutricion o sección en maslow
-  var body = document.getElementById('nut-panel-body') || document.getElementById('nutricion-body');
-  if(!body) return;
-  if(!_nutData||!_nutData.ok){
-    body.innerHTML='<div style="padding:24px;text-align:center;color:var(--m)">Sin datos — agrega desde Nueva Entrada 🥗</div>';
-    return;
-  }
-  if(_nutVista==='hoy') _renderNutricionHoy(body);
-  else                   _renderNutricionSemana(body);
-}
-
-function _nutricionTabBar(){
-  var onH = 'onclick="_nutTab(this.dataset.v)" data-v="hoy"';
-  var onS = 'onclick="_nutTab(this.dataset.v)" data-v="semana"';
-  return '<div style="display:flex;gap:6px;padding:12px var(--pad) 8px">' +
-    '<button '+onH+' id="nut-tab-hoy" style="'+_nutTabStyle(_nutVista==='hoy')+'">Hoy</button>' +
-    '<button '+onS+' id="nut-tab-sem" style="'+_nutTabStyle(_nutVista==='semana')+'">Semana</button>' +
-  '</div>';
-}
-function _nutTabStyle(on){ return 'padding:4px 12px;border-radius:20px;font-size:11px;font-weight:'+(on?'700':'500')+';cursor:pointer;font-family:inherit;transition:all .15s;border:1px solid '+(on?'rgba(74,222,128,.5)':'rgba(255,255,255,.1)')+';background:'+(on?'rgba(74,222,128,.15)':'rgba(255,255,255,.04)')+';color:'+(on?'#4ADE80':'var(--m)'); }
-function _nutTab(elOrV){ _nutVista = (typeof elOrV==='string') ? elOrV : elOrV.dataset.v; renderNutricion(); }
-
-function _renderNutricionHoy(body){
-  var hoy   = _nutData.hoy  || {};
-  var metas = _nutMetas;
-  var calPct   = metas.calorias  > 0 ? Math.min(100, Math.round(hoy.cal/metas.calorias*100))    : 0;
-  var protPct  = metas.proteina  > 0 ? Math.min(100, Math.round(hoy.prot/metas.proteina*100))   : 0;
-  var carPct   = metas.carbos    > 0 ? Math.min(100, Math.round(hoy.carbos/metas.carbos*100))   : 0;
-  var grasPct  = metas.grasa     > 0 ? Math.min(100, Math.round(hoy.grasa/metas.grasa*100))     : 0;
-  var aguaPct  = metas.agua      > 0 ? Math.min(100, Math.round(hoy.agua/metas.agua*100))       : 0;
-  var calRest  = metas.calorias - (hoy.cal||0);
-  var calColor = calRest < 0 ? 'var(--err)' : calRest < 200 ? 'var(--warn)' : '#4ADE80';
-
-  // Gauge circular de calorías
-  var circ = 2*Math.PI*36;
-  var dash = circ - (calPct/100*circ);
-
-  var gauge = '<div style="display:flex;flex-direction:column;align-items:center;padding:16px var(--pad) 8px">' +
-    '<svg width="100" height="100" viewBox="0 0 80 80">' +
-      '<circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="7"/>' +
-      '<circle cx="40" cy="40" r="36" fill="none" stroke="'+calColor+'" stroke-width="7"' +
-        ' stroke-dasharray="'+circ.toFixed(1)+'" stroke-dashoffset="'+dash.toFixed(1)+'"' +
-        ' stroke-linecap="round" transform="rotate(-90 40 40)" style="transition:stroke-dashoffset .6s ease"/>' +
-      '<text x="40" y="37" text-anchor="middle" font-size="14" font-weight="700" fill="'+calColor+'" font-family="system-ui">'+(hoy.cal||0)+'</text>' +
-      '<text x="40" y="50" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.4)" font-family="system-ui">/ '+metas.calorias+'</text>' +
-    '</svg>' +
-    '<div style="font-size:11px;color:'+calColor+';font-weight:600;margin-top:2px">' +
-      (calRest>=0 ? calRest+' kcal restantes' : Math.abs(calRest)+' kcal sobre el límite') +
-    '</div>' +
-  '</div>';
-
-  // Macros
-  function macroBar(label, val, meta, pct, color){
-    return '<div>' +
-      '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px">' +
-        '<span style="color:var(--m);font-weight:600">'+label+'</span>' +
-        '<span style="color:var(--t)">'+val+'<span style="color:var(--m)"> / '+meta+'g</span></span>' +
-      '</div>' +
-      '<div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">' +
-        '<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:3px;transition:width .5s ease"></div>' +
-      '</div>' +
-    '</div>';
-  }
-
-  var macros = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:4px var(--pad) 12px">' +
-    macroBar('Proteína', hoy.prot||0, metas.proteina, protPct, '#60A5FA') +
-    macroBar('Carbos',   hoy.carbos||0, metas.carbos, carPct,  '#FBBF24') +
-    macroBar('Grasa',    hoy.grasa||0, metas.grasa,  grasPct, '#F87171') +
-  '</div>';
-
-  // Agua y sodio
-  var extras = '<div style="display:flex;gap:12px;padding:0 var(--pad) 12px">' +
-    '<div style="flex:1;background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.15);border-radius:10px;padding:8px 12px;text-align:center">' +
-      '<div style="font-size:18px;font-weight:700;color:#38BDF8">'+(hoy.agua||0).toFixed(1)+'L</div>' +
-      '<div style="font-size:9px;color:var(--m)">Agua · meta '+metas.agua+'L</div>' +
-      '<div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:6px;overflow:hidden">' +
-        '<div style="height:100%;width:'+aguaPct+'%;background:#38BDF8;border-radius:2px"></div>' +
-      '</div>' +
-    '</div>' +
-    '<div style="flex:1;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:10px;padding:8px 12px;text-align:center">' +
-      '<div style="font-size:18px;font-weight:700;color:#FBBF24">'+(hoy.fibra||0)+'g</div>' +
-      '<div style="font-size:9px;color:var(--m)">Fibra</div>' +
-    '</div>' +
-  '</div>';
-
-  // Items de hoy agrupados por momento
-  var MOMENTO_COLOR = {Desayuno:'#F59E0B',Comida:'#4ADE80',Cena:'#8B5CF6',Snack:'#60A5FA','Post-entreno':'#F87171'};
-  var MOMENTO_EMOJI = {Desayuno:'🌅',Comida:'☀️',Cena:'🌙',Snack:'🍎','Post-entreno':'💪'};
-  var items = (hoy.items||[]);
-  var grupos = {};
-  items.forEach(function(it){
-    var m = it.momento||'Otro';
-    if(!grupos[m]) grupos[m] = { items:[], cal:0 };
-    grupos[m].items.push(it);
-    grupos[m].cal += it.cal||0;
-  });
-  var ORDER = ['Desayuno','Comida','Cena','Snack','Post-entreno','Otro'];
-  var itemsHtml = ORDER.filter(function(m){ return grupos[m]; }).map(function(m){
-    var g = grupos[m];
-    var color = MOMENTO_COLOR[m]||'var(--m)';
-    var emoji = MOMENTO_EMOJI[m]||'🍽️';
-    return '<div style="margin:0 var(--pad) 10px">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
-        '<div style="font-size:11px;font-weight:700;color:'+color+'">' + emoji + ' ' + m + '</div>' +
-        '<div style="font-size:11px;color:var(--m)">'+g.cal+' kcal</div>' +
-      '</div>' +
-      g.items.map(function(it){
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03)">' +
-          '<div style="font-size:12px;color:var(--t);flex:1">' + it.alimento + '</div>' +
-          '<div style="font-size:11px;color:var(--m);margin-left:8px;flex-shrink:0">' +
-            (it.cal?it.cal+' kcal':'') +
-            (it.prot?' · '+it.prot+'g P':'') +
-          '</div>' +
-        '</div>';
-      }).join('') +
-    '</div>';
-  }).join('');
-
-  if(!items.length) itemsHtml = '<div style="padding:16px var(--pad);color:var(--m);font-size:13px;text-align:center">Sin registros hoy — agrega desde Nueva Entrada 🥗</div>';
-
-  body.innerHTML = _nutricionTabBar() + gauge + macros + extras +
-    '<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:8px">' + itemsHtml + '</div>';
-}
-
-function _renderNutricionSemana(body){
-  var semana = (_nutData.semana||[]).slice().reverse(); // cronológico
-  var metas  = _nutMetas;
-
-  var bars = semana.map(function(d){
-    var pct = metas.calorias > 0 ? Math.min(120, d.cal/metas.calorias*100) : 0;
-    var over = d.cal > metas.calorias;
-    var color = over ? '#EF4444' : d.cal > metas.calorias*0.8 ? '#4ADE80' : 'rgba(255,255,255,.2)';
-    var label = d.fecha ? d.fecha.slice(5) : '';
-    return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">' +
-      '<div style="font-size:9px;color:var(--m)">'+(d.cal||0)+'</div>' +
-      '<div style="width:100%;height:80px;display:flex;align-items:flex-end">' +
-        '<div style="width:100%;height:'+Math.max(4,pct*.8)+'%;background:'+color+';border-radius:4px 4px 0 0;transition:height .5s ease;min-height:4px"></div>' +
-      '</div>' +
-      '<div style="font-size:9px;color:var(--m)">'+label+'</div>' +
-    '</div>';
-  }).join('');
-
-  var chartHtml = '<div style="padding:12px var(--pad)">' +
-    '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px">Calorías últimos 7 días</div>' +
-    '<div style="display:flex;gap:4px;align-items:flex-end;height:110px">' + bars + '</div>' +
-    '<div style="font-size:9px;color:var(--m);text-align:center;margin-top:4px">Meta: '+metas.calorias+' kcal/día</div>' +
-  '</div>';
-
-  // Promedios
-  var dias = semana.filter(function(d){ return d.cal > 0; });
-  var avg  = function(key){ return dias.length ? Math.round(dias.reduce(function(s,d){ return s+(d[key]||0); },0)/dias.length) : 0; };
-  var statsHtml = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 var(--pad) 12px">' +
-    ['cal','prot','carbos','grasa'].map(function(k,i){
-      var labels = ['kcal','P(g)','C(g)','G(g)'];
-      var colors = ['#4ADE80','#60A5FA','#FBBF24','#F87171'];
-      return '<div style="text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:8px 4px">' +
-        '<div style="font-size:16px;font-weight:700;color:'+colors[i]+'">'+avg(k)+'</div>' +
-        '<div style="font-size:9px;color:var(--m)">prom '+labels[i]+'</div>' +
-      '</div>';
-    }).join('') +
-  '</div>';
-
-  body.innerHTML = _nutricionTabBar() + chartHtml + statsHtml;
-}
-
-// ══════════════════════════════════════════
-//  ENTRENAMIENTO
-// ══════════════════════════════════════════
-function renderEntrenamiento(data){
-  var body = document.getElementById('entrenamiento-body');
-  if(!body) return;
-  if(!data||!data.ok||!data.items||!data.items.length){
-    body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m);font-size:13px">Sin registros — agrega desde el formulario</div>';
-    return;
-  }
-  var TIPO_COLOR = {Fuerza:'#EF4444',Cardio:'#F59E0B',HIIT:'#8B5CF6',Flexibilidad:'#4ADE80',Deporte:'#3B82F6'};
-  var rows = data.items.map(function(it){
-    var color = TIPO_COLOR[it.tipo] || '#94A3B8';
-    var detalles = [];
-    if(it.duracion) detalles.push(it.duracion+'min');
-    if(it.series&&it.reps) detalles.push(it.series+'x'+it.reps+(it.peso?' @'+it.peso+'kg':''));
-    if(it.distancia) detalles.push(it.distancia+'km');
-    return '<div style="display:flex;align-items:center;gap:10px;padding:8px var(--pad);border-bottom:1px solid rgba(255,255,255,.04)">' +
-      '<div style="width:6px;height:32px;border-radius:3px;background:'+color+';flex-shrink:0"></div>' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:12px;color:var(--t)">' + it.ejercicio + '</div>' +
-        '<div style="font-size:10px;color:var(--m);margin-top:2px">' + it.fecha + ' · ' + it.tipo + (detalles.length?' · '+detalles.join(' · '):'') + '</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-  body.innerHTML = rows;
 }
