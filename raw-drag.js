@@ -1,3 +1,4 @@
+/* RAW Entry — Drag & Drop v.5.044 */
 // ══════════════════════════════════════════
 //  DRAG & DROP — Módulos del anverso
 //  Solo desktop (≥900px)
