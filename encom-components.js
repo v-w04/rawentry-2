@@ -229,42 +229,59 @@ EncomSimpleClock.prototype._makeBackBuffer = function() {
   c.height = this.height;
   var ctx  = c.getContext('2d');
   var x = this.centerx, y = this.centery;
+  var r = Math.min(this.width, this.height) / 2 - 4;
 
-  ctx.strokeStyle = 'rgba(0,238,238,.15)';
-  ctx.lineWidth   = 1;
-  ctx.beginPath(); ctx.arc(x, y, 8,  0, Math.PI * 2); ctx.stroke();
-  ctx.beginPath(); ctx.arc(x, y, 16, 0, Math.PI * 2); ctx.stroke();
-  ctx.beginPath(); ctx.arc(x, y, 24, 0, Math.PI * 2); ctx.stroke();
+  // círculos concéntricos
+  [r * .35, r * .65, r * .95].forEach(function(rad) {
+    ctx.strokeStyle = 'rgba(0,238,238,.15)';
+    ctx.lineWidth   = 1;
+    ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.stroke();
+  });
 
+  // ejes
   ctx.strokeStyle = 'rgba(0,238,238,.1)';
+  ctx.lineWidth   = 1;
   ctx.beginPath();
-  ctx.moveTo(x, y + 8);  ctx.lineTo(x, y + 24);
-  ctx.moveTo(x, y - 8);  ctx.lineTo(x, y - 24);
-  ctx.moveTo(x + 8, y);  ctx.lineTo(x + 24, y);
-  ctx.moveTo(x - 8, y);  ctx.lineTo(x - 24, y);
+  ctx.moveTo(x, y + r * .35); ctx.lineTo(x, y + r * .95);
+  ctx.moveTo(x, y - r * .35); ctx.lineTo(x, y - r * .95);
+  ctx.moveTo(x + r * .35, y); ctx.lineTo(x + r * .95, y);
+  ctx.moveTo(x - r * .35, y); ctx.lineTo(x - r * .95, y);
   ctx.stroke();
+
+  // ticks en los 4 puntos del círculo externo
+  ctx.fillStyle = 'rgba(0,238,238,.4)';
+  [[0,-1],[0,1],[1,0],[-1,0]].forEach(function(d) {
+    ctx.fillRect(x + d[0]*r*.95 - 1.5, y + d[1]*r*.95 - 1.5, 3, 3);
+  });
+
   return c;
 };
 
 EncomSimpleClock.prototype.tick = function() {
   var t = new Date() - this.firstTick;
+  var r = Math.min(this.width, this.height) / 2 - 4;
   this.context.clearRect(0, 0, this.width, this.height);
   this.context.drawImage(this._backBuffer, 0, 0);
 
-  this.context.strokeStyle = 'rgba(0,238,238,.6)';
+  this.context.strokeStyle = 'rgba(0,238,238,.9)';
+  this.context.lineWidth   = 1.5;
+  this.context.beginPath();
+  // aguja rápida
+  this.context.moveTo(this.centerx, this.centery);
+  this.context.lineTo(
+    this.centerx + r * .92 * Math.sin(t / 500),
+    this.centery - r * .92 * Math.cos(t / 500)
+  );
+  this.context.stroke();
+
+  this.context.strokeStyle = 'rgba(255,204,0,.7)';
   this.context.lineWidth   = 1;
   this.context.beginPath();
-  // aguja minutos
+  // aguja lenta
   this.context.moveTo(this.centerx, this.centery);
   this.context.lineTo(
-    this.centerx + 24 * Math.sin(t / 10000),
-    this.centery - 24 * Math.cos(t / 10000)
-  );
-  // aguja horas
-  this.context.moveTo(this.centerx, this.centery);
-  this.context.lineTo(
-    this.centerx + 18 * Math.sin(t / 100000),
-    this.centery - 18 * Math.cos(t / 100000)
+    this.centerx + r * .70 * Math.sin(t / 5000),
+    this.centery - r * .70 * Math.cos(t / 5000)
   );
   this.context.stroke();
   this.context.closePath();
@@ -272,7 +289,7 @@ EncomSimpleClock.prototype.tick = function() {
   // punto centro
   this.context.fillStyle = '#00eeee';
   this.context.beginPath();
-  this.context.arc(this.centerx, this.centery, 2, 0, Math.PI * 2);
+  this.context.arc(this.centerx, this.centery, 3, 0, Math.PI * 2);
   this.context.fill();
 };
 
@@ -297,14 +314,14 @@ EncomTicker.prototype._start = function() {
       clearInterval(self._tickInterval);
       return;
     }
-    self._val += (self._target - self._val) * 0.15;
-    if (Math.abs(self._val - self._target) < 0.5) {
-      self._target = Math.random() * 200 - 100;
+    self._val += (self._target - self._val) * 0.25;
+    if (Math.abs(self._val - self._target) < 0.8) {
+      self._target = Math.random() * 400 - 200;
       self._idx    = (self._idx + 1) % self._labels.length;
       self._renderLabel();
     }
     self._renderVal();
-  }, 60);
+  }, 40);
 };
 
 EncomTicker.prototype._renderLabel = function() {
