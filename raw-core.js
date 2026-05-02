@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.5.048
+/* RAW Entry — Core v.5.049
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Detectar móvil
@@ -348,24 +348,21 @@ window.addEventListener('DOMContentLoaded',()=>{
       }
       sheetUrl = d.sheetUrl || '';
       onCats(d.catalogos);
-      renderApartados(d.apartados||{items:[],totalApartado:0}); // primero apartados
-      renderEntes(d.fijos);                                      // luego bancos con disponible
+      if(typeof renderApartados==='function') renderApartados(d.apartados||{items:[],totalApartado:0});
+      renderEntes(d.fijos);
       onDatosMes(d.datosMes);
-      renderAnualidad(d.gastos);
-      renderLogros(d.logros);
-      renderNecesidades(d.necesidades);
+      if(typeof renderAnualidad==='function') renderAnualidad(d.gastos);
+      if(typeof renderLogros==='function') renderLogros(d.logros);
+      if(typeof renderNecesidades==='function') renderNecesidades(d.necesidades);
       if(typeof renderNecesidadesInline==='function') renderNecesidadesInline(d.necesidades);
-      renderFlujoMensual(d.flujoPorMes);
+      if(typeof renderFlujoMensual==='function') renderFlujoMensual(d.flujoPorMes);
       if(d.activityCheck){ _actData=d.activityCheck; }
-      if(d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
-      api.getPensamientos().then(renderPensamientos).catch(()=>{});
-      api.getRelaciones().then(renderRelaciones).catch(()=>{});
-      api.getSalud().then(renderSalud).catch(()=>{});
+      if(typeof renderFinancieroAvanzado==='function' && d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
+      api.getPensamientos().then(r=>{ if(typeof renderPensamientos==='function') renderPensamientos(r); }).catch(()=>{});
+      api.getRelaciones().then(r=>{ if(typeof renderRelaciones==='function') renderRelaciones(r); }).catch(()=>{});
+      api.getSalud().then(r=>{ if(typeof renderSalud==='function') renderSalud(r); }).catch(()=>{});
       if(typeof cargarScore==='function') cargarScore();
-      api.getPatrimonio().then(renderPatrimonio).catch(()=>renderPatrimonio({ok:true,total:0,
-        banco:{saldo:0,pct:0,items:[]},fisico:{saldo:0,pct:0,items:[]},
-        inversion:{saldo:0,pct:0,rendimientoTotal:0,items:[]},
-        fondo:{meta:0,avance:0,meses:0,salud:'err'}}));
+      api.getPatrimonio().then(r=>{ if(typeof renderPatrimonio==='function') renderPatrimonio(r); }).catch(()=>{});
       cargarRevision('mensual', new Date().getFullYear(), new Date().getMonth()+1, null);
     })
     .catch(err=>{
