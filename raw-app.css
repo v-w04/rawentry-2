@@ -1203,3 +1203,13 @@ html.mob .hero-right{display:none !important}
 .graf-toggle:hover{
   background:rgba(255,255,255,.03);
 }
+
+/* ══ MASLOW — 5 columnas con drag & drop ══ */
+.maslow-cols{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(220px,1fr));
+  gap:12px;
+  padding:12px 20px 24px;
+  align-items:start;
+  overflow-x:auto;
+}
