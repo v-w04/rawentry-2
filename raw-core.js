@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.5.045
+/* RAW Entry — Core v.5.046
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Detectar móvil
@@ -1416,18 +1416,42 @@ function _selectOpt(swId, val){
 function renderEntes(data){
   const body=document.getElementById('entes-list');
   if(!data||!data.length){body.innerHTML='<div style="padding:16px;color:var(--m);text-align:center">Sin datos</div>';return;}
-  const total=data.reduce((s,f)=>f.nombre==='P'?s:s+(f.monto||0),0);
-  const {txt:tt,cls:tc}=fmtMoneda(total);
-  document.getElementById('entes-total').textContent=tt;
-  document.getElementById('entes-total').className='sec-hdr-val '+tc;
+
+  // Calcular apartados por banco (solo activos, no usados)
+  const apartadosPorBanco = {};
+  let totalApartadosActivos = 0;
+  (_apartadosData||[]).forEach(ap=>{
+    if(ap.estado && ap.estado.toLowerCase()==='usado') return;
+    const banco = (ap.banco||'').trim().toUpperCase();
+    apartadosPorBanco[banco] = (apartadosPorBanco[banco]||0) + (ap.monto||0);
+    totalApartadosActivos += (ap.monto||0);
+  });
+
+  // Total bancos excluyendo P y mostrando disponible real (saldo - apartados de ese banco)
+  const total = data.reduce((s,f)=>f.nombre==='P'?s:s+(f.monto||0),0);
+  const totalDisponible = total - totalApartadosActivos;
+  const {txt:tt,cls:tc} = fmtMoneda(totalDisponible);
+  document.getElementById('entes-total').textContent = tt;
+  document.getElementById('entes-total').className = 'sec-hdr-val '+tc;
+
   const hayExcluidos = data.some(f=>f.nombre==='P');
-  body.innerHTML=data.map(f=>{
-    const {txt,cls}=fmtMoneda(f.monto);
-    const excluido = f.nombre==='P';
+  body.innerHTML = data.map(f=>{
+    const {txt,cls} = fmtMoneda(f.monto);
+    const excluido  = f.nombre==='P';
+    const bancKey   = (f.nombre||'').trim().toUpperCase();
+    const apBanco   = apartadosPorBanco[bancKey] || 0;
+    const disponible = (f.monto||0) - apBanco;
+    const {txt:dTxt} = fmtMoneda(disponible);
+
     return `<div class="ente-row${excluido?' excluido-total':''}" onclick="togEnteEdit(${f.fila})">
       <div class="ente-nombre">${f.nombre}</div>
       <div class="ente-right">
-        <div class="ente-monto ${cls}" id="em-${f.fila}">${txt}</div>
+        <div style="text-align:right">
+          <div class="ente-monto ${cls}" id="em-${f.fila}">${txt}</div>
+          ${!excluido && apBanco > 0 ? `<div style="font-size:10px;color:var(--m);margin-top:1px">
+            disponible: <span style="color:rgba(74,222,128,.7);font-weight:600">${dTxt}</span>
+          </div>` : ''}
+        </div>
         <div class="ente-fecha">${fmtDiaSemana(f.fecha)}</div>
       </div>
     </div>
@@ -1458,7 +1482,13 @@ function guardarEnte(fila){
         const em=document.getElementById('em-'+fila);
         if(em){em.textContent=txt;em.className='ente-monto '+cls;}
         togEnteEdit(fila);
-        api.getFijos().then(renderEntes);
+        // Recargar fijos Y apartados juntos para que el disponible sea correcto
+        Promise.all([api.getFijos(), api.getApartados()])
+          .then(([fijos, apData])=>{
+            if(apData) renderApartados(apData);
+            renderEntes(fijos);
+          })
+          .catch(()=>api.getFijos().then(renderEntes));
       }
     })
     .catch(()=>{ico.className='fas fa-check';});
