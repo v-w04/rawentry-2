@@ -69,10 +69,11 @@ function irABitacora(){
 function irAMaslowLegacy(){
   if(_pantalla==='bitacora'){ volverAlAnverso(); return; }
   _setPantalla('bitacora');
-  poblarFiltrosMes();
-  dibujarNecesidades();
-  // Lazy load nutrición y entrenamiento
-  if(typeof renderNutricion==='function' && typeof api!=='undefined'){
+  // Cargar módulos de Bitácora
+  if(typeof api!=='undefined'){
+    api.getPensamientos().then(renderPensamientos).catch(function(){});
+    api.getRelaciones().then(renderRelaciones).catch(function(){});
+    api.getSalud().then(renderSalud).catch(function(){});
     api.getNutricion().then(renderNutricion).catch(function(){ renderNutricion({ok:true,items:[],resumen:{}}); });
     api.getEntrenamiento().then(renderEntrenamiento).catch(function(){ renderEntrenamiento({ok:true,items:[]}); });
   }
