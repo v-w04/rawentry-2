@@ -26,8 +26,8 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.057
-   CFO: semáforo eliminado · bloque ② eliminado · proyección sin repetir egresos
+/* RAW Entry — Dashboard v.5.058
+   Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
 */
 
 // ══════════════════════════════════════════
@@ -1036,48 +1036,125 @@ function _dibujarRadarInline(niveles){
 }
 
 // ══════════════════════════════════════════
-//  PATRIMONIO
+//  PATRIMONIO — fusionado con datos reales de Bancos
 // ══════════════════════════════════════════
 function renderPatrimonio(data){
   var body = document.getElementById('patrimonio-body');
   if(!body) return;
   if(!data||!data.ok){
-    body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m)">Sin datos — agrega en Nueva Entrada</div>';
+    body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m)">Sin datos</div>';
     return;
   }
-  var fmtMXN = function(v){ return '$ '+Math.abs(v).toLocaleString('es-MX',{minimumFractionDigits:0}); };
-  var f = data.fondo||{};
-  var saludColor = f.salud==='ok'?'var(--ok)':f.salud==='warn'?'var(--warn)':'var(--err)';
-  var saludLbl = f.salud==='ok'?'Fondo completo':f.salud==='warn'?'Fondo parcial':'Sin fondo';
-  var total = data.total||0;
-  var banco    = data.banco    || {saldo:0,pct:0,items:[]};
-  var fisico   = data.fisico   || {saldo:0,pct:0,items:[]};
-  var inversion= data.inversion|| {saldo:0,pct:0,items:[]};
-  var bloques = [
-    {label:'Banco',    emoji:'💳', val:banco.saldo,    pct:banco.pct||0,    color:'#4ADE80'},
-    {label:'Efectivo', emoji:'💵', val:fisico.saldo,   pct:fisico.pct||0,   color:'#FBBF24'},
-    {label:'Inversión',emoji:'📈', val:inversion.saldo,pct:inversion.pct||0,color:'#8B5CF6'},
-  ];
-  var html = '<div style="padding:16px var(--pad) 8px">';
-  html += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:4px">Patrimonio total</div>';
-  html += '<div style="font-size:32px;font-weight:700;color:#fff">'+fmtMXN(total)+'</div>';
-  html += '<div style="font-size:11px;margin-top:4px"><span style="color:'+saludColor+'">● '+saludLbl+'</span><span style="color:var(--m);margin-left:8px">'+(f.meses||0)+' meses cubiertos</span></div>';
+  var fmt = function(v){ return '$ '+Math.abs(v||0).toLocaleString('es-MX',{minimumFractionDigits:0}); };
+  var fmt2= function(v){ return '$ '+Math.abs(v||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); };
+
+  var f         = data.fondo     || {};
+  var banco     = data.banco     || {saldo:0, pct:0, items:[]};
+  var fisico    = data.fisico    || {saldo:0, pct:0, items:[]};
+  var inversion = data.inversion || {saldo:0, pct:0, rendimientoTotal:0, items:[]};
+  var total     = data.total     || 0;
+  var prestamo  = data.prestamo  || 0;
+
+  var saludColor = f.salud==='ok'?'#4ADE80':f.salud==='warn'?'#F59E0B':'#EF4444';
+  var saludLbl   = f.salud==='ok'?'Fondo completo':f.salud==='warn'?'Fondo parcial':'Sin fondo';
+
+  var html = '';
+
+  // ── Cabecera: total + barra de distribución ──
+  html += '<div style="padding:14px 16px 10px">';
+  html += '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m);margin-bottom:4px">Patrimonio neto líquido</div>';
+  html += '<div style="font-size:30px;font-weight:800;letter-spacing:-.04em;color:#fff;line-height:1">'+fmt2(total)+'</div>';
+  if(prestamo > 0){
+    html += '<div style="font-size:11px;color:var(--m);margin-top:3px">Pasivo: <span style="color:#F59E0B">− '+fmt(prestamo)+'</span> (no incluido en total)</div>';
+  }
   html += '</div>';
-  if(total>0){ html += '<div style="margin:0 var(--pad) 12px;height:8px;border-radius:4px;overflow:hidden;display:flex;gap:2px">'; bloques.forEach(function(b){ if(b.pct>0) html += '<div style="width:'+b.pct+'%;background:'+b.color+';border-radius:4px"></div>'; }); html += '</div>'; }
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 var(--pad) 12px">';
-  bloques.forEach(function(b){ html += '<div style="background:rgba(255,255,255,.04);border-radius:var(--rad);padding:12px;text-align:center"><div style="font-size:18px">'+b.emoji+'</div><div style="font-size:11px;color:var(--m);margin:4px 0">'+b.label+'</div><div style="font-size:16px;font-weight:700;color:'+b.color+'">'+fmtMXN(b.val)+'</div><div style="font-size:10px;color:var(--m)">'+b.pct+'%</div></div>'; });
-  html += '</div>';
-  if(f.meta>0){ html += '<div style="margin:0 var(--pad) 12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--rad)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:11px;color:var(--m)">🎯 Fondo emergencia</span><span style="font-size:11px;font-weight:700;color:'+saludColor+'">'+(f.avance||0)+'%</span></div><div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:'+Math.min(100,f.avance||0)+'%;background:'+saludColor+';border-radius:2px"></div></div><div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--m)"><span>Actual: '+fmtMXN(banco.saldo)+'</span><span>Meta: '+fmtMXN(f.meta)+'</span></div></div>'; }
-  var movs = [];
-  (banco.items||[]).forEach(function(i){ movs.push(Object.assign({},i,{_c:'#4ADE80',_e:'💳'})); });
-  (fisico.items||[]).forEach(function(i){ movs.push(Object.assign({},i,{_c:'#FBBF24',_e:'💵'})); });
-  (inversion.items||[]).forEach(function(i){ movs.push(Object.assign({},i,{_c:'#8B5CF6',_e:'📈'})); });
-  movs.sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
-  movs = movs.slice(0,8);
-  if(movs.length){
-    html += '<div style="padding:0 var(--pad) 4px"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px">Últimos movimientos</div>';
-    movs.forEach(function(m){ var mc=(m.monto||0)>=0?'var(--ok)':'var(--err)'; html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)"><div style="width:28px;height:28px;border-radius:8px;background:'+m._c+'22;display:flex;align-items:center;justify-content:center">'+m._e+'</div><div style="flex:1;min-width:0"><div style="font-size:13px;color:#fff">'+m.concepto+'</div><div style="font-size:10px;color:var(--m)">'+m.fecha+'</div></div><div style="text-align:right"><div style="font-size:13px;font-weight:700;color:'+mc+'">'+((m.monto||0)>=0?'+':'')+fmtMXN(m.monto||0)+'</div><div style="font-size:10px;color:var(--m)">'+fmtMXN(m.saldo||0)+'</div></div></div>'; });
+
+  // Barra distribución proporcional
+  if(total > 0){
+    html += '<div style="margin:0 16px 12px;height:6px;border-radius:3px;overflow:hidden;display:flex;gap:1px">';
+    if(banco.pct > 0)     html += '<div style="width:'+banco.pct+'%;background:#4ADE80;border-radius:3px" title="Banco '+banco.pct+'%"></div>';
+    if(fisico.pct > 0)    html += '<div style="width:'+fisico.pct+'%;background:#FBBF24;border-radius:3px" title="Efectivo '+fisico.pct+'%"></div>';
+    if(inversion.pct > 0) html += '<div style="width:'+inversion.pct+'%;background:#8B5CF6;border-radius:3px" title="Inversión '+inversion.pct+'%"></div>';
     html += '</div>';
   }
+
+  // ── Tres columnas de categorías ──
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:0 16px 12px">';
+
+  // Banco — detalle por institución
+  html += '<div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15);border-radius:10px;padding:10px 12px">';
+  html += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px">';
+  html += '<span style="font-size:14px">🏦</span>';
+  html += '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(74,222,128,.7)">Banco</span>';
+  html += '</div>';
+  html += '<div style="font-size:18px;font-weight:800;color:#4ADE80;letter-spacing:-.03em;line-height:1;margin-bottom:2px">'+fmt(banco.saldo)+'</div>';
+  html += '<div style="font-size:10px;color:rgba(74,222,128,.5);margin-bottom:6px">'+banco.pct+'% del total</div>';
+  // items individuales
+  (banco.items||[]).forEach(function(it){
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-top:1px solid rgba(74,222,128,.08)">';
+    html += '<span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.6)">'+it.nombre+'</span>';
+    html += '<span style="font-size:11px;font-weight:700;color:#4ADE80;font-variant-numeric:tabular-nums">'+fmt(it.monto)+'</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Efectivo — detalle
+  html += '<div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:10px;padding:10px 12px">';
+  html += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px">';
+  html += '<span style="font-size:14px">💵</span>';
+  html += '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(251,191,36,.7)">Efectivo</span>';
+  html += '</div>';
+  html += '<div style="font-size:18px;font-weight:800;color:#FBBF24;letter-spacing:-.03em;line-height:1;margin-bottom:2px">'+fmt(fisico.saldo)+'</div>';
+  html += '<div style="font-size:10px;color:rgba(251,191,36,.5);margin-bottom:6px">'+fisico.pct+'% del total</div>';
+  (fisico.items||[]).forEach(function(it){
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-top:1px solid rgba(251,191,36,.08)">';
+    html += '<span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.6)">'+it.nombre+'</span>';
+    html += '<span style="font-size:11px;font-weight:700;color:#FBBF24;font-variant-numeric:tabular-nums">'+fmt(it.monto)+'</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Inversión — detalle
+  html += '<div style="background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:10px;padding:10px 12px">';
+  html += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px">';
+  html += '<span style="font-size:14px">📈</span>';
+  html += '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(139,92,246,.7)">Inversión</span>';
+  html += '</div>';
+  html += '<div style="font-size:18px;font-weight:800;color:#C4B5FD;letter-spacing:-.03em;line-height:1;margin-bottom:2px">'+fmt(inversion.saldo)+'</div>';
+  html += '<div style="font-size:10px;color:rgba(139,92,246,.5);margin-bottom:6px">'+inversion.pct+'% del total</div>';
+  if(inversion.rendimientoTotal > 0){
+    html += '<div style="font-size:10px;color:rgba(139,92,246,.6);padding:4px 0;border-top:1px solid rgba(139,92,246,.08)">';
+    html += 'Rendimiento: <b style="color:#C4B5FD">+'+fmt(inversion.rendimientoTotal)+'</b>';
+    html += '</div>';
+  }
+  (inversion.items||[]).slice(0,2).forEach(function(it){
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-top:1px solid rgba(139,92,246,.08)">';
+    html += '<span style="font-size:10px;color:rgba(255,255,255,.5)">'+it.instrumento+'</span>';
+    html += '<span style="font-size:11px;font-weight:700;color:#C4B5FD;font-variant-numeric:tabular-nums">'+fmt(it.saldo||0)+'</span>';
+    html += '</div>';
+  });
+  if(!inversion.saldo){
+    html += '<div style="font-size:10px;color:rgba(255,255,255,.2);margin-top:4px">Sin inversiones</div>';
+  }
+  html += '</div>';
+
+  html += '</div>'; // /grid
+
+  // ── Fondo de emergencia ──
+  if(f.meta > 0){
+    html += '<div style="margin:0 16px 12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+    html += '<span style="font-size:11px;color:var(--m)">🎯 Fondo de emergencia <span style="color:var(--m);font-size:10px">(3 meses de gasto)</span></span>';
+    html += '<span style="font-size:12px;font-weight:700;color:'+saludColor+'">'+(f.avance||0)+'% · '+saludLbl+'</span>';
+    html += '</div>';
+    html += '<div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin-bottom:6px">';
+    html += '<div style="height:100%;width:'+Math.min(100,f.avance||0)+'%;background:'+saludColor+';border-radius:3px;transition:width .5s"></div>';
+    html += '</div>';
+    html += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--m)">';
+    html += '<span>Actual en banco: <b style="color:rgba(255,255,255,.6)">'+fmt(banco.saldo)+'</b></span>';
+    html += '<span>Meta: <b style="color:rgba(255,255,255,.6)">'+fmt(f.meta)+'</b> · '+(f.meses||0)+' meses cubiertos</span>';
+    html += '</div></div>';
+  }
+
   body.innerHTML = html;
 }
