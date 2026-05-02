@@ -1,4 +1,4 @@
-/* RAW Entry — Dashboard v.5.048
+/* RAW Entry — Dashboard v.5.049
    Tablas Variables/Fijos · Flujo Mensual · Gráficas
    + Financiero Avanzado · Revisión · Relaciones · Salud · Apartados · Pensamientos
 */
@@ -734,7 +734,7 @@ function cargarScore(){
   const body = document.getElementById('score-body');
   if(!body) return;
   if(body) body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px;color:#8B5CF6"></i></div>';
-  api.getScoreVida().then(d=>{ _scoreData=d; renderScore(d); }).catch(()=>{});
+  api.getScoreVida().then(function(d){ _scoreData=d; renderScore(d); }).catch(function(e){ var b=document.getElementById('score-body'); if(b) b.innerHTML='<div style="color:red;padding:16px;font-size:12px">Error score: '+String(e)+'</div>'; });
 }
 
 function renderScore(data){
