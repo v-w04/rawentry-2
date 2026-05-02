@@ -759,6 +759,8 @@ function renderScore(data){
   const dashOff  = circleC * (1 - pct/100);
 
   const fin = data.finDetalle || {};
+  // Debug: mostrar en consola qué llegó
+  if(Object.keys(fin).length === 0) console.warn('finDetalle vacío — redespliega el GAS');
   const areas = [
     { key:'dinero',    label:'Dinero',     emoji:'💰', max: mx.dinero||25,
       detalle: [
@@ -820,9 +822,9 @@ function renderScore(data){
         const val = d[a.key]||0;
         const pctA = Math.round(val/a.max*100);
         const col = areaColors[a.key]||'var(--p)';
-        const detalleHtml = (a.detalle||[]).filter(d=>d.val!=='—').map(d=>
-          `<span style="font-size:10px;color:var(--m)">${d.lbl}: <span style="color:rgba(255,255,255,.5)">${d.val}</span></span>`
-        ).join('<span style="color:var(--dim);margin:0 4px">·</span>');
+        const detalleHtml = (a.detalle||[]).filter(d=>d.val!=null && d.val!=='—' && d.val!==undefined).map(d=>
+          `<span style="font-size:10px;color:var(--m)">${d.lbl}: <span style="color:rgba(255,255,255,.6);font-weight:600">${d.val}</span></span>`
+        ).join('<span style="color:var(--dim);padding:0 4px">·</span>');
         return `<div style="margin-bottom:12px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
             <div style="display:flex;align-items:center;gap:6px">
