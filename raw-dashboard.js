@@ -1,4 +1,4 @@
-/* RAW Entry — Dashboard v.5.047
+/* RAW Entry — Dashboard v.5.048
    Tablas Variables/Fijos · Flujo Mensual · Gráficas
    + Financiero Avanzado · Revisión · Relaciones · Salud · Apartados · Pensamientos
 */
@@ -738,154 +738,169 @@ function cargarScore(){
 }
 
 function renderScore(data){
-  const body = document.getElementById('score-body');
-  if(!body) return;
-  const fecha = document.getElementById('score-fecha');
+  var body = document.getElementById('score-body');
   if(!body) return;
   if(!data||!data.ok){ body.innerHTML='<div style="padding:16px;color:var(--m);text-align:center">Error calculando score</div>'; return; }
+
+  var fecha = document.getElementById('score-fecha');
   if(fecha) fecha.textContent = data.timestamp || '';
 
-  const s  = data.score || {};
-  const d  = s.desglose || {};
-  const mx = s.maximos  || {};
+  var s   = data.score || {};
+  var des = s.desglose || {};
+  var mx  = s.maximos  || {};
+  var fin = data.finDetalle || {};
+  var pct = s.total || 0;
+  var color = pct>=70?'#4ADE80':pct>=55?'#F59E0B':'#EF4444';
 
-  const pct = s.total || 0;
-  const color = pct>=70?'var(--ok)':pct>=55?'var(--warn)':'var(--err)';
+  var circleR = 54;
+  var circleC = 2 * Math.PI * circleR;
+  var dashOff = circleC * (1 - pct/100);
 
-  // Gauge central
-  const circleR  = 54;
-  const circleC  = 2 * Math.PI * circleR;
-  const dashArr  = circleC;
-  const dashOff  = circleC * (1 - pct/100);
-
-  const fin = data.finDetalle || {};
-  // Debug: mostrar en consola qué llegó
-  if(Object.keys(fin).length === 0) console.warn('finDetalle vacío — redespliega el GAS');
-  const areas = [
-    { key:'dinero',    label:'Dinero',     emoji:'💰', max: mx.dinero||25,
-      detalle: [
-        { lbl:'% Ahorro', val: fin.pctAhorro!=null ? fin.pctAhorro+'%' : '—', pts: fin.ptsAhorro },
-        { lbl:'Runway',   val: fin.runway!=null ? fin.runway+' días' : '—',   pts: fin.ptsRunway },
-        { lbl:'Velocidad gasto', val: fin.velGasto!=null ? fin.velGasto+'%' : '—', pts: fin.ptsVel },
+  var areas = [
+    { key:'dinero',    label:'Dinero',     emoji:'💰', max:mx.dinero||25,    color:'#4ADE80',
+      detalle:[
+        {lbl:'% Ahorro',        val: fin.pctAhorro!=null    ? fin.pctAhorro+'%'    : null},
+        {lbl:'Runway',          val: fin.runway!=null        ? fin.runway+' días'   : null},
+        {lbl:'Vel. gasto',      val: fin.velGasto!=null      ? fin.velGasto+'%'     : null},
       ]
     },
-    { key:'habitos',   label:'Hábitos',    emoji:'⚡', max: mx.habitos||25,
-      detalle: [
-        { lbl:'Checks esta semana', val: fin.checksRecientes!=null ? fin.checksRecientes : '—', pts: null },
+    { key:'habitos',   label:'Hábitos',    emoji:'⚡', max:mx.habitos||25,   color:'#3B82F6',
+      detalle:[
+        {lbl:'Checks semana',   val: fin.checksRecientes!=null ? fin.checksRecientes : null},
       ]
     },
-    { key:'salud',     label:'Salud',      emoji:'🏥', max: mx.salud||20,
-      detalle: [
-        { lbl:'Registros de salud', val: fin.numSalud!=null ? fin.numSalud : '—', pts: null },
-        { lbl:'Citas vencidas',     val: fin.citasVencidas!=null ? fin.citasVencidas : '—', pts: null },
+    { key:'salud',     label:'Salud',      emoji:'🏥', max:mx.salud||20,     color:'#EF4444',
+      detalle:[
+        {lbl:'Registros',       val: fin.numSalud!=null      ? fin.numSalud         : null},
+        {lbl:'Citas vencidas',  val: fin.citasVencidas!=null ? fin.citasVencidas    : null},
       ]
     },
-    { key:'relaciones',label:'Relaciones', emoji:'👥', max: mx.relaciones||15,
-      detalle: [
-        { lbl:'Personas registradas', val: fin.numPersonas!=null ? fin.numPersonas : '—', pts: null },
-        { lbl:'Interacciones recientes', val: fin.interRecientes!=null ? fin.interRecientes : '—', pts: null },
+    { key:'relaciones',label:'Relaciones', emoji:'👥', max:mx.relaciones||15, color:'#06B6D4',
+      detalle:[
+        {lbl:'Personas',        val: fin.numPersonas!=null   ? fin.numPersonas      : null},
+        {lbl:'Recientes',       val: fin.interRecientes!=null? fin.interRecientes   : null},
       ]
     },
-    { key:'mental',    label:'Mental',     emoji:'🧠', max: mx.mental||15,
-      detalle: [
-        { lbl:'Logros completados', val: fin.logrosComp!=null ? fin.logrosComp : '—', pts: null },
-        { lbl:'Total logros',       val: fin.logrosTotal!=null ? fin.logrosTotal : '—', pts: null },
+    { key:'mental',    label:'Mental',     emoji:'🧠', max:mx.mental||15,    color:'#8B5CF6',
+      detalle:[
+        {lbl:'Logros completados', val: fin.logrosComp!=null  ? fin.logrosComp+'/'+(fin.logrosTotal||0) : null},
       ]
     },
   ];
 
-  const areaColors = {
-    dinero:'#4ADE80', habitos:'#3B82F6', salud:'#EF4444', relaciones:'#06B6D4', mental:'#8B5CF6'
-  };
+  // Limpiar y construir con DOM puro
+  body.innerHTML = '';
 
-  body.innerHTML = `
-    <!-- Gauge central -->
-    <div style="display:flex;flex-direction:column;align-items:center;padding:24px 16px 8px">
-      <div style="position:relative;width:140px;height:140px">
-        <svg width="140" height="140" viewBox="0 0 140 140" style="transform:rotate(-90deg)">
-          <circle cx="70" cy="70" r="${circleR}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="12"/>
-          <circle cx="70" cy="70" r="${circleR}" fill="none" stroke="${color}" stroke-width="12"
-            stroke-dasharray="${dashArr.toFixed(1)}" stroke-dashoffset="${dashOff.toFixed(1)}"
-            stroke-linecap="round" style="transition:stroke-dashoffset .8s ease"/>
-        </svg>
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-          <div style="font-size:36px;font-weight:700;color:${color};font-variant-numeric:tabular-nums;line-height:1">${pct}</div>
-          <div style="font-size:11px;color:var(--m);margin-top:2px">/100</div>
-        </div>
-      </div>
-      <div style="font-size:13px;font-weight:600;color:#fff;margin-top:8px">${s.estado||''}</div>
-    </div>
+  // -- Gauge --
+  var gaugeDiv = document.createElement('div');
+  gaugeDiv.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:24px 16px 8px';
+  gaugeDiv.innerHTML =
+    '<div style="position:relative;width:140px;height:140px">' +
+      '<svg width="140" height="140" viewBox="0 0 140 140" style="transform:rotate(-90deg)">' +
+        '<circle cx="70" cy="70" r="'+circleR+'" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="12"/>' +
+        '<circle cx="70" cy="70" r="'+circleR+'" fill="none" stroke="'+color+'" stroke-width="12"' +
+          ' stroke-dasharray="'+circleC.toFixed(1)+'" stroke-dashoffset="'+dashOff.toFixed(1)+'"' +
+          ' stroke-linecap="round" style="transition:stroke-dashoffset .8s ease"/>' +
+      '</svg>' +
+      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">' +
+        '<div style="font-size:36px;font-weight:700;color:'+color+';line-height:1">'+pct+'</div>' +
+        '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">/100</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="font-size:13px;font-weight:600;color:#fff;margin-top:8px">'+(s.estado||'')+'</div>';
+  body.appendChild(gaugeDiv);
 
-    <!-- Barras por área -->
-    <div style="padding:4px var(--pad) 16px" id="score-areas-wrap"></div>
+  // -- Barras --
+  var barsDiv = document.createElement('div');
+  barsDiv.style.cssText = 'padding:4px 16px 16px';
+  areas.forEach(function(a){
+    var val  = des[a.key]||0;
+    var pctA = Math.min(100, Math.round(val/a.max*100));
+    var col  = a.color;
 
-    <!-- Alertas -->
-    ${(data.alertas||[]).length ? `
-    <div style="padding:0 var(--pad) 8px">
-      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--err);margin-bottom:8px">⚠️ Alertas</div>
-      <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:var(--rad);overflow:hidden">
-        ${(data.alertas||[]).map(a=>`
-          <div class="insight-item">
-            <div class="insight-dot alerta"></div>
-            <span style="color:rgba(255,255,255,.8);font-size:12px">${a.area} ${a.msg}</span>
-          </div>`).join('')}
-      </div>
-    </div>` : ''}
+    var row = document.createElement('div');
+    row.style.cssText = 'margin-bottom:14px';
 
-    <!-- Positivos -->
-    ${(data.positivos||[]).length ? `
-    <div style="padding:0 var(--pad) 8px">
-      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ok);margin-bottom:8px">✅ Positivo</div>
-      <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15);border-radius:var(--rad);overflow:hidden">
-        ${(data.positivos||[]).map(p=>`
-          <div class="insight-item">
-            <div class="insight-dot positivo"></div>
-            <span style="color:rgba(255,255,255,.8);font-size:12px">${p.area} ${p.msg}</span>
-          </div>`).join('')}
-      </div>
-    </div>` : ''}
+    // Header fila
+    var hdr = document.createElement('div');
+    hdr.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:5px';
+    hdr.innerHTML =
+      '<span style="font-size:13px;font-weight:600;color:#fff">'+a.emoji+' '+a.label+'</span>' +
+      '<span style="font-size:13px;font-weight:700;color:'+col+'">'+val+
+        '<span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:400">/'+a.max+'</span></span>';
+    row.appendChild(hdr);
 
-    <!-- Para reflexionar -->
-    ${(data.insights||[]).length ? `
-    <div style="padding:0 var(--pad) 16px">
-      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px">💭 Para reflexionar</div>
-      ${(data.insights||[]).map(i=>`
-        <div style="padding:8px 12px;background:rgba(255,255,255,.03);border-radius:var(--rad);margin-bottom:6px;font-size:12px;color:rgba(255,255,255,.7)">
-          ${i.area} ${i.msg}
-        </div>`).join('')}
-    </div>` : ''}
-  `;
-  // Renderizar barras por área — con setTimeout para que el DOM esté listo
-  setTimeout(function(){
-  var wrap = document.getElementById('score-areas-wrap');
-  if(wrap){
-    var scoreDesglose = (data.score||{}).desglose||{};
-    var barsHtml = '';
-    areas.forEach(function(a){
-      var val = scoreDesglose[a.key]||0;
-      var pctA = Math.round(val/a.max*100);
-      var col = areaColors[a.key]||'#fff';
-      var detalleItems = (a.detalle||[]).filter(function(dt){
-        return dt.val !== null && dt.val !== undefined && dt.val !== '—';
+    // Barra
+    var barWrap = document.createElement('div');
+    barWrap.style.cssText = 'height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:5px';
+    var bar = document.createElement('div');
+    bar.style.cssText = 'height:100%;width:'+pctA+'%;background:'+col+';border-radius:2px;transition:width .6s ease';
+    barWrap.appendChild(bar);
+    row.appendChild(barWrap);
+
+    // Detalle
+    var detalleItems = a.detalle.filter(function(dt){ return dt.val !== null && dt.val !== undefined; });
+    if(detalleItems.length > 0){
+      var det = document.createElement('div');
+      det.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;align-items:center';
+      detalleItems.forEach(function(dt, idx){
+        var sp = document.createElement('span');
+        sp.style.cssText = 'font-size:10px;color:rgba(255,255,255,.4)';
+        sp.innerHTML = dt.lbl+': <b style="color:rgba(255,255,255,.7);font-weight:600">'+dt.val+'</b>';
+        det.appendChild(sp);
+        if(idx < detalleItems.length-1){
+          var dot = document.createElement('span');
+          dot.style.cssText = 'font-size:10px;color:rgba(255,255,255,.15)';
+          dot.textContent = '·';
+          det.appendChild(dot);
+        }
       });
-      var detalleStr = detalleItems.map(function(dt){
-        return '<span style="font-size:10px;color:#666">'+dt.lbl+': <span style="color:rgba(255,255,255,.7)">'+dt.val+'</span></span>';
-      }).join('<span style="color:#333;padding:0 3px">·</span>');
+      row.appendChild(det);
+    }
 
-      barsHtml += '<div style="margin-bottom:14px">';
-      barsHtml += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">';
-      barsHtml += '<span style="font-size:13px;font-weight:600;color:#fff">'+a.emoji+' '+a.label+'</span>';
-      barsHtml += '<span style="font-size:13px;font-weight:700;color:'+col+'">'+val+'<span style="font-size:10px;color:#555;font-weight:400">/'+a.max+'</span></span>';
-      barsHtml += '</div>';
-      barsHtml += '<div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:4px">';
-      barsHtml += '<div style="height:100%;width:'+pctA+'%;background:'+col+';border-radius:2px"></div>';
-      barsHtml += '</div>';
-      if(detalleStr) barsHtml += '<div style="line-height:1.8">'+detalleStr+'</div>';
-      barsHtml += '</div>';
+    barsDiv.appendChild(row);
+  });
+  body.appendChild(barsDiv);
+
+  // -- Alertas --
+  if((data.alertas||[]).length){
+    var altDiv = document.createElement('div');
+    altDiv.style.cssText = 'padding:0 16px 8px';
+    var altHtml = '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#EF4444;margin-bottom:8px">Alertas</div>';
+    altHtml += '<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:8px;overflow:hidden">';
+    data.alertas.forEach(function(a){
+      altHtml += '<div class="insight-item"><div class="insight-dot alerta"></div><span style="color:rgba(255,255,255,.8);font-size:12px">'+a.area+' '+a.msg+'</span></div>';
     });
-    wrap.innerHTML = barsHtml;
+    altHtml += '</div>';
+    altDiv.innerHTML = altHtml;
+    body.appendChild(altDiv);
   }
-  }, 0);
+
+  // -- Positivos --
+  if((data.positivos||[]).length){
+    var posDiv = document.createElement('div');
+    posDiv.style.cssText = 'padding:0 16px 8px';
+    var posHtml = '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#4ADE80;margin-bottom:8px">Positivo</div>';
+    posHtml += '<div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15);border-radius:8px;overflow:hidden">';
+    data.positivos.forEach(function(p){
+      posHtml += '<div class="insight-item"><div class="insight-dot positivo"></div><span style="color:rgba(255,255,255,.8);font-size:12px">'+p.area+' '+p.msg+'</span></div>';
+    });
+    posHtml += '</div>';
+    posDiv.innerHTML = posHtml;
+    body.appendChild(posDiv);
+  }
+
+  // -- Insights --
+  if((data.insights||[]).length){
+    var insDiv = document.createElement('div');
+    insDiv.style.cssText = 'padding:0 16px 16px';
+    var insHtml = '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.4);margin-bottom:8px">Para reflexionar</div>';
+    data.insights.forEach(function(i){
+      insHtml += '<div style="padding:8px 12px;background:rgba(255,255,255,.03);border-radius:8px;margin-bottom:6px;font-size:12px;color:rgba(255,255,255,.7)">'+i.area+' '+i.msg+'</div>';
+    });
+    insDiv.innerHTML = insHtml;
+    body.appendChild(insDiv);
+  }
 }
 
 // ══════════════════════════════════════════
