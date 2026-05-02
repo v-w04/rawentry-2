@@ -1,4 +1,4 @@
-/* RAW Entry — Dashboard v.5.050
+/* RAW Entry — Dashboard v.5.051
    Tablas Variables/Fijos · Flujo Mensual · Gráficas
    + Financiero Avanzado · Revisión · Relaciones · Salud · Apartados · Pensamientos
 */
