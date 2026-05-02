@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.5.046
+/* RAW Entry — Core v.5.047
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Detectar móvil
@@ -348,17 +348,16 @@ window.addEventListener('DOMContentLoaded',()=>{
       }
       sheetUrl = d.sheetUrl || '';
       onCats(d.catalogos);
-      renderEntes(d.fijos);
+      renderApartados(d.apartados||{items:[],totalApartado:0}); // primero apartados
+      renderEntes(d.fijos);                                      // luego bancos con disponible
       onDatosMes(d.datosMes);
       renderAnualidad(d.gastos);
       renderLogros(d.logros);
       renderNecesidades(d.necesidades);
       if(typeof renderNecesidadesInline==='function') renderNecesidadesInline(d.necesidades);
       renderFlujoMensual(d.flujoPorMes);
-      renderApartados(d.apartados||{items:[],totalApartado:0});
       if(d.activityCheck){ _actData=d.activityCheck; }
       if(d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
-      if(d.apartados) renderApartados(d.apartados);
       api.getPensamientos().then(renderPensamientos).catch(()=>{});
       api.getRelaciones().then(renderRelaciones).catch(()=>{});
       api.getSalud().then(renderSalud).catch(()=>{});
@@ -1448,8 +1447,8 @@ function renderEntes(data){
       <div class="ente-right">
         <div style="text-align:right">
           <div class="ente-monto ${cls}" id="em-${f.fila}">${txt}</div>
-          ${!excluido && apBanco > 0 ? `<div style="font-size:10px;color:var(--m);margin-top:1px">
-            disponible: <span style="color:rgba(74,222,128,.7);font-weight:600">${dTxt}</span>
+          ${!excluido && apBanco > 0 ? `<div style="font-size:11px;color:var(--m);margin-top:2px">
+            disponible: <span style="color:#4ADE80;font-weight:700;font-size:12px">${dTxt}</span>
           </div>` : ''}
         </div>
         <div class="ente-fecha">${fmtDiaSemana(f.fecha)}</div>
