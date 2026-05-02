@@ -324,6 +324,7 @@
     </div>
     </div>
 
+
   </div><!-- /sections -->
   </div><!-- /board-anverso -->
 
@@ -374,11 +375,13 @@
         <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
-      <div id="nec-container"></div>
-      <div id="nec-tabla" style="background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px"></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 0 20px;align-items:start">
+    <div id="nec-container" style="padding:0 20px"></div>
+    <div id="nec-tabla" style="display:none"></div>
+
+    <!-- 5 columnas con drag & drop dentro de Maslow -->
+    <div class="maslow-cols" id="maslow-sections">
+
+      <div id="mcol-1">
       <div class="section" id="sec-pensamientos">
         <div class="sec-hdr" onclick="togSec(this)" id="sec-pensamientos-hdr">
           <div class="sec-hdr-left">
@@ -389,6 +392,9 @@
         </div>
         <div class="sec-body" id="sec-pensamientos-body"><div id="pensamientos-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
+      </div>
+
+      <div id="mcol-2">
       <div class="section" id="sec-relaciones">
         <div class="sec-hdr" onclick="togSec(this)" id="sec-relaciones-hdr">
           <div class="sec-hdr-left">
@@ -399,6 +405,9 @@
         </div>
         <div class="sec-body" id="sec-relaciones-body"><div id="relaciones-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
+      </div>
+
+      <div id="mcol-3">
       <div class="section" id="sec-salud">
         <div class="sec-hdr" onclick="togSec(this)" id="sec-salud-hdr">
           <div class="sec-hdr-left">
@@ -409,6 +418,9 @@
         </div>
         <div class="sec-body" id="sec-salud-body"><div id="salud-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
+      </div>
+
+      <div id="mcol-4">
       <div class="section" id="sec-nutricion">
         <div class="sec-hdr" onclick="togSec(this)" id="sec-nutricion-hdr">
           <div class="sec-hdr-left">
@@ -419,6 +431,9 @@
         </div>
         <div class="sec-body" id="sec-nutricion-body"><div id="nutricion-body" style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
+      </div>
+
+      <div id="mcol-5">
       <div class="section" id="sec-entrenamiento">
         <div class="sec-hdr" onclick="togSec(this)" id="sec-entrenamiento-hdr">
           <div class="sec-hdr-left">
@@ -429,8 +444,11 @@
         </div>
         <div class="sec-body" id="sec-entrenamiento-body"><div id="entrenamiento-body" style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div></div>
       </div>
+      </div>
+
     </div>
-  </div><!-- /board-maslow -->
+
+    </div><!-- /board-maslow -->
 
   <!-- PANEL ACTIVITY -->
   <div class="board-face panel-activity" id="board-activity" style="overflow-y:auto;overflow-x:hidden;">
