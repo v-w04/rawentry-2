@@ -7,7 +7,6 @@ function actualizarNecInline(){
   if(!anio) return;
   var a = anio.value;
   var m = mes ? mes.value : '';
-  // Llamar al GAS con el período seleccionado
   api.getNecesidades(a, m).then(function(data){
     _necInlineData = data;
     if(data && data.ok){
@@ -18,7 +17,6 @@ function actualizarNecInline(){
   }).catch(function(){});
 }
 
-// Inicializar selector con mes actual
 function _initNecInlineSelectors(){
   var anioEl = document.getElementById('nec-inline-anio');
   var mesEl  = document.getElementById('nec-inline-mes');
@@ -28,13 +26,12 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.054
-   Tablas Variables/Fijos · Flujo Mensual · Gráficas
-   + Financiero Avanzado · Revisión · Relaciones · Salud · Apartados · Pensamientos
+/* RAW Entry — Dashboard v.5.055
+   CFO Module rediseñado · fix Apartados
 */
 
 // ══════════════════════════════════════════
-//  ANUALIDAD (Fijos — tabla K:P)
+//  ANUALIDAD (Fijos)
 // ══════════════════════════════════════════
 function renderAnualidad(data){
   const body=document.getElementById('gastos-body');
@@ -232,7 +229,6 @@ function refreshTodo(){
     if(d&&d.flujoPorMes) renderFlujoMensual(d.flujoPorMes);
     if(d&&d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
     if(d&&d.apartados)   renderApartados(d.apartados);
-    // Reload lazy modules
     api.getPensamientos().then(renderPensamientos).catch(()=>{});
     api.getRelaciones().then(renderRelaciones).catch(()=>{});
     api.getSalud().then(renderSalud).catch(()=>{});
@@ -246,17 +242,8 @@ function refreshTodo(){
 }
 
 // ══════════════════════════════════════════
-//  FINANCIERO AVANZADO
-// ══════════════════════════════════════════
-function renderFinancieroAvanzado(data){
-  // Called from getAll with financieroAvanzado data
-  // Merge into the unified CFO section
-  if(data && data.ok) _finData = data;
-  _renderCFO();
-}
-
-// ══════════════════════════════════════════
-//  CFO — Financiero + Revisión fusionados
+//  CFO — Financiero + Revisión
+//  v2: sin % duplicado, semáforo único, barra temporal
 // ══════════════════════════════════════════
 var _finData = null;
 var _revData = null;
@@ -272,18 +259,13 @@ function onRevSelChange(){
 
 function cargarRevision(tipo, anio, mes, semana){
   _revTipo = tipo || 'mensual';
-  // revision-body is rendered inside _renderCFO, spinner via fin-avanzado-body
-  const _tmpBody = document.getElementById('revision-body');
-  if(_tmpBody) _tmpBody.innerHTML='<div style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:#C4B5FD"></i></div>';
   api.getRevision(_revTipo, anio, mes, semana)
     .then(d=>{ _revData=d; _renderCFO(); })
     .catch(()=>{});
 }
 
-function renderRevision(data){
-  _revData = data;
-  _renderCFO();
-}
+function renderRevision(data){ _revData = data; _renderCFO(); }
+function renderFinancieroAvanzado(data){ if(data && data.ok) _finData = data; _renderCFO(); }
 
 function _renderCFO(){
   const fin  = _finData || {};
@@ -292,136 +274,239 @@ function _renderCFO(){
   const rev  = _revData || {};
   const id   = rev.identidad || {};
   const ins  = rev.insights || [];
-  const log  = rev.logros || {};
-  const fin2 = rev.financiero || {};
 
   const body = document.getElementById('fin-avanzado-body');
   if(!body) return;
 
+  // helpers
+  const fmtM  = v => '$ ' + Math.abs(v||0).toLocaleString('es-MX', {minimumFractionDigits:0});
+  const fmtM2 = v => '$ ' + Math.abs(v||0).toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
+
   const runway      = m.runwayDias;
-  const runwayColor = runway===null?'var(--m)':runway<7?'var(--err)':runway<30?'var(--warn)':'var(--ok)';
-  const ahorroColor = (m.porcentajeAhorro||0)<10?'var(--err)':(m.porcentajeAhorro||0)>=20?'var(--ok)':'var(--warn)';
-  const fmtM = v => '$ '+(Math.abs(v)||0).toLocaleString('es-MX',{minimumFractionDigits:0});
+  const pctAhorro   = m.porcentajeAhorro || 0;
+  const gastoDia    = m.gastoPorDiaPromedio || 0;
+  const saldo       = m.saldoActual || 0;
+  const ingresosMes = mes.ingresos || 0;
+  const egresosMes  = mes.egresos  || 0;
+  const excedente   = mes.excedente || 0;
+  const proy        = mes.proyeccion || {};
 
-  // ── Métricas vitales ──
-  const vitales = `
-    <div class="fin-grid">
+  // Semáforo único
+  let saludColor, saludLabel, saludIcon;
+  if(runway !== null && runway < 7 || pctAhorro < 0){
+    saludColor='#EF4444'; saludLabel='Crítico'; saludIcon='▲';
+  } else if(runway !== null && runway < 30 || pctAhorro < 10){
+    saludColor='#F59E0B'; saludLabel='Atención'; saludIcon='◆';
+  } else {
+    saludColor='#4ADE80'; saludLabel='Saludable'; saludIcon='●';
+  }
 
-      <div class="fin-card">
-        <div class="fin-card-label" style="display:flex;align-items:center;gap:5px">
-          <i class="fas fa-circle-dot" style="font-size:7px;color:var(--ok)"></i> SALDO
-          <input type="date" id="saldo-fecha" class="saldo-date-input" onchange="consultarSaldo()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;color:var(--t);font-family:inherit;font-size:10px;padding:2px 6px;outline:none;cursor:pointer;-webkit-appearance:none;margin-left:4px">
-        </div>
-        <div id="saldo-val" class="fin-card-val" style="color:${(m.saldoActual||0)>=0?'var(--ok)':'var(--err)'};font-size:22px;margin:4px 0">
-          ${fmtMoneda(m.saldoActual).txt}
-        </div>
-        <div style="display:flex;gap:6px;margin-top:2px">
-          <button onclick="consultarSaldo()" class="saldo-refresh-btn" title="Actualizar" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:20px;color:var(--m);cursor:pointer;font-size:10px;padding:3px 8px;font-family:inherit"><i class="fas fa-arrows-rotate"></i> Actualizar</button>
-          <button onclick="irASheet()" class="saldo-refresh-btn" title="Ver Sheet" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:20px;color:var(--m);cursor:pointer;font-size:10px;padding:3px 8px;font-family:inherit"><i class="fas fa-table-cells"></i> Sheet</button>
-        </div>
-      </div>
-      <div class="fin-card">
-        <div class="fin-card-label">Runway</div>
-        <div class="fin-card-val runway-val ${runway!==null&&runway<=7?'low':runway!==null&&runway<=30?'mid':'ok'}"
-          style="color:${runwayColor};font-size:${runway!==null&&runway<=30?'36px':'28px'} !important">
-          ${runway!==null?runway+' días':'—'}
-        </div>
-        <div class="fin-card-sub">al ritmo actual</div>
-      </div>
-      <div class="fin-card">
-        <div class="fin-card-label">Gasto/día prom.</div>
-        <div class="fin-card-val">$ ${(m.gastoPorDiaPromedio||0).toLocaleString('es-MX')}</div>
-        <div class="fin-card-sub">últimos 30 días</div>
-      </div>
-      <div class="fin-card">
-        <div class="fin-card-label">% Ahorro mes</div>
-        <div class="fin-card-val" style="color:${ahorroColor}">${m.porcentajeAhorro||0}%</div>
-        <div class="fin-card-sub">meta: ≥20%</div>
-      </div>
-    </div>`;
+  const runwayColor = runway===null?'var(--m)':runway<7?'#EF4444':runway<30?'#F59E0B':'#4ADE80';
 
-  // ── Este mes ──
-  const esteMes = `
-    <div style="padding:0 var(--pad) 8px">
-      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:8px">Este mes</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        <div class="fin-card" style="text-align:center">
-          <div class="fin-card-label">Ingresos</div>
-          <div class="fin-card-val" style="font-size:16px;color:var(--ok)">$ ${(mes.ingresos||0).toLocaleString('es-MX')}</div>
+  // Barra temporal del mes
+  const hoy       = new Date();
+  const diasMes   = new Date(hoy.getFullYear(), hoy.getMonth()+1, 0).getDate();
+  const diaActual = hoy.getDate();
+  const pctMes    = Math.round(diaActual / diasMes * 100);
+  const pctGasto  = ingresosMes > 0 ? Math.round(Math.abs(egresosMes) / ingresosMes * 100) : 0;
+  const velColor  = pctGasto > pctMes + 20 ? '#EF4444' : pctGasto > pctMes + 10 ? '#F59E0B' : '#4ADE80';
+
+  // Identidad
+  const scoreInv    = id.scoreInversionista || 0;
+  const scoreConsum = id.scoreConsumidor || 0;
+  const tieneRevision = rev.ok && scoreInv > 0;
+
+  // Filtrar insights — no repetir ahorro % que ya se muestra
+  const insightsFiltrados = ins.filter(i => !i.msg.includes('Buen ritmo de ahorro'));
+
+  body.innerHTML = `
+    <!-- ① SALDO + SEMÁFORO -->
+    <div style="padding:14px 16px 10px;border-bottom:1px solid rgba(255,255,255,.06)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--m)">SALDO</div>
+            <input type="date" id="saldo-fecha"
+              onchange="consultarSaldo()"
+              style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;
+              color:var(--t);font-family:inherit;font-size:10px;padding:2px 6px;outline:none;cursor:pointer;-webkit-appearance:none">
+            <button onclick="consultarSaldo()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+              border-radius:20px;color:var(--m);cursor:pointer;font-size:10px;padding:2px 8px;font-family:inherit;line-height:1.4">
+              <i class="fas fa-arrows-rotate"></i>
+            </button>
+            <button onclick="irASheet()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+              border-radius:20px;color:var(--m);cursor:pointer;font-size:10px;padding:2px 8px;font-family:inherit;line-height:1.4">
+              <i class="fas fa-table-cells"></i>
+            </button>
+          </div>
+          <div id="saldo-val" style="font-size:30px;font-weight:800;letter-spacing:-.04em;color:${saldo>=0?'#4ADE80':'#EF4444'};line-height:1">
+            ${fmtM2(saldo)}
+          </div>
+          <div style="font-size:10px;color:var(--m);margin-top:4px">
+            Gasto promedio: <b style="color:rgba(255,255,255,.6)">${fmtM(gastoDia)}/día</b>
+          </div>
         </div>
-        <div class="fin-card" style="text-align:center">
-          <div class="fin-card-label">Egresos</div>
-          <div class="fin-card-val" style="font-size:16px;color:var(--err)">$ ${(mes.egresos||0).toLocaleString('es-MX')}</div>
-        </div>
-        <div class="fin-card" style="text-align:center">
-          <div class="fin-card-label">Excedente</div>
-          <div class="fin-card-val" style="font-size:16px;color:${(mes.excedente||0)>=0?'var(--ok)':'var(--err)'}">
-            ${fmtMoneda(mes.excedente).txt}
+        <!-- Semáforo único — reemplaza los dos porcentajes duplicados -->
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <div style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;
+            background:${saludColor}15;border:1px solid ${saludColor}35">
+            <span style="color:${saludColor};font-size:11px">${saludIcon}</span>
+            <span style="font-size:12px;font-weight:700;color:${saludColor}">${saludLabel}</span>
+          </div>
+          <div style="font-size:10px;color:var(--m);text-align:right">
+            Runway: <b style="color:${runwayColor}">${runway !== null ? runway+' días' : '—'}</b>
           </div>
         </div>
       </div>
-    </div>`;
+    </div>
 
-  // ── Proyección — solo mostrar si difiere de los datos reales del mes ──
-  const _proyDiferente = mes.proyeccion && mes.proyeccion.diasRestantes > 0 &&
-    Math.abs((mes.proyeccion.egresos||0) - Math.abs(mes.egresos||0)) > 100;
-  const proyeccion = _proyDiferente ? `
-    <div style="margin:0 var(--pad) 8px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--rad)">
-      <div style="font-size:10px;font-weight:600;color:var(--m);margin-bottom:6px">
-        📈 Proyección fin de mes (${mes.proyeccion.diasRestantes} días restantes)
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:13px">
-        <span style="color:var(--m)">Egresos proyectados</span>
-        <span style="color:var(--err);font-weight:600">$ ${(mes.proyeccion.egresos||0).toLocaleString('es-MX')}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:4px">
-        <span style="color:var(--m)">Excedente proyectado</span>
-        <span style="color:${(mes.proyeccion.excedente||0)>=0?'var(--ok)':'var(--err)'};font-weight:700">
-          ${fmtMoneda(mes.proyeccion.excedente).txt}
-        </span>
-      </div>
-    </div>` : '';
-
-  // ── Análisis del período (Revisión) ──
-  var revHtml = '';
-  if(rev.ok){
-    const scoreInv = id.scoreInversionista||0;
-    const scoreCon = id.scoreConsumidor||0;
-    revHtml = `
-    <div id="revision-body" style="padding:0 var(--pad) 8px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-size:11px;color:var(--m)">${rev.periodo?rev.periodo.inicio+' — '+rev.periodo.fin:''}</div>
-        <div style="font-size:10px;color:#C4B5FD;font-weight:600;text-transform:uppercase">${rev.tipo||''}</div>
-      </div>
-      <div class="rev-score-wrap">
-        <div class="rev-score inv">
-          <div class="rev-score-num">${scoreInv}%</div>
-          <div class="rev-score-lbl">Inversionista</div>
+    <!-- ② MÉTRICAS CLAVE: Runway + Ahorro (UNA sola vez cada una) -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid rgba(255,255,255,.06)">
+      <div style="padding:12px 14px;border-right:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m);margin-bottom:5px">RUNWAY</div>
+        <div style="font-size:${runway!==null&&runway<=30?'30px':'24px'};font-weight:800;color:${runwayColor};line-height:1;letter-spacing:-.03em">
+          ${runway !== null ? runway+' días' : '—'}
         </div>
-        <div class="rev-score con">
-          <div class="rev-score-num">${scoreCon}%</div>
-          <div class="rev-score-lbl">Consumidor</div>
+        <div style="font-size:10px;color:var(--m);margin-top:3px">
+          ${runway===null?'Sin datos':runway<7?'⚠ Crítico — actúa ya':runway<14?'⚠ Menos de 2 semanas':runway<30?'Cuidado con gastos':'Buena cobertura'}
         </div>
       </div>
-      ${ins.length ? `
-      <div style="margin-top:8px">
-        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:6px">💡 Insights</div>
-        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--rad);overflow:hidden">
-          ${ins.map(i=>`<div class="insight-item">
-            <div class="insight-dot ${i.tipo}"></div>
-            <span style="color:${i.tipo==='alerta'?'var(--err)':i.tipo==='positivo'?'var(--ok)':i.tipo==='identidad'?'#C4B5FD':'var(--m)'}">
+      <div style="padding:12px 14px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m);margin-bottom:5px">TASA DE AHORRO</div>
+        <div style="font-size:24px;font-weight:800;letter-spacing:-.03em;line-height:1;
+          color:${pctAhorro<0?'#EF4444':pctAhorro<10?'#F59E0B':pctAhorro>=20?'#4ADE80':'#F59E0B'}">
+          ${pctAhorro}%
+        </div>
+        <div style="margin-top:5px">
+          <div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-bottom:3px">
+            <div style="height:100%;width:${Math.min(100,Math.max(0,pctAhorro))}%;border-radius:2px;
+              background:${pctAhorro<0?'#EF4444':pctAhorro<10?'#F59E0B':'#4ADE80'}"></div>
+          </div>
+          <span style="font-size:10px;color:var(--m)">
+            ${pctAhorro>=20?'✓ Sobre meta (≥20%)':pctAhorro>=10?'Cerca de la meta':pctAhorro>=0?'⚠ Bajo la meta':'⚠ Gasto > ingreso'}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ FLUJO DEL MES con barra temporal -->
+    <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m)">
+          ESTE MES · DÍA ${diaActual} DE ${diasMes}
+        </div>
+      </div>
+
+      <!-- Barra tiempo transcurrido vs gasto ejecutado -->
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--m);margin-bottom:3px">
+          <span>Mes transcurrido</span><span style="color:rgba(255,255,255,.5)">${pctMes}%</span>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin-bottom:5px;position:relative">
+          <div style="height:100%;width:${pctMes}%;background:rgba(255,255,255,.2);border-radius:3px"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px">
+          <span style="color:var(--m)">Gasto ejecutado</span>
+          <span style="color:${velColor};font-weight:600">${pctGasto}% de ingresos</span>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin-bottom:5px">
+          <div style="height:100%;width:${Math.min(100,pctGasto)}%;background:${velColor};border-radius:3px;transition:width .4s"></div>
+        </div>
+        <div style="font-size:10px;color:${velColor};font-weight:500">
+          ${pctGasto > pctMes + 20 ? '⚠ Gastas más rápido de lo que avanza el mes' :
+            pctGasto > pctMes + 10 ? '◆ Ritmo de gasto algo elevado' :
+            pctGasto > 0 ? '✓ Ritmo proporcional al mes' : '—'}
+        </div>
+      </div>
+
+      <!-- I / E / Excedente -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+        <div style="background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.15);border-radius:8px;padding:8px 10px">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(74,222,128,.7);margin-bottom:3px">Ingresos</div>
+          <div style="font-size:14px;font-weight:700;color:#4ADE80;font-variant-numeric:tabular-nums">${fmtM(ingresosMes)}</div>
+        </div>
+        <div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.15);border-radius:8px;padding:8px 10px">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(239,68,68,.7);margin-bottom:3px">Egresos</div>
+          <div style="font-size:14px;font-weight:700;color:#EF4444;font-variant-numeric:tabular-nums">${fmtM(egresosMes)}</div>
+        </div>
+        <div style="background:${excedente>=0?'rgba(74,222,128,.07)':'rgba(239,68,68,.07)'};border:1px solid ${excedente>=0?'rgba(74,222,128,.15)':'rgba(239,68,68,.15)'};border-radius:8px;padding:8px 10px">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${excedente>=0?'rgba(74,222,128,.7)':'rgba(239,68,68,.7)'};margin-bottom:3px">Excedente</div>
+          <div style="font-size:14px;font-weight:700;color:${excedente>=0?'#4ADE80':'#EF4444'};font-variant-numeric:tabular-nums">${excedente>=0?'+':''}${fmtM(excedente)}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ PROYECCIÓN FIN DE MES -->
+    ${proy.diasRestantes > 0 ? `
+    <div style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06)">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m);margin-bottom:8px">
+        PROYECCIÓN · ${proy.diasRestantes} días restantes
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div>
+          <div style="font-size:10px;color:var(--m)">Egresos proyectados</div>
+          <div style="font-size:16px;font-weight:700;color:#EF4444;font-variant-numeric:tabular-nums">${fmtM(proy.egresos)}</div>
+        </div>
+        <i class="fas fa-arrow-right" style="color:rgba(255,255,255,.15);font-size:14px"></i>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:var(--m)">Excedente proyectado</div>
+          <div style="font-size:20px;font-weight:800;letter-spacing:-.03em;color:${(proy.excedente||0)>=0?'#4ADE80':'#EF4444'};font-variant-numeric:tabular-nums">
+            ${(proy.excedente||0)>=0?'+':''}${fmtM(proy.excedente)}
+          </div>
+        </div>
+      </div>
+    </div>` : ''}
+
+    <!-- ⑤ IDENTIDAD DEL PERÍODO — barra bipolar (una sola visualización) -->
+    ${tieneRevision ? `
+    <div style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m)">
+          IDENTIDAD ${rev.periodo ? '· '+rev.periodo.inicio+' – '+rev.periodo.fin : ''}
+        </div>
+        <div style="font-size:9px;color:#C4B5FD;font-weight:600;text-transform:uppercase;letter-spacing:.06em">${(rev.tipo||'').toUpperCase()}</div>
+      </div>
+      <!-- Barra bipolar: verde=inversionista, rojo=consumidor -->
+      <div>
+        <div style="height:8px;border-radius:4px;overflow:hidden;display:flex">
+          <div style="height:100%;width:${scoreInv}%;background:linear-gradient(90deg,#22C55E,#4ADE80);transition:width .6s ease"></div>
+          <div style="height:100%;flex:1;background:linear-gradient(90deg,#EF4444,#DC2626)"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:5px">
+          <div style="display:flex;align-items:center;gap:5px">
+            <div style="width:8px;height:8px;border-radius:50%;background:#4ADE80"></div>
+            <span style="font-size:11px;font-weight:700;color:#4ADE80">${scoreInv}% Inversionista</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px">
+            <span style="font-size:11px;font-weight:700;color:#EF4444">${scoreConsum}% Consumidor</span>
+            <div style="width:8px;height:8px;border-radius:50%;background:#EF4444"></div>
+          </div>
+        </div>
+      </div>
+    </div>` : `<div id="revision-body" style="padding:10px 16px;color:var(--m);font-size:11px;text-align:center;border-bottom:1px solid rgba(255,255,255,.06)">
+      Selecciona período para ver análisis
+    </div>`}
+
+    <!-- ⑥ INSIGHTS (sin el "Buen ritmo de ahorro" que ya se ve arriba) -->
+    ${insightsFiltrados.length ? `
+    <div style="padding:10px 16px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m);margin-bottom:8px">💡 INSIGHTS</div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        ${insightsFiltrados.map(i=>`
+          <div style="display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border-radius:6px;
+            background:${i.tipo==='alerta'?'rgba(239,68,68,.06)':i.tipo==='positivo'?'rgba(74,222,128,.06)':'rgba(255,255,255,.03)'};
+            border:1px solid ${i.tipo==='alerta'?'rgba(239,68,68,.12)':i.tipo==='positivo'?'rgba(74,222,128,.12)':'rgba(255,255,255,.06)'}">
+            <div style="width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px;
+              background:${i.tipo==='alerta'?'#EF4444':i.tipo==='positivo'?'#4ADE80':i.tipo==='identidad'?'#C4B5FD':'var(--m)'}"></div>
+            <span style="font-size:12px;line-height:1.5;color:${i.tipo==='alerta'?'#FCA5A5':i.tipo==='positivo'?'#86EFAC':i.tipo==='identidad'?'#C4B5FD':'var(--m)'}">
               ${i.msg}
             </span>
           </div>`).join('')}
-        </div>
-      </div>` : ''}
-    </div>`;
-  } else {
-    revHtml = '<div id="revision-body" style="padding:8px var(--pad);color:var(--m);font-size:12px;text-align:center">Selecciona período para ver análisis</div>';
-  }
+      </div>
+    </div>` : ''}
+  `;
 
-  body.innerHTML = vitales + esteMes + proyeccion + revHtml;
-  // Inicializar saldo después de renderizar
+  // Inicializar fecha del saldo
   setTimeout(function(){
     const sf = document.getElementById('saldo-fecha');
     if(sf && !sf.value){
@@ -430,7 +515,6 @@ function _renderCFO(){
     }
     if(typeof consultarSaldo==='function') consultarSaldo();
   }, 50);
-
 }
 
 // ══════════════════════════════════════════
@@ -446,29 +530,23 @@ function renderRelaciones(data){
     body.innerHTML='<div style="padding:24px;text-align:center;color:var(--m)">Sin relaciones — agrega personas con el tab 👥</div>';
     return;
   }
-
   const sorted = [..._relacionesData].sort((a,b)=>{
-    // Más reciente primero
     if(!a.ultimaVez && !b.ultimaVez) return 0;
     if(!a.ultimaVez) return 1;
     if(!b.ultimaVez) return -1;
     return new Date(b.ultimaVez) - new Date(a.ultimaVez);
   });
-
   const hoy = new Date(); hoy.setHours(0,0,0,0);
-
   body.innerHTML = sorted.map(p=>{
     const inicial = (p.nombre||'?')[0].toUpperCase();
     const eClass  = p.energia > 0 ? 'positivo' : p.energia < 0 ? 'negativo' : '';
     const eLbl    = p.energia > 0 ? '+ energía' : p.energia < 0 ? '− energía' : 'neutral';
     const eColor  = p.energia > 0 ? 'pos' : p.energia < 0 ? 'neg' : 'neu';
-
     let diasStr = '';
     if(p.ultimaVez){
       const diff = Math.floor((hoy - new Date(p.ultimaVez)) / 86400000);
       diasStr = diff===0?'Hoy':diff===1?'Ayer':diff+' días';
     }
-
     return `<div class="rel-item">
       <div class="rel-avatar ${eClass}">${inicial}</div>
       <div class="rel-info">
@@ -490,8 +568,6 @@ function renderSalud(data){
   const body    = document.getElementById('salud-body');
   const proxBox = document.getElementById('salud-proximas');
   if(!body) return;
-
-  // Próximas citas
   const proximas = (data && data.proximas) ? data.proximas : [];
   if(proxBox && proximas.length){
     proxBox.innerHTML = proximas.slice(0,3).map(c=>`
@@ -503,19 +579,15 @@ function renderSalud(data){
   } else if(proxBox){
     proxBox.innerHTML = '';
   }
-
   if(!_saludData.length){
     body.innerHTML='<div style="padding:24px;text-align:center;color:var(--m)">Sin registros — agrega con el tab 🏥</div>';
     return;
   }
-
   body.innerHTML = _saludData.slice(0,20).map(item=>{
     const badgeClass = ['Cita','Síntoma','Medicamento','Resultado','Vacuna'].includes(item.tipo)
       ? item.tipo : 'salud-badge-default';
     return `<div class="salud-item">
-      <div>
-        <span class="salud-tipo-badge ${badgeClass}">${item.tipo||'—'}</span>
-      </div>
+      <div><span class="salud-tipo-badge ${badgeClass}">${item.tipo||'—'}</span></div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;color:#fff">${item.descripcion}</div>
         <div style="font-size:11px;color:var(--m)">${item.doctor?item.doctor+' · ':''}${item.fecha}</div>
@@ -529,7 +601,7 @@ function renderSalud(data){
 }
 
 // ══════════════════════════════════════════
-//  APARTADOS
+//  APARTADOS — fix: renderApartados usa fila real del GAS
 // ══════════════════════════════════════════
 let _apartadosData = [];
 
@@ -537,10 +609,8 @@ function renderApartados(data){
   _apartadosData = (data && data.items) ? data.items : [];
   const body = document.getElementById('apartados-list') || document.getElementById('apartados-body');
   if(!body) return;
-  const total = document.getElementById('apartados-total');
-  const totalEl = document.getElementById('apartados-total');
-  if(!body) return;
 
+  const totalEl = document.getElementById('apartados-total');
   if(totalEl){
     const {txt,cls} = fmtMoneda(data && data.totalApartado ? data.totalApartado : 0);
     totalEl.textContent = txt;
@@ -548,7 +618,7 @@ function renderApartados(data){
   }
 
   if(!_apartadosData.length){
-    body.innerHTML='<div style="padding:24px;text-align:center;color:var(--m)">Sin apartados — agrega con el tab 💰</div>';
+    body.innerHTML='<div style="padding:16px;text-align:center;color:var(--m)">Sin apartados activos</div>';
     return;
   }
 
@@ -556,7 +626,7 @@ function renderApartados(data){
 
   body.innerHTML = _apartadosData.map(ap=>{
     const {txt:mTxt} = fmtMoneda(ap.monto);
-    const usado = ap.estado === 'Usado';
+    const usado = ap.estado && ap.estado.toLowerCase() === 'usado';
     let metaStr = '';
     if(ap.meta){
       const diff = Math.floor((new Date(ap.meta) - hoy) / 86400000);
@@ -570,22 +640,32 @@ function renderApartados(data){
       </div>
       <div>
         <div class="apartado-monto">${mTxt}</div>
-        ${!usado?`<button onclick="_marcarApartadoUsado(${ap.fila})"
-          style="font-size:10px;padding:2px 8px;border-radius:var(--rad-pill);border:1px solid rgba(255,255,255,.1);
-          background:none;color:var(--m);cursor:pointer;font-family:inherit;margin-top:4px;display:block">
-          Usar
-        </button>`:''}
+        ${!usado ? `<button
+          onclick="_marcarApartadoUsado(${ap.fila})"
+          style="font-size:10px;padding:3px 10px;border-radius:var(--rad-pill);border:1px solid rgba(74,222,128,.25);
+          background:rgba(74,222,128,.08);color:#4ADE80;cursor:pointer;font-family:inherit;
+          margin-top:5px;display:block;transition:all .2s"
+          onmouseover="this.style.background='rgba(74,222,128,.2)'"
+          onmouseout="this.style.background='rgba(74,222,128,.08)'">
+          Usar ✓
+        </button>` : '<div style="font-size:10px;color:var(--m);margin-top:4px">Usado</div>'}
       </div>
     </div>`;
   }).join('');
 }
 
 function _marcarApartadoUsado(fila){
+  if(!confirm('¿Marcar este apartado como Usado?')) return;
   api.actualizarApartado(fila, 'Usado')
     .then(r=>{
-      if(r.ok){ showToast('Apartado marcado como usado'); api.getApartados().then(renderApartados); }
-      else showToast(r.mensaje||'Error', false);
-    }).catch(()=>showToast('Error',false));
+      if(r.ok){
+        showToast('✓ Apartado marcado como Usado');
+        api.getApartados().then(renderApartados);
+      } else {
+        showToast(r.mensaje||'Error al actualizar', false);
+      }
+    })
+    .catch(()=>showToast('Error de conexión', false));
 }
 
 // ══════════════════════════════════════════
@@ -625,7 +705,7 @@ function renderPensamientos(data){
 }
 
 // ══════════════════════════════════════════
-//  GRÁFICAS — Chart.js via CDN
+//  GRÁFICAS — Chart.js
 // ══════════════════════════════════════════
 let grafChart = null;
 let grafData  = null;
@@ -681,11 +761,9 @@ function renderChart(labels,datasets,titulo){
   if(grafChart){try{grafChart.destroy();}catch(e){}grafChart=null;}
   grafChart=new Chart(canvas,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(15,23,42,.95)',borderColor:'rgba(59,130,246,.3)',borderWidth:1,titleColor:'#fff',bodyColor:'#94A3B8',padding:10,callbacks:{label:ctx=>{const v=ctx.raw;if(v===null||v===undefined)return null;const fmt=(v<0?'− ':'')+'$ '+Math.abs(v).toLocaleString('es-MX',{minimumFractionDigits:2});return' '+ctx.dataset.label+': '+fmt;}}}},scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#64748B',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#64748B',font:{size:11},callback:v=>'$'+Math.abs(v/1000).toFixed(0)+'k'}}}}});
   const ley=document.getElementById('graf-leyenda');
-  ley.innerHTML=datasets.map(d=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:${d.borderColor};font-weight:${d.label==='Final'?'700':'400'}"><div style="width:16px;height:2px;background:${d.borderColor};border-radius:1px"></div>${d.label}</div>`).join('');
+  if(ley)ley.innerHTML=datasets.map(d=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:${d.borderColor};font-weight:${d.label==='Final'?'700':'400'}"><div style="width:16px;height:2px;background:${d.borderColor};border-radius:1px"></div>${d.label}</div>`).join('');
 }
-function syncFijosHeight(){
-  // sec-entrada moved to popup, no sync needed
-}
+function syncFijosHeight(){}
 window.addEventListener('DOMContentLoaded',()=>{setTimeout(syncFijosHeight,300);});
 window.addEventListener('resize',syncFijosHeight);
 
@@ -696,17 +774,15 @@ function renderFlujoMensual(data){
   const body = document.getElementById('flujo-mensual-body') || document.getElementById('flujo-body');
   if(!body) return;
   if(!data||!data.meses||!data.meses.length){body.innerHTML='<div style="padding:16px;color:var(--m);text-align:center">Sin datos</div>';return;}
-  const mesActual=MESES_ES[new Date().getMonth()];
   const rows=data.meses.map(mes=>{
     const g=data.grupos[mes]||{ingresos:0,egresos:0,excedente:null};
     const ingresos=g.ingresos||0,egresos=g.egresos||0;
     const excedente=g.excedente!==undefined?g.excedente:(ingresos+egresos);
-    const esActual=false; // El mes actual ya se muestra en 'Este Mes' arriba
     const fmtMXN=v=>'$ '+Math.abs(v).toLocaleString('es-MX',{minimumFractionDigits:2});
     const ingCell=ingresos===0?`<td class="r" style="color:var(--m)">$ 0</td>`:`<td class="r" style="color:var(--ok);font-weight:600">${fmtMXN(ingresos)}</td>`;
     const egrCell=egresos===0?`<td class="r" style="color:var(--m)">$ 0</td>`:`<td class="r" style="color:var(--err);font-weight:600">− ${fmtMXN(Math.abs(egresos))}</td>`;
     const excCell=excedente===0?`<td class="r" style="color:var(--m)">$ 0</td>`:`<td class="r" style="color:${excedente>0?'var(--ok)':'var(--err)'};font-weight:700">${excedente<0?'− ':''}${fmtMXN(excedente)}</td>`;
-    return `<tr style="${esActual?'background:rgba(59,130,246,.08)':''}"><td style="font-weight:${esActual?700:500};color:${esActual?'var(--p)':'var(--t)'}">${mes}${esActual?' ↑':''}</td>${ingCell}${egrCell}${excCell}</tr>`;
+    return `<tr><td style="font-weight:500;color:var(--t)">${mes}</td>${ingCell}${egrCell}${excCell}</tr>`;
   }).join('');
   body.innerHTML=`
     <style>
@@ -714,11 +790,8 @@ function renderFlujoMensual(data){
       #flujo-tbl th,#flujo-tbl td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.05)}
       #flujo-tbl th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--m);padding-bottom:6px}
       #flujo-tbl .r{text-align:right}
-      #flujo-tbl .c-mes{width:70px}
-      #flujo-tbl .c-num{width:110px}
     </style>
     <table id="flujo-tbl">
-      <colgroup><col class="c-mes"><col class="c-num"><col class="c-num"><col class="c-num"></colgroup>
       <thead><tr>
         <th>Mes</th>
         <th class="r" style="color:var(--ok)">Ingresos</th>
@@ -776,19 +849,14 @@ function renderScore(data){
     body.innerHTML = '<div style="padding:20px;color:#EF4444;font-size:12px">Sin datos del score</div>';
     return;
   }
-
   var pct   = (data.score||{}).total || 0;
   var des   = (data.score||{}).desglose || {};
   var mx    = (data.score||{}).maximos  || {dinero:25,habitos:25,salud:20,relaciones:15,mental:15};
   var fin   = data.finDetalle || {};
   var color = pct>=70?'#4ADE80':pct>=55?'#F59E0B':'#EF4444';
   var estado = (data.score||{}).estado || '';
-
   var R = 54, C = 2*Math.PI*R;
-
   var html = '';
-
-  // Gauge
   html += '<div style="display:flex;flex-direction:column;align-items:center;padding:20px 16px 8px">';
   html += '<svg width="140" height="140" viewBox="0 0 140 140">';
   html += '<circle cx="70" cy="70" r="'+R+'" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="12"/>';
@@ -800,8 +868,6 @@ function renderScore(data){
   html += '</svg>';
   html += '<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px">'+estado+'</div>';
   html += '</div>';
-
-  // Alertas/positivos rápidos
   var msgs = (data.alertas||[]).concat(data.positivos||[]);
   if(msgs.length){
     html += '<div style="padding:0 16px 8px">';
@@ -811,24 +877,14 @@ function renderScore(data){
     });
     html += '</div>';
   }
-
-  // Estado
   html += '<div style="text-align:center;font-size:10px;color:rgba(255,255,255,.25);padding:0 16px 8px;letter-spacing:.05em;text-transform:uppercase">'+estado+'</div>';
-
-  // Barras con desglose
   var areas = [
-    {key:'dinero',    label:'Dinero',     icon:'💰', color:'#4ADE80', max:mx.dinero||25,
-     info:'Ahorro: '+fin.pctAhorro+'% · Runway: '+fin.runway+' días · Vel: '+fin.velGasto+'%'},
-    {key:'habitos',   label:'Hábitos',    icon:'⚡', color:'#3B82F6', max:mx.habitos||25,
-     info:'Checks esta semana: '+fin.checksRecientes},
-    {key:'salud',     label:'Salud',      icon:'🏥', color:'#EF4444', max:mx.salud||20,
-     info:'Registros: '+fin.numSalud+' · Citas vencidas: '+fin.citasVencidas},
-    {key:'relaciones',label:'Relaciones', icon:'👥', color:'#06B6D4', max:mx.relaciones||15,
-     info:'Personas: '+fin.numPersonas+' · Recientes: '+fin.interRecientes},
-    {key:'mental',    label:'Mental',     icon:'🧠', color:'#8B5CF6', max:mx.mental||15,
-     info:'Logros: '+fin.logrosComp+' de '+fin.logrosTotal},
+    {key:'dinero',    label:'Dinero',     icon:'💰', color:'#4ADE80', max:mx.dinero||25},
+    {key:'habitos',   label:'Hábitos',    icon:'⚡', color:'#3B82F6', max:mx.habitos||25},
+    {key:'salud',     label:'Salud',      icon:'🏥', color:'#EF4444', max:mx.salud||20},
+    {key:'relaciones',label:'Relaciones', icon:'👥', color:'#06B6D4', max:mx.relaciones||15},
+    {key:'mental',    label:'Mental',     icon:'🧠', color:'#8B5CF6', max:mx.mental||15},
   ];
-
   html += '<div style="padding:4px 16px 16px">';
   areas.forEach(function(a){
     var val  = des[a.key]||0;
@@ -838,18 +894,13 @@ function renderScore(data){
     html += '<span style="font-size:13px;font-weight:600;color:#fff">'+a.icon+' '+a.label+'</span>';
     html += '<span style="font-size:13px;font-weight:700;color:'+a.color+'">'+val+'<span style="font-size:10px;color:rgba(255,255,255,.3)">/'+a.max+'</span></span>';
     html += '</div>';
-    html += '<div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:4px">';
+    html += '<div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">';
     html += '<div style="height:100%;width:'+pctA+'%;background:'+a.color+';border-radius:2px"></div>';
-    html += '</div>';
-    html += '<div style="font-size:10px;color:rgba(255,255,255,.4)">'+a.info+'</div>';
-    html += '</div>';
+    html += '</div></div>';
   });
   html += '</div>';
-
   body.innerHTML = html;
 }
-
-
 
 // ══════════════════════════════════════════
 //  MASLOW INLINE — Anverso col-4
@@ -858,13 +909,10 @@ var _necInlineData = null;
 var _necInlineVista = 'piramide';
 var _radarInlineChart = null;
 
-// switchNecInline eliminado — vista única sin toggle
-
 function renderNecesidadesInline(data){
   if(!data) return;
   _necInlineData = data;
   _initNecInlineSelectors();
-  // Forzar recálculo con mes actual via GAS
   actualizarNecInline();
 }
 
@@ -875,10 +923,7 @@ function _dataNivelInline(key, arr){
 function _dibujarRadarYPiramideInline(niveles){
   var wrap = document.getElementById('nec-inline-radar-wrap');
   if(!wrap) return;
-
   var totalSum = NEC_NIVELES.reduce(function(s,n){ return s+Math.abs(_dataNivelInline(n.key,niveles).total||0); },0);
-
-  // Pirámide SVG
   var pisos = NEC_NIVELES.slice().reverse();
   var svgRects = pisos.map(function(niv, i){
     var d   = _dataNivelInline(niv.key, niveles);
@@ -891,7 +936,6 @@ function _dibujarRadarYPiramideInline(niveles){
     return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="30" rx="4" fill="'+niv.color+'" opacity="'+op+'"/>'+
       '<text x="100" y="'+(y+20).toFixed(1)+'" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.8)" font-family="system-ui" font-weight="600">'+niv.label+'</text>';
   }).join('');
-
   wrap.innerHTML =
     '<div style="display:flex;align-items:flex-start;justify-content:center;gap:24px;padding:20px 16px 8px;width:100%;box-sizing:border-box">' +
       '<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">' +
@@ -903,7 +947,6 @@ function _dibujarRadarYPiramideInline(niveles){
         '<svg width="100%" height="200" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg" style="max-width:240px">'+svgRects+'</svg>' +
       '</div>' +
     '</div>';
-
   setTimeout(function(){
     var canvas = document.getElementById('radar-inline-canvas');
     if(!canvas || !window.Chart) return;
@@ -932,18 +975,15 @@ function _dibujarRadarYPiramideInline(niveles){
   }, 80);
 }
 
-
 function _dibujarPiramideInline(niveles){
   var cont = document.getElementById('nec-inline-container');
   if(!cont) return;
   var totalSum = NEC_NIVELES.reduce(function(s,n){ return s+Math.abs(_dataNivelInline(n.key,niveles).total||0); },0);
   var maxAbs = 1;
   NEC_NIVELES.forEach(function(n){ var v=Math.abs(_dataNivelInline(n.key,niveles).total||0); if(v>maxAbs) maxAbs=v; });
-
   var pisos = NEC_NIVELES.slice().reverse();
   var html = '<div style="padding:0 16px 16px">';
   html += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:12px;text-align:center">Detalle por nivel</div>';
-
   pisos.forEach(function(niv){
     var d    = _dataNivelInline(niv.key, niveles);
     var abs  = Math.abs(d.total||0);
@@ -956,7 +996,6 @@ function _dibujarPiramideInline(niveles){
       : (pct>40
         ? '<span style="font-size:9px;color:var(--err);background:rgba(239,68,68,.08);padding:1px 7px;border-radius:10px;white-space:nowrap">Alto</span>'
         : '<span style="font-size:9px;color:var(--ok);background:rgba(74,222,128,.08);padding:1px 7px;border-radius:10px;white-space:nowrap">✓ OK</span>');
-
     html += '<div style="margin-bottom:14px">';
     html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">';
     html += '<div style="display:flex;align-items:center;gap:7px">';
@@ -974,11 +1013,9 @@ function _dibujarPiramideInline(niveles){
     if(tops) html += '<div style="font-size:10px;color:rgba(255,255,255,.4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">↳ '+tops+'</div>';
     html += '</div>';
   });
-
   html += '</div>';
   cont.innerHTML = html;
 }
-
 
 function _dibujarRadarInline(niveles){
   var wrap = document.getElementById('nec-inline-radar-wrap');
@@ -993,29 +1030,20 @@ function _dibujarRadarInline(niveles){
   var norm    = valores.map(function(v){ return v/maxVal*100; });
   if(_radarInlineChart){ try{_radarInlineChart.destroy();}catch(e){} _radarInlineChart=null; }
   _radarInlineChart = new Chart(canvas, {
-    type: 'radar',
-    data: { labels: labels, datasets: [{ label: 'Gasto', data: norm,
+    type: 'radar', data: { labels: labels, datasets: [{ label: 'Gasto', data: norm,
       backgroundColor: 'rgba(139,92,246,.12)', borderColor: 'rgba(139,92,246,.6)',
       borderWidth: 1.5, pointBackgroundColor: colors, pointBorderColor: '#111',
       pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7, fill: true }]},
     options: { responsive: true, maintainAspectRatio: true, aspectRatio: 1.3,
-      plugins: { legend: {display: false},
-        tooltip: { backgroundColor: 'rgba(15,23,42,.95)', borderColor: 'rgba(139,92,246,.3)',
-          borderWidth: 1, titleColor: '#fff', bodyColor: '#94A3B8', padding: 10,
-          callbacks: { label: function(ctx) {
-            return ' ' + NEC_NIVELES[ctx.dataIndex].emoji + ' $ ' + valores[ctx.dataIndex].toLocaleString('es-MX',{minimumFractionDigits:0});
-          }}}},
-      scales: { r: { min: 0, max: 100, backgroundColor: 'rgba(0,0,0,.15)',
-        angleLines: {color: 'rgba(255,255,255,.06)', lineWidth: 1},
+      plugins: { legend: {display: false} },
+      scales: { r: { min: 0, max: 100,
+        angleLines: {color: 'rgba(255,255,255,.06)'},
         grid: {color: 'rgba(255,255,255,.06)'},
-        ticks: {display: false, stepSize: 25},
+        ticks: {display: false},
         pointLabels: { font: {size: 11, weight: '600', family: 'system-ui'},
-          color: function(ctx){ return colors[ctx.index]||'#94A3B8'; },
-          callback: function(label, i){ return [label, '$'+Math.round(valores[i]/1000)+'k']; }}}}}
+          color: function(ctx){ return colors[ctx.index]||'#94A3B8'; }}}}}
   });
 }
-
-
 
 // ══════════════════════════════════════════
 //  PATRIMONIO
