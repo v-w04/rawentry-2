@@ -1,6 +1,6 @@
-/* RAW Entry — Dashboard v.5.077
+/* RAW Entry — Dashboard v.5.078
    Fix: actualizarNecInline modo HOY envía mes actual + fechaHoy como tope superior
-   Fix: botón HOY regresa correctamente a vista del 1 al día de hoy
+   Fix v5.078: actualizarNecInline solo sale de modo HOY si hay mes real (no Mes completo)
    Fix: renderNecesidadesInline lazy-load Chart.js antes de render
    Fix: dropdowns Necesidades reaccionan correctamente
    New: Sims Needs barras estilo Sims, color verde→amarillo→rojo
@@ -20,8 +20,8 @@ function actualizarNecInline(forzarMes){
   var a = anioEl.value;
   var m = mesEl ? mesEl.value : '';
 
-  // Si se seleccionó un mes explícitamente, salir de modo HOY
-  if(forzarMes || m){ _necModoHoy = false; }
+  // Solo salir de modo HOY si el usuario seleccionó un mes específico (no "Mes completo")
+  if(m){ _necModoHoy = false; }
 
   if(btnHoy){
     btnHoy.style.background = _necModoHoy ? 'rgba(139,92,246,.3)' : 'none';
