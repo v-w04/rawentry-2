@@ -92,15 +92,18 @@ function irAActivity(){
       _actData=d;
       var semana = _getSemanaKey();
       api.cargarActivityChecks(semana).then(function(r){
+        console.log('[AC] cargar respuesta:', JSON.stringify(r));
+        console.log('[AC] semana frontend:', semana);
         if(r && r.ok && r.checks && r.checks.length){
           r.checks.forEach(function(c){
             var key = c.nombre+'_'+semana+'_'+c.fecha;
+            console.log('[AC] key restaurada:', key);
             _actChecks[key] = true;
           });
         }
         renderActivity();
         if(typeof renderSimsNeeds==='function') renderSimsNeeds();
-      }).catch(function(){ renderActivity(); });
+      }).catch(function(e){ console.log('[AC] error:', e); renderActivity(); });
     }).catch(function(){});
   }
 }
