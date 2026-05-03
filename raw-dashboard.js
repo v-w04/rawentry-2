@@ -35,11 +35,9 @@ function actualizarNecInline(forzarMes){
   var fechaHoy = null;
 
   if(_necModoHoy){
-    // Modo HASTA HOY: enviar fechaHoy como tope superior al backend
     mesFinal = String(hoyDate.getMonth()+1);
     fechaHoy = hoyDate.getFullYear()+'-'+String(hoyDate.getMonth()+1).padStart(2,'0')+'-'+String(hoyDate.getDate()).padStart(2,'0');
   } else {
-    // Mes seleccionado explicitamente → mes completo
     mesFinal = m || String(hoyDate.getMonth()+1);
     fechaHoy = null;
   }
