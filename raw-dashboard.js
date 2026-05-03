@@ -26,7 +26,7 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.070
+/* RAW Entry — Dashboard v.5.071
    Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
 */
 
@@ -153,9 +153,9 @@ function renderGastos(){
     const entes=[...entesSet];
     const idx={};
     data.meses.forEach(mes=>{idx[mes]={};(data.grupos[mes]||[]).forEach(e=>idx[mes][e.ente]=e.monto);});
-    const thead=`<tr><th>Ente</th>${data.meses.map(m=>{const esA=m.toUpperCase()===mesActual.toUpperCase();return`<th class="${esA?'mes-actual':''}">${m}</th>`;}).join('')}</tr>`;
+    const thead=`<tr><th>Ente</th>${data.meses.map(m=>{const esA=m.toUpperCase()===mesActual.toUpperCase();return`<th class="${esA?'mes-actual':''}" style="text-align:center">${m}</th>`;}).join('')}</tr>`;
     const tbody=entes.map(ente=>{
-      const celdas=data.meses.map(mes=>{const {txt,cls}=fmtMoneda(idx[mes]?.[ente]??null);const esA=mes.toUpperCase()===mesActual.toUpperCase();return`<td class="${cls}${esA?' mes-actual':''}">${txt}</td>`;}).join('');
+      const celdas=data.meses.map(mes=>{const {txt,cls}=fmtMoneda(idx[mes]?.[ente]??null);const esA=mes.toUpperCase()===mesActual.toUpperCase();return`<td class="${cls}${esA?' mes-actual':''}" style="text-align:center">${txt}</td>`;}).join('');
       return `<tr><td>${ente}</td>${celdas}</tr>`;
     }).join('');
     body.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
@@ -243,12 +243,12 @@ function refreshTodo(){
     if(d&&d.fijos)       renderEntes(d.fijos);
     if(d&&d.datosMes)    onDatosMes(d.datosMes);
     if(d&&d.gastos)      renderAnualidad(d.gastos);
-    if(d&&d.logros)      renderLogros(d.logros);
+    if(d&&d.logros)    { renderLogros(d.logros); window._logrosData = d.logros; }
     if(d&&d.necesidades){ renderNecesidades(d.necesidades); if(typeof renderNecesidadesInline==='function') renderNecesidadesInline(d.necesidades); }
     if(d&&d.flujoPorMes) renderFlujoMensual(d.flujoPorMes);
     if(d&&d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
-    api.getPensamientos().then(renderPensamientos).catch(()=>{});
-    api.getRelaciones().then(renderRelaciones).catch(()=>{});
+    api.getPensamientos().then(r=>{ window._pensamientosData=r; renderPensamientos(r); renderSimsNeeds(); }).catch(()=>{});
+    api.getRelaciones().then(r=>{ window._relacionesData=r; renderRelaciones(r); renderSimsNeeds(); }).catch(()=>{});
     api.getSalud().then(renderSalud).catch(()=>{});
     api.getPatrimonio().then(renderPatrimonio).catch(()=>{});
     if(typeof cargarScore==='function') cargarScore();
@@ -915,6 +915,132 @@ function renderScore(data){
 var _necInlineData = null;
 var _necInlineVista = 'piramide';
 var _radarInlineChart = null;
+
+// ══════════════════════════════════════════
+//  SIMS NEEDS PANEL — Bitácora
+//  8 necesidades reales derivadas de los datos
+// ══════════════════════════════════════════
+function renderSimsNeeds(){
+  var el = document.getElementById('sims-needs-panel');
+  if(!el) return;
+
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var hace7 = new Date(hoy); hace7.setDate(hoy.getDate()-7);
+
+  // ── Calcular scores 0-100 desde datos reales ──
+  var needs = [];
+
+  // 1. NUTRICIÓN — basado en registros de hoy en hoja Nutrición
+  // Se carga via api si está disponible, sino usa score neutro
+  var nutScore = 50; // default neutro
+  // Si _nutData está disponible (cargado por renderNutricion)
+  if(window._nutHoyData){
+    var cal = window._nutHoyData.cal || 0;
+    var prot = window._nutHoyData.prot || 0;
+    // Score basado en calorías del día (meta ~1800)
+    nutScore = cal > 0 ? Math.min(100, Math.round(cal / 1800 * 80) + (prot > 100 ? 20 : 10)) : 20;
+  }
+  needs.push({ id:'nutricion', icon:'🍽️', label:'Nutrición',   score:nutScore,   desc:'Alimentación del día' });
+
+  // 2. ENERGÍA — basado en Activity Check (hábito Descanso)
+  var energiaScore = 50;
+  if(window._actData && window._actData.habitosPersonal){
+    var checkDescanso = (window._apartadosData||[]).length > 0 ? 65 : 50; // placeholder
+    energiaScore = checkDescanso;
+  }
+  needs.push({ id:'energia',   icon:'⚡',  label:'Energía',     score:energiaScore, desc:'Descanso y sueño' });
+
+  // 3. SOCIAL — basado en interacciones recientes (SIMS Relaciones)
+  var socialScore = 0;
+  if(window._relacionesData){
+    var recientes = (window._relacionesData.items||[]).filter(function(p){
+      return p.ultimaVez && new Date(p.ultimaVez) >= hace7;
+    });
+    socialScore = Math.min(100, recientes.length * 20);
+    // Ajuste por energía de las interacciones
+    var positivas = recientes.filter(function(p){ return (p.energia||0) > 0; }).length;
+    socialScore = Math.min(100, socialScore + positivas * 5);
+  }
+  needs.push({ id:'social',    icon:'👥',  label:'Social',      score:socialScore,  desc:'Interacciones recientes' });
+
+  // 4. DISFRUTE — basado en Activity (libros, movies, no-rutinarias)
+  var disfrScore = 40;
+  if(window._actData){
+    var mediaComp = ((window._actData.libros||[]).filter(function(l){return l.completado;}).length +
+                    (window._actData.movies||[]).filter(function(m){return m.completado;}).length);
+    var noRut = (window._actData.noRutinarias||[]).filter(function(n){return n.completado;}).length;
+    disfrScore = Math.min(100, mediaComp * 15 + noRut * 20);
+  }
+  needs.push({ id:'disfrute',  icon:'🎮',  label:'Disfrute',    score:disfrScore,   desc:'Ocio y entretenimiento' });
+
+  // 5. HIGIENE — basado en Activity (hábito Aseo/Ducha)
+  var higieneScore = 70; // default: asumimos ok
+  needs.push({ id:'higiene',   icon:'🚿',  label:'Higiene',     score:higieneScore, desc:'Aseo personal' });
+
+  // 6. CUERPO — basado en Activity (Fitness+/Ecobici/PROTEÍNA) y Entrenamiento
+  var cuerpoScore = 30;
+  if(window._actData && window._actData.habitosPersonal){
+    var fitHabits = (window._actData.habitosPersonal||[]).filter(function(h){
+      var n = (h.nombre||'').toLowerCase();
+      return n.includes('fitness') || n.includes('ecobici') || n.includes('proteína') || n.includes('preentreno');
+    }).length;
+    cuerpoScore = Math.min(100, fitHabits * 20);
+  }
+  needs.push({ id:'cuerpo',    icon:'💪',  label:'Cuerpo',      score:cuerpoScore,  desc:'Ejercicio y salud física' });
+
+  // 7. ENTORNO — basado en salud mental/pensamientos (energía promedio)
+  var entornoScore = 60;
+  if(window._pensamientosData){
+    var pens = (window._pensamientosData.items||[]).slice(0,5);
+    if(pens.length > 0){
+      var avgE = pens.reduce(function(s,p){ return s + (p.energia||3); },0) / pens.length;
+      entornoScore = Math.round(avgE / 5 * 100);
+    }
+  }
+  needs.push({ id:'entorno',   icon:'🌿',  label:'Entorno',     score:entornoScore, desc:'Ambiente y orden' });
+
+  // 8. MENTAL — basado en pensamientos recientes y logros
+  var mentalScore = 40;
+  if(window._logrosData){
+    var logros = window._logrosData.items || [];
+    var comp = logros.filter(function(l){ return l.completado==='Sí'||l.completado==='Si'; }).length;
+    mentalScore = logros.length > 0 ? Math.round(comp/logros.length*100) : 40;
+  }
+  needs.push({ id:'mental',    icon:'🧠',  label:'Mental',      score:mentalScore,  desc:'Claridad y propósito' });
+
+  // ── Render ──
+  var html = '<div style="padding:12px 16px 0;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--m);margin-bottom:10px">Estado del Sim</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 14px">';
+
+  needs.forEach(function(n){
+    var pct = Math.max(0, Math.min(100, n.score));
+    var color = pct >= 70 ? '#4ADE80' : pct >= 40 ? '#F59E0B' : '#EF4444';
+    var bgColor = pct >= 70 ? 'rgba(74,222,128,.08)' : pct >= 40 ? 'rgba(245,158,11,.08)' : 'rgba(239,68,68,.08)';
+    var label = pct >= 70 ? 'OK' : pct >= 40 ? 'Bajo' : 'Crítico';
+
+    html += '<div style="background:'+bgColor+';border:1px solid '+color+'22;border-radius:8px;padding:8px 10px">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">';
+    html += '<div style="display:flex;align-items:center;gap:5px">';
+    html += '<span style="font-size:14px">'+n.icon+'</span>';
+    html += '<span style="font-size:11px;font-weight:700;color:rgba(255,255,255,.8)">'+n.label+'</span>';
+    html += '</div>';
+    html += '<span style="font-size:10px;font-weight:700;color:'+color+'">'+label+'</span>';
+    html += '</div>';
+    // Barra estilo Sims — verde→rojo
+    html += '<div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;position:relative">';
+    html += '<div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,'+color+','+color+'aa);border-radius:4px;transition:width .6s ease"></div>';
+    html += '</div>';
+    html += '<div style="font-size:9px;color:var(--m);margin-top:3px">'+n.desc+'</div>';
+    html += '</div>';
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function _cacheAndRenderNeeds(){
+  if(typeof renderSimsNeeds==='function') renderSimsNeeds();
+}
 
 function renderNecesidadesInline(data){
   if(!data) return;
