@@ -355,6 +355,7 @@ function toggleEntradaDropdown(){
     dd.style.display = 'flex';
     if(btn) btn.classList.add('active');
     if(typeof _inyectarToggleModo === 'function') _inyectarToggleModo();
+    setTimeout(_posicionarRadial, 10);
     const fechaEl = document.getElementById('fecha');
     if(fechaEl && !fechaEl.value) fechaEl.value = fmtD(new Date());
     setTimeout(()=>{ const m=document.getElementById('monto'); if(m) m.focus(); }, 100);
@@ -386,6 +387,68 @@ document.addEventListener('keydown', function(e){
 });
 
 // ── Nueva Entrada — form en col1, sin popup ──
+function _posicionarRadial(){
+  var grid = document.querySelector('.entrada-selector-grid');
+  if(!grid) return;
+  var btns = Array.from(grid.querySelectorAll('.entrada-tipo-btn'));
+  var n = btns.length;
+  var cx = 210, cy = 210; // centro del contenedor 420x420
+  var r  = 155;           // radio
+  // Botón central (RAW / nueva)
+  var idxCentral = btns.findIndex(function(b){ return b.getAttribute('onclick') && b.getAttribute('onclick').includes("'nueva'"); });
+  if(idxCentral >= 0){
+    var bCentral = btns.splice(idxCentral, 1)[0];
+    bCentral.style.left = (cx - 44)+'px';
+    bCentral.style.top  = (cy - 44)+'px';
+    bCentral.style.width  = '88px';
+    bCentral.style.height = '88px';
+    bCentral.style.zIndex = '2';
+    bCentral.style.background = 'rgba(99,102,241,.25)';
+    bCentral.style.borderColor = 'rgba(99,102,241,.5)';
+    bCentral.style.boxShadow = '0 0 24px rgba(99,102,241,.2)';
+  }
+  // Resto en círculo
+  btns.forEach(function(btn, i){
+    var angle = (i / btns.length) * 2 * Math.PI - Math.PI/2;
+    var x = cx + r * Math.cos(angle) - 44;
+    var y = cy + r * Math.sin(angle) - 44;
+    btn.style.left = Math.round(x)+'px';
+    btn.style.top  = Math.round(y)+'px';
+    btn.style.transition = 'transform .2s, box-shadow .2s, opacity .3s';
+    btn.style.animationDelay = (i * 0.04)+'s';
+  });
+  // Líneas decorativas del hub al círculo
+  var svg = grid.querySelector('.radial-svg');
+  if(!svg){
+    svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('class','radial-svg');
+    svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0';
+    grid.insertBefore(svg, grid.firstChild);
+  }
+  svg.innerHTML = '';
+  // Círculo guía
+  var circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  circle.setAttribute('cx', cx); circle.setAttribute('cy', cy);
+  circle.setAttribute('r', r);
+  circle.setAttribute('fill','none');
+  circle.setAttribute('stroke','rgba(255,255,255,.04)');
+  circle.setAttribute('stroke-width','1');
+  circle.setAttribute('stroke-dasharray','4 6');
+  svg.appendChild(circle);
+  // Líneas del centro a cada botón
+  btns.forEach(function(btn, i){
+    var angle = (i / btns.length) * 2 * Math.PI - Math.PI/2;
+    var x2 = cx + r * Math.cos(angle);
+    var y2 = cy + r * Math.sin(angle);
+    var line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('stroke','rgba(255,255,255,.05)');
+    line.setAttribute('stroke-width','1');
+    svg.appendChild(line);
+  });
+}
+
 function abrirEntrada(){
   const paso1 = document.getElementById('entrada-paso1');
   const paso2 = document.getElementById('entrada-paso2');
@@ -930,6 +993,7 @@ function volverAPaso1(){
   const paso2 = document.getElementById('entrada-paso2');
   if(paso1) paso1.style.display = 'block';
   if(paso2) paso2.style.display = 'none';
+  setTimeout(_posicionarRadial, 10);
 }
 
 function setModoEntrada(modo){
