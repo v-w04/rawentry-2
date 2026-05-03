@@ -91,21 +91,16 @@ function irAActivity(){
     api.getActivityCheck().then(function(d){
       _actData=d;
       var semana = _getSemanaKey();
-      if(typeof api.cargarActivityChecks === 'function'){
-        api.cargarActivityChecks(semana).then(function(r){
-          if(r.ok && r.checks && r.checks.length){
-            var habPers = (d.habitosPersonal||[]).map(function(h){return h.nombre;});
-            var habElec = (d.habitosElectronics||[]).map(function(h){return h.nombre;});
-            r.checks.forEach(function(c){
-              var key = c.nombre+'_'+semana+'_'+c.fecha;
-              _actChecks[key] = true;
-            });
-          }
-          renderActivity();
-        }).catch(function(){ renderActivity(); });
-      } else {
+      api.cargarActivityChecks(semana).then(function(r){
+        if(r && r.ok && r.checks && r.checks.length){
+          r.checks.forEach(function(c){
+            var key = c.nombre+'_'+semana+'_'+c.fecha;
+            _actChecks[key] = true;
+          });
+        }
         renderActivity();
-      }
+        if(typeof renderSimsNeeds==='function') renderSimsNeeds();
+      }).catch(function(){ renderActivity(); });
     }).catch(function(){});
   }
 }
@@ -342,7 +337,13 @@ function renderNecesidades(data){ _necData = data; if(_pantalla==='bitacora'){ p
 function poblarFiltrosMes(){
   const cont = document.getElementById('nec-filtros-mes');
   if(!cont || !_necData || !_necData.mesesDisponibles) return;
-  cont.innerHTML = _necData.mesesDisponibles.map(m=>{
+  const todosActivo = _necMesesSeleccionados.size === 0;
+  const btnTodos = `<button onclick="resetFiltrosMes()" 
+    style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
+    background:${todosActivo?'rgba(139,92,246,.25)':'rgba(255,255,255,.04)'};
+    border:1px solid ${todosActivo?'rgba(139,92,246,.5)':'var(--border)'};
+    color:${todosActivo?'#C4B5FD':'var(--m)'};cursor:pointer;font-family:inherit;transition:all .15s">Todo el año</button>`;
+  const btnsMeses = _necData.mesesDisponibles.map(m=>{
     const on = _necMesesSeleccionados.has(m);
     return `<button onclick="toggleFiltroMes('${m}')" id="nec-fil-${m.replace(' ','_')}"
       style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;
@@ -350,6 +351,7 @@ function poblarFiltrosMes(){
       border:1px solid ${on?'rgba(139,92,246,.5)':'var(--border)'};
       color:${on?'#C4B5FD':'var(--m)'};cursor:pointer;font-family:inherit;transition:all .15s">${m}</button>`;
   }).join('');
+  cont.innerHTML = btnTodos + btnsMeses;
 }
 
 function toggleFiltroMes(mes){
