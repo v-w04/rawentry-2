@@ -525,7 +525,6 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch
 let _actData    = null;
 let _actChecks  = {};
 
-// ── Iniciales de día con W para miércoles ──────────────────────
 var _DIAS_LABELS = ['Lu','Ma','W','Ju','Vi','Sa','Do'];
 
 function _getDiasEstaSemanaMX(){
@@ -556,10 +555,8 @@ function renderActivity(){
   var semana = _getSemanaKey();
   var lbl = document.getElementById('act-semana-lbl');
   if(lbl) lbl.textContent = 'Semana ' + semana;
-
   var cont = document.getElementById('act-container');
   if(!cont) return;
-
   var dias    = _getDiasEstaSemanaMX();
   var hoyIso  = new Date().toISOString().slice(0,10);
   var habPers = _actData.habitosPersonal || _actData.habitos || [];
@@ -567,13 +564,10 @@ function renderActivity(){
   var libros  = _actData.libros  || [];
   var movies  = _actData.movies  || [];
   var noRut   = _actData.noRutinarias || [];
-
-  // Botón masivo
   var haySetimo = _hayAlgunSetimo(habPers, semana, dias) || _hayAlgunSetimo(habElec, semana, dias);
   var btnMasivo = haySetimo
     ? '<button onclick="_limpiarTodosSetimo()" style="padding:5px 14px;border-radius:var(--rad-pill);background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#FCA5A5;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px"><i class="fas fa-broom"></i> Limpiar todos los 7°</button>'
     : '';
-
   cont.innerHTML =
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">' +
       '<div style="font-size:10px;color:var(--m)">Marca tu 7° día para ver opciones de limpieza</div>' +
@@ -582,9 +576,12 @@ function renderActivity(){
     '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:start">' +
       _colActividad('Personal',   '#4ADE80', 'pers', _htmlHabitosCol(habPers, semana, dias, hoyIso, '#4ADE80', 'pers')) +
       _colActividad('Trabajo',    '#22D3EE', 'elec', _htmlHabitosCol(habElec, semana, dias, hoyIso, '#22D3EE', 'elec')) +
-      _colActividad('Libros',     '#EC4899', null,   _htmlMediaCol(libros, 'libro', '#EC4899')) +
-      _colActividad('Movies',     '#F59E0B', null,   _htmlMediaCol(movies, 'movie', '#F59E0B')) +
-      _colActividad('Pendientes', '#8B5CF6', null,   _htmlNoRutCol(noRut)) +
+      _colActividad('Libros',     '#EC4899', null, _htmlMediaCol(libros, 'libro', '#EC4899'),
+        {done:libros.filter(function(l){return l.completado;}).length, total:libros.length}) +
+      _colActividad('Movies',     '#F59E0B', null, _htmlMediaCol(movies, 'movie', '#F59E0B'),
+        {done:movies.filter(function(m){return m.completado;}).length, total:movies.length}) +
+      _colActividad('Pendientes', '#8B5CF6', null, _htmlNoRutCol(noRut),
+        {done:noRut.filter(function(n){return n.completado;}).length, total:noRut.length}) +
     '</div>' +
     '<div style="padding:14px 0 0;display:flex;justify-content:flex-end">' +
       '<button onclick="guardarChecks()" style="padding:8px 20px;border-radius:var(--rad-pill);background:#4ADE80;color:#000;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit"><i class="fas fa-cloud-arrow-up" style="margin-right:6px"></i>Guardar semana</button>' +
@@ -598,13 +595,19 @@ function _hayAlgunSetimo(habitos, semana, dias){
   });
 }
 
-function _colActividad(titulo, color, colId, innerHtml){
-  var haySetimo = colId ? document.getElementById('act-limpiar-'+colId) : false;
+function _colActividad(titulo, color, colId, innerHtml, counter){
+  var cntHtml = '';
+  if(counter !== undefined){
+    var pct = counter.total > 0 ? Math.round(counter.done/counter.total*100) : 0;
+    var cColor = pct===100 ? '#4ADE80' : pct>=50 ? color : 'rgba(255,255,255,.3)';
+    cntHtml = '<span style="font-size:10px;font-weight:700;color:'+cColor+';margin-left:4px;font-variant-numeric:tabular-nums">'+counter.done+'/'+counter.total+'</span>';
+  }
   return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden" id="actcol-'+(colId||titulo)+'">' +
     '<div style="padding:10px 12px 8px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between">' +
       '<div style="display:flex;align-items:center;gap:7px">' +
         '<div style="width:7px;height:7px;border-radius:50%;background:'+color+';flex-shrink:0"></div>' +
         '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.7)">'+titulo+'</span>' +
+        cntHtml +
       '</div>' +
       (colId ? '<button id="act-limpiar-'+colId+'" onclick="_limpiarSetimoCol(\''+colId+'\')" style="display:none;padding:2px 8px;border-radius:var(--rad-pill);background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#FCA5A5;font-size:10px;cursor:pointer;font-family:inherit"><i class="fas fa-broom"></i> Limpiar</button>' : '') +
     '</div>' +
@@ -616,9 +619,9 @@ function _htmlDiasHeader(dias, hoyIso, color){
   return '<div style="display:flex;gap:3px;padding:0 10px 6px">' +
     dias.map(function(d){
       var esHoy = d.date === hoyIso;
-      return '<div style="width:20px;text-align:center;font-size:9px;font-weight:'+(esHoy?'800':'500')+';' +
-        'color:'+(esHoy?color:'rgba(255,255,255,.25)')+';' +
-        (esHoy?'background:'+color+'22;border-radius:4px;':'') +
+      return '<div style="width:20px;text-align:center;font-size:9px;font-weight:'+(esHoy?'800':'500')+';'+
+        'color:'+(esHoy?color:'rgba(255,255,255,.25)')+';'+
+        (esHoy?'background:'+color+'22;border-radius:4px;':'')+
         'line-height:18px">'+d.label+'</div>';
     }).join('') +
   '</div>';
@@ -627,58 +630,39 @@ function _htmlDiasHeader(dias, hoyIso, color){
 function _htmlHabitosCol(habitos, semana, dias, hoyIso, color, colId){
   if(!habitos || !habitos.length)
     return '<div style="padding:12px;font-size:11px;color:var(--m);text-align:center">Sin hábitos</div>';
-
   var header = _htmlDiasHeader(dias, hoyIso, color);
-
-  // Separar completados (7° activo) de pendientes
-  var pendientes  = [];
-  var completados = [];
-
+  var pendientes = [], completados = [];
   habitos.forEach(function(hab){
-    var key7   = hab.nombre+'_'+semana+'_'+dias[6].date;
+    var key7 = hab.nombre+'_'+semana+'_'+dias[6].date;
     var setimo = !!_actChecks[key7];
-    // Fecha del último check marcado
     var ultimaFecha = '';
-    for(var di = 6; di >= 0; di--){
-      if(_actChecks[hab.nombre+'_'+semana+'_'+dias[di].date]){
-        ultimaFecha = dias[di].date;
-        break;
-      }
+    for(var di=6;di>=0;di--){
+      if(_actChecks[hab.nombre+'_'+semana+'_'+dias[di].date]){ ultimaFecha=dias[di].date; break; }
     }
-    var obj = { hab:hab, setimo:setimo, ultimaFecha:ultimaFecha };
-    if(setimo) completados.push(obj);
-    else pendientes.push(obj);
+    var obj = {hab:hab,setimo:setimo,ultimaFecha:ultimaFecha};
+    if(setimo) completados.push(obj); else pendientes.push(obj);
   });
-
   function renderHabRow(obj){
-    var hab    = obj.hab;
-    var setimo = obj.setimo;
-    var pct    = 0;
-    var nEsc   = hab.nombre.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-
-    var checks = dias.map(function(d){
-      var key  = hab.nombre+'_'+semana+'_'+d.date;
-      var done = !!_actChecks[key];
-      var past = d.isPast;
+    var hab=obj.hab, setimo=obj.setimo, pct=0;
+    var checks=dias.map(function(d){
+      var key=hab.nombre+'_'+semana+'_'+d.date;
+      var done=!!_actChecks[key], past=d.isPast;
       if(done) pct++;
-      return '<button onclick="_toggleHabitoInline(\''+nEsc+'\',\''+semana+'\',\''+d.date+'\')" ' +
-        'style="width:20px;height:20px;border-radius:5px;border:1px solid '+(done?color+'88':'rgba(255,255,255,.1)')+';' +
-        'background:'+(done?color+'33':'rgba(255,255,255,.03)')+';cursor:'+(past?'pointer':'default')+';' +
-        'display:flex;align-items:center;justify-content:center;font-size:10px;' +
-        'transition:all .2s;opacity:'+(past?1:.25)+';color:'+color+';flex-shrink:0;font-family:inherit"' +
+      var nEsc=encodeURIComponent(hab.nombre);
+      return '<button data-nom="'+hab.nombre.replace(/"/g,'&quot;')+'" data-sem="'+semana+'" data-dat="'+d.date+'" onclick="_toggleHabitoKey(this)" '+
+        'style="width:20px;height:20px;border-radius:5px;border:1px solid '+(done?color+'88':'rgba(255,255,255,.1)')+';'+
+        'background:'+(done?color+'33':'rgba(255,255,255,.03)')+';cursor:'+(past?'pointer':'default')+';'+
+        'display:flex;align-items:center;justify-content:center;font-size:10px;'+
+        'transition:all .2s;opacity:'+(past?1:.25)+';color:'+color+';flex-shrink:0;font-family:inherit"'+
         (past?'':' disabled')+'>'+(done?'✓':'')+'</button>';
     }).join('');
-
-    var pctNum = Math.round(pct/7*100);
-    var bgRow  = setimo ? 'rgba(74,222,128,.04)' : 'transparent';
-    var borderT = setimo ? 'border-top:1px solid rgba(74,222,128,.12);' : '';
-
-    return '<div style="padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);background:'+bgRow+';'+borderT+'transition:background .3s">' +
+    var pctNum=Math.round(pct/7*100);
+    return '<div style="padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);background:'+(setimo?'rgba(74,222,128,.04)':'transparent')+';transition:background .3s">' +
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">' +
-        '<div style="font-size:11px;font-weight:600;color:'+(setimo?'rgba(255,255,255,.4)':'rgba(255,255,255,.85)')+';' +
+        '<div style="font-size:11px;font-weight:600;color:'+(setimo?'rgba(255,255,255,.4)':'rgba(255,255,255,.85)')+';'+
           'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70%;text-decoration:'+(setimo?'line-through':'none')+'" title="'+hab.nombre+'">'+hab.nombre+'</div>' +
-        (setimo ? '<span style="font-size:9px;color:var(--ok);font-weight:600">✓ '+obj.ultimaFecha.slice(5)+'</span>' :
-                  '<span style="font-size:9px;color:var(--m)">'+pctNum+'%</span>') +
+        (setimo?'<span style="font-size:9px;color:var(--ok);font-weight:600">✓ '+obj.ultimaFecha.slice(5)+'</span>':
+                '<span style="font-size:9px;color:var(--m)">'+pctNum+'%</span>') +
       '</div>' +
       '<div style="display:flex;gap:3px;flex-wrap:nowrap;margin-bottom:5px">'+checks+'</div>' +
       '<div style="height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden">' +
@@ -686,49 +670,39 @@ function _htmlHabitosCol(habitos, semana, dias, hoyIso, color, colId){
       '</div>' +
     '</div>';
   }
-
-  var html = header;
-
-  // Pendientes primero
-  pendientes.forEach(function(obj){ html += renderHabRow(obj); });
-
-  // Separador si hay completados
+  var html=header;
+  pendientes.forEach(function(obj){ html+=renderHabRow(obj); });
   if(completados.length){
-    html += '<div style="padding:5px 10px 3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(74,222,128,.5);border-top:1px solid rgba(74,222,128,.1);margin-top:4px">Completados esta semana</div>';
-    completados.forEach(function(obj){ html += renderHabRow(obj); });
+    html+='<div style="padding:5px 10px 3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(74,222,128,.5);border-top:1px solid rgba(74,222,128,.1);margin-top:4px">Completados esta semana</div>';
+    completados.forEach(function(obj){ html+=renderHabRow(obj); });
   }
-
   return html;
 }
 
-function _toggleHabitoInline(nombre, semana, fecha){
-  var key = nombre+'_'+semana+'_'+fecha;
-  _actChecks[key] = !_actChecks[key];
+function _toggleHabitoKey(btn){
+  var nom = btn.getAttribute('data-nom');
+  var sem = btn.getAttribute('data-sem');
+  var dat = btn.getAttribute('data-dat');
+  _actChecks[nom+'_'+sem+'_'+dat] = !_actChecks[nom+'_'+sem+'_'+dat];
   renderActivity();
 }
 
-// Limpiar 7° de una columna específica
+function _toggleHabitoInline(nombre, semana, fecha){
+  _actChecks[nombre+'_'+semana+'_'+fecha] = !_actChecks[nombre+'_'+semana+'_'+fecha];
+  renderActivity();
+}
+
 function _limpiarSetimoCol(colId){
-  var semana = _getSemanaKey();
-  var dias   = _getDiasEstaSemanaMX();
-  var fecha7 = dias[6].date;
-  var habitos = colId === 'pers'
-    ? (_actData && _actData.habitosPersonal || [])
-    : (_actData && _actData.habitosElectronics || []);
+  var semana=_getSemanaKey(), dias=_getDiasEstaSemanaMX();
+  var habitos=colId==='pers'?(_actData&&_actData.habitosPersonal||[]):(_actData&&_actData.habitosElectronics||[]);
   habitos.forEach(function(hab){
-    var key7 = hab.nombre+'_'+semana+'_'+fecha7;
-    if(_actChecks[key7]){
-      // Borrar los 7 días completos de esta fila
-      dias.forEach(function(d){
-        delete _actChecks[hab.nombre+'_'+semana+'_'+d.date];
-      });
-    }
+    var key7=hab.nombre+'_'+semana+'_'+dias[6].date;
+    if(_actChecks[key7]) dias.forEach(function(d){ delete _actChecks[hab.nombre+'_'+semana+'_'+d.date]; });
   });
   renderActivity();
-  showToast('Séptimo día limpiado en ' + (colId==='pers'?'Personal':'Trabajo'));
+  showToast('Séptimo día limpiado en '+(colId==='pers'?'Personal':'Trabajo'));
 }
 
-// Limpiar 7° de TODAS las columnas
 function _limpiarTodosSetimo(){
   _limpiarSetimoCol('pers');
   _limpiarSetimoCol('elec');
@@ -736,65 +710,43 @@ function _limpiarTodosSetimo(){
 }
 
 function _htmlMediaCol(items, tipo, color){
-  if(!items || !items.length)
-    return '<div style="padding:12px;font-size:11px;color:var(--m);text-align:center">Sin elementos</div>';
-
-  var emoji = tipo === 'libro' ? '📚' : '🎬';
-  var pend = items.filter(function(it){ return !it.completado; });
-  var done = items.filter(function(it){ return it.completado; });
-  var orden = pend.concat(done);
-
-  return orden.map(function(item){
-    var idx    = items.indexOf(item);
-    var nombre = item.nombre || item;
-    var isDone = item.completado;
-    var fila   = idx + 2;
-    return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);' +
-      'background:'+(isDone?'rgba(255,255,255,.02)':'transparent')+';transition:background .3s">' +
-      '<button data-tipo="'+tipo+'" data-fila="'+fila+'" data-val="'+(!isDone)+'" onclick="_toggleActivityItem(this,this.dataset.tipo,this.dataset.fila,this.dataset.val===\'true\')" ' +
-      'style="width:18px;height:18px;border-radius:5px;flex-shrink:0;border:1px solid '+(isDone?color+'66':'rgba(255,255,255,.15)')+';' +
-      'background:'+(isDone?color+'22':'transparent')+';cursor:pointer;' +
-      'display:flex;align-items:center;justify-content:center;font-size:10px;color:'+color+';transition:all .2s;font-family:inherit">'+(isDone?'✓':'')+'</button>' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:11px;color:'+(isDone?'var(--m)':'rgba(255,255,255,.85)')+';text-decoration:'+(isDone?'line-through':'none')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+nombre+'">'+nombre+'</div>' +
-      '</div>' +
+  if(!items||!items.length) return '<div style="padding:12px;font-size:11px;color:var(--m);text-align:center">Sin elementos</div>';
+  var emoji=tipo==='libro'?'📚':'🎬';
+  var pend=items.filter(function(it){return !it.completado;}), done=items.filter(function(it){return it.completado;});
+  return pend.concat(done).map(function(item){
+    var idx=items.indexOf(item), nombre=item.nombre||item, isDone=item.completado, fila=idx+2;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04)">' +
+      '<button data-tipo="'+tipo+'" data-fila="'+fila+'" data-val="'+(!isDone)+'" onclick="_toggleActivityItem(this,this.dataset.tipo,this.dataset.fila,this.dataset.val===\'true\')" '+
+      'style="width:18px;height:18px;border-radius:5px;flex-shrink:0;border:1px solid '+(isDone?color+'66':'rgba(255,255,255,.15)')+';'+
+      'background:'+(isDone?color+'22':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:'+color+';transition:all .2s;font-family:inherit">'+(isDone?'✓':'')+'</button>' +
+      '<div style="flex:1;min-width:0"><div style="font-size:11px;color:'+(isDone?'var(--m)':'rgba(255,255,255,.85)')+';text-decoration:'+(isDone?'line-through':'none')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+nombre+'">'+nombre+'</div></div>' +
       '<span style="font-size:12px;flex-shrink:0;opacity:'+(isDone?.3:1)+'">'+emoji+'</span>' +
     '</div>';
   }).join('');
 }
 
 function _htmlNoRutCol(items){
-  if(!items || !items.length)
-    return '<div style="padding:12px;font-size:11px;color:var(--m);text-align:center">Sin pendientes</div>';
-
-  var pend = items.filter(function(it){ return !it.completado; });
-  var done = items.filter(function(it){ return it.completado; });
-  var orden = pend.concat(done);
-
-  return orden.map(function(item){
-    var idx    = items.indexOf(item);
-    var nombre = item.nombre || item;
-    var isDone = item.completado;
-    var fila   = idx + 2;
-    return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);' +
-      'background:'+(isDone?'rgba(74,222,128,.03)':'transparent')+'">' +
-      '<button data-tipo="norut" data-fila="'+fila+'" data-val="'+(!isDone)+'" onclick="_toggleActivityItem(this,this.dataset.tipo,this.dataset.fila,this.dataset.val===\'true\')" ' +
-      'style="width:18px;height:18px;border-radius:5px;flex-shrink:0;border:1px solid '+(isDone?'rgba(74,222,128,.4)':'rgba(139,92,246,.3)')+';' +
-      'background:'+(isDone?'rgba(74,222,128,.15)':'rgba(139,92,246,.08)')+';cursor:pointer;' +
-      'display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ok);transition:all .2s;font-family:inherit">'+(isDone?'✓':'')+'</button>' +
+  if(!items||!items.length) return '<div style="padding:12px;font-size:11px;color:var(--m);text-align:center">Sin pendientes</div>';
+  var pend=items.filter(function(it){return !it.completado;}), done=items.filter(function(it){return it.completado;});
+  return pend.concat(done).map(function(item){
+    var idx=items.indexOf(item), nombre=item.nombre||item, isDone=item.completado, fila=idx+2;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04)">' +
+      '<button data-tipo="norut" data-fila="'+fila+'" data-val="'+(!isDone)+'" onclick="_toggleActivityItem(this,this.dataset.tipo,this.dataset.fila,this.dataset.val===\'true\')" '+
+      'style="width:18px;height:18px;border-radius:5px;flex-shrink:0;border:1px solid '+(isDone?'rgba(74,222,128,.4)':'rgba(139,92,246,.3)')+';'+
+      'background:'+(isDone?'rgba(74,222,128,.15)':'rgba(139,92,246,.08)')+';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ok);transition:all .2s;font-family:inherit">'+(isDone?'✓':'')+'</button>' +
       '<div style="font-size:11px;color:'+(isDone?'var(--m)':'rgba(255,255,255,.85)')+';text-decoration:'+(isDone?'line-through':'none')+';flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+nombre+'">'+nombre+'</div>' +
     '</div>';
   }).join('');
 }
 
 function guardarChecks(){
-  var semana = _getSemanaKey();
-  var checks = Object.entries(_actChecks)
-    .filter(function(e){ return e[1] && e[0].includes('_'+semana+'_'); })
-    .map(function(e){ return { nombre: e[0].split('_'+semana+'_')[0], fecha: e[0].split('_'+semana+'_')[1] }; });
-  api.guardarActivityChecks(semana, checks)
-    .then(function(r){ showToast(r.ok ? '✓ Semana guardada' : 'Error: '+r.mensaje, r.ok); })
-    .catch(function(){ showToast('Error al guardar', false); });
+  var semana=_getSemanaKey();
+  var checks=Object.entries(_actChecks)
+    .filter(function(e){return e[1]&&e[0].includes('_'+semana+'_');})
+    .map(function(e){return {nombre:e[0].split('_'+semana+'_')[0],fecha:e[0].split('_'+semana+'_')[1]};});
+  api.guardarActivityChecks(semana,checks)
+    .then(function(r){showToast(r.ok?'✓ Semana guardada':'Error: '+r.mensaje,r.ok);})
+    .catch(function(){showToast('Error al guardar',false);});
 }
 
 
