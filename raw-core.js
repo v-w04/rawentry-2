@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.5.054
+/* RAW Entry — Core v.5.055
    Fix v5.054: renderNecesidadesInline ya no pasa datos del año completo al cargar.
                Llama actualizarNecInline() con mes actual inmediatamente después.
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
@@ -97,6 +97,7 @@ const api = {
   guardarEfectivo:      (d) => EN_GAS ? gasRun('guardarEfectivo', d) : apiPost('guardarEfectivo', { datos: d }),
   guardarInversion:     (d) => EN_GAS ? gasRun('guardarInversion', d) : apiPost('guardarInversion', { datos: d }),
   marcarActivityItem:   (tipo, fila, valor) => EN_GAS ? gasRun('marcarActivityItem', tipo, fila, valor) : apiPost('marcarActivityItem', { tipo, fila, valor }),
+  agregarAActivity:     (tipo, datos) => EN_GAS ? gasRun('agregarAActivity', tipo, datos) : apiPost('agregarAActivity', { tipo, datos }),
   resetearElectronics:  () => EN_GAS ? gasRun('resetearElectronicsHoy') : apiGet('resetearElectronics'),
   getNutricion:         () => EN_GAS ? gasRun('getNutricion') : apiGet('getNutricion'),
   getMetasNutricion:    () => EN_GAS ? gasRun('getMetasNutricion') : apiGet('getMetasNutricion'),
@@ -153,6 +154,122 @@ function _initMobTablero(){
 }
 
 
+
+
+// ── Formulario Activity Check ──
+function _renderActivityForm(wrap){
+  var SIMS_OPTS = ['energia','hambre','cuerpo','higiene','mental','disfrute','entorno'];
+  var RECS = ['Diario','Semanal','Eventual'];
+
+  wrap.innerHTML = `
+    <div style="padding:16px var(--pad);display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">¿Qué quieres agregar?</div>
+      <div class="opts" id="act-col-opts">
+        <button class="opt" onclick="event.stopPropagation();_selOpt(this,'act-col-opts');_onActColChange('personal')">👤 Personal</button>
+        <button class="opt" onclick="event.stopPropagation();_selOpt(this,'act-col-opts');_onActColChange('electronics')">💼 Trabajo</button>
+        <button class="opt" onclick="event.stopPropagation();_selOpt(this,'act-col-opts');_onActColChange('libro')">📚 Libro</button>
+        <button class="opt" onclick="event.stopPropagation();_selOpt(this,'act-col-opts');_onActColChange('movie')">🎬 Movie</button>
+        <button class="opt" onclick="event.stopPropagation();_selOpt(this,'act-col-opts');_onActColChange('norut')">📌 Pendiente</button>
+      </div>
+      <input type="hidden" id="act-col-tipo" value="">
+      <div id="act-col-extra" style="display:flex;flex-direction:column;gap:8px"></div>
+      <button onclick="_guardarActivityForm()" class="btn-save" style="border-radius:var(--rad-pill);display:none" id="act-btn-guardar">
+        <i class="fas fa-floppy-disk"></i> Agregar
+      </button>
+      <div id="act-res" style="font-size:12px;text-align:center;color:var(--m)"></div>
+    </div>`;
+}
+
+function _onActColChange(tipo){
+  document.getElementById('act-col-tipo').value = tipo;
+  var extra = document.getElementById('act-col-extra');
+  var btn   = document.getElementById('act-btn-guardar');
+  if(btn) btn.style.display = 'flex';
+
+  var SIMS_OPTS = ['energia','hambre','cuerpo','higiene','mental','disfrute','entorno'];
+  var RECS = ['Diario','Semanal','Eventual'];
+
+  function btnRec(r){
+    var b = document.createElement('button');
+    b.className = 'opt'; b.textContent = r;
+    b.onclick = function(e){ e.stopPropagation(); _selOpt(b,'act-rec-opts'); document.getElementById('act-rec').value = r; };
+    return b.outerHTML;
+  }
+  function btnSims(s){
+    var b = document.createElement('button');
+    b.className = 'opt'; b.textContent = s;
+    b.onclick = function(e){ e.stopPropagation(); _selOpt(b,'act-sims-opts'); document.getElementById('act-sims').value = s; };
+    return b.outerHTML;
+  }
+
+  var recHtml = '<div><div style="font-size:10px;color:var(--m);margin-bottom:4px">Recurrencia</div>' +
+    '<div class="opts" id="act-rec-opts">'+RECS.map(btnRec).join('')+'</div>' +
+    '<input type="hidden" id="act-rec" value="Diario"></div>';
+
+  if(tipo === 'personal'){
+    extra.innerHTML =
+      '<input type="text" id="act-nombre" class="finput" placeholder="Nombre del hábito" style="font-size:14px;padding:10px 14px">' +
+      recHtml +
+      '<div><div style="font-size:10px;color:var(--m);margin-bottom:4px">Categoría Sims</div>' +
+      '<div class="opts" id="act-sims-opts">'+SIMS_OPTS.map(btnSims).join('')+'</div>' +
+      '<input type="hidden" id="act-sims" value=""></div>';
+  } else if(tipo === 'electronics'){
+    extra.innerHTML =
+      '<input type="text" id="act-nombre" class="finput" placeholder="Nombre del check de trabajo" style="font-size:14px;padding:10px 14px">' +
+      recHtml;
+  } else {
+    var label = tipo==='libro'?'Título del libro':tipo==='movie'?'Título de la película/serie':'Descripción del pendiente';
+    extra.innerHTML = '<input type="text" id="act-nombre" class="finput" placeholder="'+label+'" style="font-size:14px;padding:10px 14px">';
+  }
+}
+
+function _guardarActivityForm(){
+  var tipo   = document.getElementById('act-col-tipo').value;
+  var nombre = (document.getElementById('act-nombre') || {}).value;
+  var res    = document.getElementById('act-res');
+  if(!tipo){ res.textContent='Selecciona una columna'; res.style.color='var(--err)'; return; }
+  if(!nombre || !nombre.trim()){ res.textContent='Escribe un nombre'; res.style.color='var(--err)'; return; }
+  nombre = nombre.trim();
+  res.textContent='Guardando…'; res.style.color='var(--m)';
+
+  var datos = { nombre: nombre };
+  if(tipo === 'personal'){
+    datos.recurrencia = (document.getElementById('act-rec')||{}).value || 'Diario';
+    datos.sims        = (document.getElementById('act-sims')||{}).value || '';
+  }
+  if(tipo === 'electronics'){
+    datos.recurrencia = (document.getElementById('act-rec')||{}).value || 'Diario';
+  }
+
+  // Tipo para el backend
+  var tipoBack = tipo === 'electronics' ? 'electronics' :
+                 tipo === 'libro'       ? 'libro' :
+                 tipo === 'movie'       ? 'movie' :
+                 tipo === 'norut'       ? 'norut' : 'personal';
+
+  api.agregarAActivity(tipoBack, datos)
+    .then(function(r){
+      res.textContent = r.ok ? '✓ Agregado' : '✗ '+(r.mensaje||'Error');
+      res.style.color = r.ok ? 'var(--ok)' : 'var(--err)';
+      if(r.ok){
+        showToast('✓ Agregado a Activity Check');
+        // Actualizar _actData localmente para que aparezca de inmediato
+        if(_actData){
+          if(tipoBack === 'personal')    _actData.habitosPersonal.push({ nombre:nombre, recurrencia:datos.recurrencia||'Diario', sims:datos.sims||'' });
+          if(tipoBack === 'electronics') _actData.habitosElectronics.push({ nombre:nombre, recurrencia:datos.recurrencia||'Diario', bw:'trabajo' });
+          if(tipoBack === 'libro')       _actData.libros.push({ nombre:nombre, completado:false });
+          if(tipoBack === 'movie')       _actData.movies.push({ nombre:nombre, completado:false });
+          if(tipoBack === 'norut')       _actData.noRutinarias.push({ nombre:nombre, completado:false });
+          if(typeof renderActivity === 'function') renderActivity();
+          if(typeof renderSimsNeeds === 'function') renderSimsNeeds();
+        }
+        // Limpiar form
+        var el = document.getElementById('act-nombre');
+        if(el) el.value = '';
+        setTimeout(cerrarEntrada, 800);
+      }
+    }).catch(function(){ res.textContent='Error'; res.style.color='var(--err)'; });
+}
 
 // ── Guardar Nutrición ──
 function _guardarNutricion(){
@@ -778,7 +895,8 @@ function _inyectarToggleModo(){
     <button id="btn-tab-apartado"    onclick="setModoEntrada('apartado')"    class="tab-entrada">💰</button>
     <button id="btn-tab-patrimonio"  onclick="setModoEntrada('patrimonio')"  class="tab-entrada">🏦</button>
     <button id="btn-tab-nutricion"   onclick="setModoEntrada('nutricion')"   class="tab-entrada">🥗</button>
-    <button id="btn-tab-entrenamiento" onclick="setModoEntrada('entrenamiento')" class="tab-entrada">💪</button>`;
+    <button id="btn-tab-entrenamiento" onclick="setModoEntrada('entrenamiento')" class="tab-entrada">💪</button>
+    <button id="btn-tab-activity" onclick="setModoEntrada('activity')" class="tab-entrada">⚡</button>`;
   const body = document.getElementById('sec-entrada-body') || document.getElementById('entrada-paso2') || document.getElementById('wrap-entrada');
   if(body) body.insertBefore(wrap, body.firstChild);
 
@@ -799,7 +917,7 @@ function _inyectarToggleModo(){
     <div id="editar-id-msg" style="font-size:11px;margin-top:6px;color:var(--m)"></div>`;
   if(body) body.insertBefore(idWrap, wrap.nextSibling);
 
-  ['pensamiento','persona','salud','apartado','patrimonio','nutricion','entrenamiento'].forEach(tab=>{
+  ['pensamiento','persona','salud','apartado','patrimonio','nutricion','entrenamiento','activity'].forEach(tab=>{
     const tw = document.createElement('div');
     tw.id = tab+'-wrap';
     tw.style.display = 'none';
@@ -823,7 +941,7 @@ function setModoEntrada(modo){
   if(paso1) paso1.style.display = 'none';
   if(paso2) paso2.style.display = 'block';
 
-  const titulos = {nueva:'💸 RAW',editar:'✏️ Editar',pensamiento:'💭 Pensamiento',persona:'👥 Persona',salud:'🏥 Salud',apartado:'💰 Apartado',patrimonio:'🏦 Patrimonio',bancos:'🏛️ Bancos',nutricion:'🥗 Nutrición',entrenamiento:'💪 Entrenamiento'};
+  const titulos = {nueva:'💸 RAW',editar:'✏️ Editar',pensamiento:'💭 Pensamiento',persona:'👥 Persona',salud:'🏥 Salud',apartado:'💰 Apartado',patrimonio:'🏦 Patrimonio',bancos:'🏛️ Bancos',nutricion:'🥗 Nutrición',entrenamiento:'💪 Entrenamiento',activity:'⚡ Activity Check'};
   const tituloEl = document.getElementById('entrada-paso2-titulo');
   if(tituloEl) tituloEl.textContent = titulos[modo] || modo;
 
@@ -879,6 +997,7 @@ function _renderTabEntrada(tab){
   else if(tab==='bancos')        _renderBancosForm(wrap);
   else if(tab==='nutricion')     _renderNutricionForm(wrap);
   else if(tab==='entrenamiento') _renderEntrenamientoForm(wrap);
+  else if(tab==='activity')     _renderActivityForm(wrap);
 }
 
 // ── Formulario Bancos ──
