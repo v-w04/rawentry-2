@@ -1,13 +1,37 @@
 // ══════════════════════════════════════════
 //  NECESIDADES INLINE — control de período
 // ══════════════════════════════════════════
-function actualizarNecInline(){
-  var anio = document.getElementById('nec-inline-anio');
-  var mes  = document.getElementById('nec-inline-mes');
-  if(!anio) return;
-  var a = anio.value;
-  var m = mes ? mes.value : '';
-  api.getNecesidades(a, m).then(function(data){
+var _necModoHoy = true; // true = solo hoy, false = mes completo
+
+function actualizarNecInline(forzarMes){
+  var anioEl = document.getElementById('nec-inline-anio');
+  var mesEl  = document.getElementById('nec-inline-mes');
+  var btnHoy = document.getElementById('nec-btn-hoy');
+  if(!anioEl) return;
+
+  var a = anioEl.value;
+  var m = mesEl ? mesEl.value : '';
+
+  // Si se llama desde el select de mes, salir de modo HOY
+  if(forzarMes || m){
+    _necModoHoy = false;
+  }
+
+  // Actualizar estilo del botón HOY
+  if(btnHoy){
+    btnHoy.style.background    = _necModoHoy ? 'rgba(139,92,246,.3)' : 'none';
+    btnHoy.style.border        = _necModoHoy ? '1px solid rgba(139,92,246,.5)' : '1px solid rgba(255,255,255,.1)';
+    btnHoy.style.color         = _necModoHoy ? '#C4B5FD' : 'var(--m)';
+    btnHoy.style.fontWeight    = _necModoHoy ? '700' : '500';
+  }
+
+  var fechaHoy = null;
+  if(_necModoHoy){
+    var hoy = new Date();
+    fechaHoy = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
+  }
+
+  api.getNecesidades(a, _necModoHoy ? '' : m, fechaHoy).then(function(data){
     _necInlineData = data;
     if(data && data.ok){
       var niveles = data.niveles || [];
@@ -17,16 +41,24 @@ function actualizarNecInline(){
   }).catch(function(){});
 }
 
+function necVolverHoy(){
+  _necModoHoy = true;
+  var mesEl = document.getElementById('nec-inline-mes');
+  if(mesEl) mesEl.value = '';
+  actualizarNecInline();
+}
+
 function _initNecInlineSelectors(){
   var anioEl = document.getElementById('nec-inline-anio');
   var mesEl  = document.getElementById('nec-inline-mes');
   if(!anioEl || !mesEl) return;
   var hoy = new Date();
   anioEl.value = hoy.getFullYear();
-  mesEl.value  = hoy.getMonth() + 1;
+  mesEl.value  = ''; // vacío = modo HOY por default
+  _necModoHoy  = true;
 }
 
-/* RAW Entry — Dashboard v.5.071
+/* RAW Entry — Dashboard v.5.072
    Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
 */
 
