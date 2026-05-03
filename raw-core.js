@@ -391,61 +391,133 @@ function _posicionarRadial(){
   var grid = document.querySelector('.entrada-selector-grid');
   if(!grid) return;
   var btns = Array.from(grid.querySelectorAll('.entrada-tipo-btn'));
-  var n = btns.length;
-  var cx = 210, cy = 210; // centro del contenedor 420x420
-  var r  = 155;           // radio
-  // Botón central (RAW / nueva)
-  var idxCentral = btns.findIndex(function(b){ return b.getAttribute('onclick') && b.getAttribute('onclick').includes("'nueva'"); });
-  if(idxCentral >= 0){
-    var bCentral = btns.splice(idxCentral, 1)[0];
-    bCentral.style.left = (cx - 44)+'px';
-    bCentral.style.top  = (cy - 44)+'px';
-    bCentral.style.width  = '88px';
-    bCentral.style.height = '88px';
-    bCentral.style.zIndex = '2';
-    bCentral.style.background = 'rgba(99,102,241,.25)';
-    bCentral.style.borderColor = 'rgba(99,102,241,.5)';
-    bCentral.style.boxShadow = '0 0 24px rgba(99,102,241,.2)';
-  }
-  // Resto en círculo
-  btns.forEach(function(btn, i){
-    var angle = (i / btns.length) * 2 * Math.PI - Math.PI/2;
-    var x = cx + r * Math.cos(angle) - 44;
-    var y = cy + r * Math.sin(angle) - 44;
-    btn.style.left = Math.round(x)+'px';
-    btn.style.top  = Math.round(y)+'px';
-    btn.style.transition = 'transform .2s, box-shadow .2s, opacity .3s';
-    btn.style.animationDelay = (i * 0.04)+'s';
+  if(!btns.length) return;
+
+  var SIZE = 420;
+  var cx = SIZE/2, cy = SIZE/2;
+  var r  = 150;
+  var btnR = 34; // radio de cada círculo
+
+  grid.style.width  = SIZE+'px';
+  grid.style.height = SIZE+'px';
+  grid.style.position = 'relative';
+
+  // Separar RAW (centro) del resto
+  var idxCentral = btns.findIndex(function(b){
+    return (b.getAttribute('onclick')||'').includes("'nueva'");
   });
-  // Líneas decorativas del hub al círculo
+  var central = idxCentral >= 0 ? btns.splice(idxCentral,1)[0] : null;
+
+  // Tooltip global
+  var tip = document.getElementById('radial-tip');
+  if(!tip){
+    tip = document.createElement('div');
+    tip.id = 'radial-tip';
+    tip.style.cssText = 'position:fixed;background:#1a1a1a;border:1px solid rgba(255,255,255,.15);color:#fff;'+
+      'font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;pointer-events:none;'+
+      'z-index:9999;opacity:0;transition:opacity .15s;letter-spacing:-.01em;white-space:nowrap;font-family:inherit';
+    document.body.appendChild(tip);
+  }
+
+  function showTip(e, text){
+    tip.textContent = text;
+    tip.style.opacity = '1';
+    moveTip(e);
+  }
+  function moveTip(e){
+    tip.style.left = (e.clientX + 12)+'px';
+    tip.style.top  = (e.clientY - 28)+'px';
+  }
+  function hideTip(){ tip.style.opacity = '0'; }
+
+  // Posicionar botón central
+  if(central){
+    central.style.cssText = 'position:absolute;left:'+(cx-44)+'px;top:'+(cy-44)+'px;'+
+      'width:88px;height:88px;border-radius:50%;display:flex;flex-direction:column;'+
+      'align-items:center;justify-content:center;gap:4px;cursor:pointer;'+
+      'background:rgba(99,102,241,.2);border:1.5px solid rgba(99,102,241,.5);'+
+      'transition:transform .2s,background .2s;z-index:2;font-family:inherit;'+
+      'box-shadow:0 0 0 6px rgba(99,102,241,.06),0 0 0 12px rgba(99,102,241,.03)';
+    var ico = central.querySelector('.entrada-tipo-ico');
+    if(ico){ ico.style.fontSize='22px'; ico.style.color='#A5B4FC'; }
+    var lbl = central.querySelector('.entrada-tipo-lbl');
+    if(lbl){ lbl.style.cssText='font-size:10px;font-weight:700;color:#A5B4FC'; }
+    var sub = central.querySelector('.entrada-tipo-sub');
+    if(sub) sub.style.display='none';
+    central.addEventListener('mouseover',function(){ central.style.transform='scale(1.1)'; });
+    central.addEventListener('mouseout', function(){ central.style.transform='scale(1)'; });
+  }
+
+  // SVG de fondo
   var svg = grid.querySelector('.radial-svg');
   if(!svg){
     svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
     svg.setAttribute('class','radial-svg');
     svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0';
+    svg.setAttribute('viewBox','0 0 '+SIZE+' '+SIZE);
     grid.insertBefore(svg, grid.firstChild);
   }
   svg.innerHTML = '';
-  // Círculo guía
-  var circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
-  circle.setAttribute('cx', cx); circle.setAttribute('cy', cy);
-  circle.setAttribute('r', r);
-  circle.setAttribute('fill','none');
-  circle.setAttribute('stroke','rgba(255,255,255,.04)');
-  circle.setAttribute('stroke-width','1');
-  circle.setAttribute('stroke-dasharray','4 6');
-  svg.appendChild(circle);
-  // Líneas del centro a cada botón
+
+  // Arcos decorativos
+  function arc(rr, dash, op){
+    var c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',rr);
+    c.setAttribute('fill','none'); c.setAttribute('stroke','rgba(255,255,255,'+op+')');
+    c.setAttribute('stroke-width','0.5');
+    if(dash) c.setAttribute('stroke-dasharray',dash);
+    svg.appendChild(c);
+  }
+  arc(r,'4 8','0.06');
+  arc(r-30,'','0.03');
+  arc(r+30,'2 10','0.03');
+
+  // Posicionar botones en círculo
+  var n = btns.length;
   btns.forEach(function(btn, i){
-    var angle = (i / btns.length) * 2 * Math.PI - Math.PI/2;
-    var x2 = cx + r * Math.cos(angle);
-    var y2 = cy + r * Math.sin(angle);
+    var angle = (i/n)*2*Math.PI - Math.PI/2;
+    var bx = cx + r*Math.cos(angle);
+    var by = cy + r*Math.sin(angle);
+
+    // Línea del centro al botón
     var line = document.createElementNS('http://www.w3.org/2000/svg','line');
-    line.setAttribute('x1', cx); line.setAttribute('y1', cy);
-    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
-    line.setAttribute('stroke','rgba(255,255,255,.05)');
-    line.setAttribute('stroke-width','1');
+    line.setAttribute('x1',cx); line.setAttribute('y1',cy);
+    line.setAttribute('x2',bx); line.setAttribute('y2',by);
+    line.setAttribute('stroke','rgba(255,255,255,0.05)');
+    line.setAttribute('stroke-width','0.5');
     svg.appendChild(line);
+
+    // Estilos del botón → círculo limpio
+    btn.style.cssText = 'position:absolute;'+
+      'left:'+(bx-btnR)+'px;top:'+(by-btnR)+'px;'+
+      'width:'+(btnR*2)+'px;height:'+(btnR*2)+'px;'+
+      'border-radius:50%;display:flex;flex-direction:column;'+
+      'align-items:center;justify-content:center;gap:0;cursor:pointer;'+
+      'transition:transform .2s,box-shadow .2s;font-family:inherit;'+
+      'background:var(--tipo-bg,rgba(255,255,255,.06));'+
+      'border:1px solid rgba(255,255,255,.1);z-index:1';
+
+    // Solo ícono, sin texto
+    var ico = btn.querySelector('.entrada-tipo-ico');
+    if(ico){ ico.style.cssText='font-size:20px;line-height:1;color:var(--tipo-color,rgba(255,255,255,.6))'; }
+    var lbl = btn.querySelector('.entrada-tipo-lbl');
+    var sub = btn.querySelector('.entrada-tipo-sub');
+    var tipText = lbl ? lbl.textContent : '';
+    if(lbl) lbl.style.display='none';
+    if(sub) sub.style.display='none';
+
+    // Hover
+    btn.addEventListener('mouseover',function(e){
+      btn.style.transform='scale(1.18)';
+      btn.style.boxShadow='0 0 0 4px rgba(255,255,255,.06)';
+      showTip(e, tipText);
+    });
+    btn.addEventListener('mousemove', moveTip);
+    btn.addEventListener('mouseout',function(){
+      btn.style.transform='scale(1)';
+      btn.style.boxShadow='none';
+      hideTip();
+    });
   });
 }
 
