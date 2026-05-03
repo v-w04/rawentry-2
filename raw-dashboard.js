@@ -35,17 +35,15 @@ function actualizarNecInline(forzarMes){
   var fechaHoy = null;
 
   if(_necModoHoy){
-    // Modo HASTA HOY: mes actual + fechaHoy como tope superior.
-    // Backend filtra del 1 del mes hasta fechaHoy inclusive.
+    // Modo HASTA HOY: pasar solo mes actual, sin fechaHoy.
+    // El backend detecta que es el mes actual y corta en hoy automaticamente.
     mesFinal = String(hoyDate.getMonth()+1);
-    fechaHoy = hoyDate.getFullYear()+'-'+String(hoyDate.getMonth()+1).padStart(2,'0')+'-'+String(hoyDate.getDate()).padStart(2,'0');
   } else {
     // Mes seleccionado explicitamente → mes completo
     mesFinal = m || String(hoyDate.getMonth()+1);
-    fechaHoy = null;
   }
 
-  api.getNecesidades(a, mesFinal, fechaHoy).then(function(data){
+  api.getNecesidades(a, mesFinal, null).then(function(data){
     _necInlineData = data;
     if(data && data.ok){
       var niveles = data.niveles || [];
