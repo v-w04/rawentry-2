@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.5.051
+/* RAW Entry — Core v.5.052
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Globales compartidas entre raw-core y raw-dashboard
@@ -1482,11 +1482,12 @@ function guardarEnte(fila){
         const em=document.getElementById('em-'+fila);
         if(em){em.textContent=txt;em.className='ente-monto '+cls;}
         togEnteEdit(fila);
-        // Recargar fijos Y apartados juntos para que el disponible sea correcto
-        Promise.all([api.getFijos(), api.getApartados()])
-          .then(([fijos, apData])=>{
+        // Recargar fijos + apartados + patrimonio para que todo quede consistente
+        Promise.all([api.getFijos(), api.getApartados(), api.getPatrimonio()])
+          .then(([fijos, apData, pat])=>{
             if(apData && typeof renderApartados==='function') renderApartados(apData);
             if(typeof renderEntes==='function') renderEntes(fijos);
+            if(pat && typeof renderPatrimonio==='function') renderPatrimonio(pat);
           })
           .catch(()=>api.getFijos().then(f=>{ if(typeof renderEntes==='function') renderEntes(f); }));
       }
