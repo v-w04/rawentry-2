@@ -1,7 +1,14 @@
+/* RAW Entry — Dashboard v.5.075
+   Fix: actualizarNecInline incluye días transcurridos mes actual
+   Fix: renderNecesidadesInline lazy-load Chart.js antes de render
+   Fix: dropdowns Necesidades reaccionan correctamente
+   New: Sims Needs barras estilo Sims, color verde→amarillo→rojo
+*/
+
 // ══════════════════════════════════════════
 //  NECESIDADES INLINE — control de período
 // ══════════════════════════════════════════
-var _necModoHoy = true; // true = solo hoy, false = mes completo
+var _necModoHoy = true;
 
 function actualizarNecInline(forzarMes){
   var anioEl = document.getElementById('nec-inline-anio');
@@ -12,26 +19,31 @@ function actualizarNecInline(forzarMes){
   var a = anioEl.value;
   var m = mesEl ? mesEl.value : '';
 
-  // Si se llama desde el select de mes, salir de modo HOY
-  if(forzarMes || m){
-    _necModoHoy = false;
-  }
+  // Si se seleccionó un mes explícitamente, salir de modo HOY
+  if(forzarMes || m){ _necModoHoy = false; }
 
-  // Actualizar estilo del botón HOY
   if(btnHoy){
-    btnHoy.style.background    = _necModoHoy ? 'rgba(139,92,246,.3)' : 'none';
-    btnHoy.style.border        = _necModoHoy ? '1px solid rgba(139,92,246,.5)' : '1px solid rgba(255,255,255,.1)';
-    btnHoy.style.color         = _necModoHoy ? '#C4B5FD' : 'var(--m)';
-    btnHoy.style.fontWeight    = _necModoHoy ? '700' : '500';
+    btnHoy.style.background = _necModoHoy ? 'rgba(139,92,246,.3)' : 'none';
+    btnHoy.style.border     = _necModoHoy ? '1px solid rgba(139,92,246,.5)' : '1px solid rgba(255,255,255,.1)';
+    btnHoy.style.color      = _necModoHoy ? '#C4B5FD' : 'var(--m)';
+    btnHoy.style.fontWeight = _necModoHoy ? '700' : '500';
   }
 
+  var hoyDate = new Date();
   var fechaHoy = null;
+  var mesFinal;
+
   if(_necModoHoy){
-    var hoy = new Date();
-    fechaHoy = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
+    // Modo HOY: mes actual + fecha de hoy como tope superior (del 1 al hoy)
+    fechaHoy = hoyDate.getFullYear()+'-'+String(hoyDate.getMonth()+1).padStart(2,'0')+'-'+String(hoyDate.getDate()).padStart(2,'0');
+    mesFinal = String(hoyDate.getMonth()+1);
+  } else {
+    // Mes seleccionado explícitamente o mes actual completo
+    mesFinal = m || String(hoyDate.getMonth()+1);
+    fechaHoy = null;
   }
 
-  api.getNecesidades(a, _necModoHoy ? '' : m, fechaHoy).then(function(data){
+  api.getNecesidades(a, mesFinal, fechaHoy).then(function(data){
     _necInlineData = data;
     if(data && data.ok){
       var niveles = data.niveles || [];
@@ -45,7 +57,7 @@ function necVolverHoy(){
   _necModoHoy = true;
   var mesEl = document.getElementById('nec-inline-mes');
   if(mesEl) mesEl.value = '';
-  actualizarNecInline();
+  actualizarNecInline(); // _necModoHoy=true → usará mes actual + fechaHoy como tope
 }
 
 function _initNecInlineSelectors(){
@@ -54,13 +66,9 @@ function _initNecInlineSelectors(){
   if(!anioEl || !mesEl) return;
   var hoy = new Date();
   anioEl.value = hoy.getFullYear();
-  mesEl.value  = ''; // vacío = modo HOY por default
+  mesEl.value  = '';
   _necModoHoy  = true;
 }
-
-/* RAW Entry — Dashboard v.5.072
-   Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
-*/
 
 // ══════════════════════════════════════════
 //  ANUALIDAD (Fijos)
@@ -125,7 +133,6 @@ function renderAnualidad(data){
       return `<tr><td>${g.concepto}</td>${celdas}</tr>`;
     }).join('');
     body.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
-    // Auto-scroll: columna mes actual alineada al inicio del área scrollable
     requestAnimationFrame(function(){
       var wrap = body.querySelector('.tbl-wrap');
       var mesActualEl = body.querySelector('th.mes-actual');
@@ -191,7 +198,6 @@ function renderGastos(){
       return `<tr><td>${ente}</td>${celdas}</tr>`;
     }).join('');
     body.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
-    // Auto-scroll: columna mes actual alineada al inicio del área scrollable
     requestAnimationFrame(function(){
       var wrap = body.querySelector('.tbl-wrap');
       var mesActualEl = body.querySelector('th.mes-actual');
@@ -293,7 +299,6 @@ function refreshTodo(){
 
 // ══════════════════════════════════════════
 //  CFO — Financiero + Revisión
-//  v2: sin % duplicado, semáforo único, barra temporal
 // ══════════════════════════════════════════
 var _finData = null;
 var _revData = null;
@@ -328,7 +333,6 @@ function _renderCFO(){
   const body = document.getElementById('fin-avanzado-body');
   if(!body) return;
 
-  // helpers
   const fmtM  = v => '$ ' + Math.abs(v||0).toLocaleString('es-MX', {minimumFractionDigits:0});
   const fmtM2 = v => '$ ' + Math.abs(v||0).toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
 
@@ -341,19 +345,8 @@ function _renderCFO(){
   const excedente   = mes.excedente || 0;
   const proy        = mes.proyeccion || {};
 
-  // Semáforo único
-  let saludColor, saludLabel, saludIcon;
-  if(runway !== null && runway < 7 || pctAhorro < 0){
-    saludColor='#EF4444'; saludLabel='Crítico'; saludIcon='▲';
-  } else if(runway !== null && runway < 30 || pctAhorro < 10){
-    saludColor='#F59E0B'; saludLabel='Atención'; saludIcon='◆';
-  } else {
-    saludColor='#4ADE80'; saludLabel='Saludable'; saludIcon='●';
-  }
-
   const runwayColor = runway===null?'var(--m)':runway<7?'#EF4444':runway<30?'#F59E0B':'#4ADE80';
 
-  // Barra temporal del mes
   const hoy       = new Date();
   const diasMes   = new Date(hoy.getFullYear(), hoy.getMonth()+1, 0).getDate();
   const diaActual = hoy.getDate();
@@ -361,19 +354,14 @@ function _renderCFO(){
   const pctGasto  = ingresosMes > 0 ? Math.round(Math.abs(egresosMes) / ingresosMes * 100) : 0;
   const velColor  = pctGasto > pctMes + 20 ? '#EF4444' : pctGasto > pctMes + 10 ? '#F59E0B' : '#4ADE80';
 
-  // Identidad
   const scoreInv    = id.scoreInversionista || 0;
   const scoreConsum = id.scoreConsumidor || 0;
   const tieneRevision = rev.ok && scoreInv > 0;
 
-  // Filtrar insights — no repetir ahorro % que ya se muestra
   const insightsFiltrados = ins.filter(i => !i.msg.includes('Buen ritmo de ahorro'));
 
   body.innerHTML = `
-    <!-- ① SALDO — fila completa sin semáforo flotante -->
     <div style="padding:14px 16px 12px;border-bottom:1px solid rgba(255,255,255,.06)">
-
-      <!-- Fila superior: etiqueta SALDO + controles -->
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--m)">SALDO</div>
         <input type="date" id="saldo-fecha" onchange="consultarSaldo()"
@@ -388,10 +376,7 @@ function _renderCFO(){
           <i class="fas fa-table-cells"></i>
         </button>
       </div>
-
-      <!-- Fila de métricas: saldo + separadores + gasto/día + runway + ahorro -->
       <div style="display:flex;align-items:center;gap:0;width:100%">
-        <!-- Saldo -->
         <div style="flex:0 0 auto">
           <div id="saldo-val" style="font-size:34px;font-weight:800;letter-spacing:-.04em;
             color:${saldo>=0?'#4ADE80':'#EF4444'};line-height:1;white-space:nowrap">
@@ -399,13 +384,11 @@ function _renderCFO(){
           </div>
         </div>
         <div style="width:1px;height:32px;background:rgba(255,255,255,.1);margin:0 18px;flex-shrink:0"></div>
-        <!-- Gasto/día -->
         <div style="flex:1;min-width:0">
           <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:3px">Gasto/día prom.</div>
           <div style="font-size:18px;font-weight:700;color:rgba(255,255,255,.75);letter-spacing:-.02em">${fmtM(gastoDia)}</div>
         </div>
         <div style="width:1px;height:32px;background:rgba(255,255,255,.1);margin:0 18px;flex-shrink:0"></div>
-        <!-- Runway -->
         <div style="flex:1;min-width:0">
           <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:3px">Runway</div>
           <div style="font-size:18px;font-weight:700;color:${runwayColor};letter-spacing:-.02em">
@@ -416,7 +399,6 @@ function _renderCFO(){
           </div>
         </div>
         <div style="width:1px;height:32px;background:rgba(255,255,255,.1);margin:0 18px;flex-shrink:0"></div>
-        <!-- Tasa ahorro -->
         <div style="flex:1;min-width:0">
           <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:3px">Tasa ahorro</div>
           <div style="font-size:18px;font-weight:700;letter-spacing:-.02em;
@@ -431,15 +413,12 @@ function _renderCFO(){
       </div>
     </div>
 
-    <!-- ③ FLUJO DEL MES con barra temporal -->
     <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m)">
           ESTE MES · DÍA ${diaActual} DE ${diasMes}
         </div>
       </div>
-
-      <!-- Barra tiempo transcurrido vs gasto ejecutado -->
       <div style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--m);margin-bottom:3px">
           <span>Mes transcurrido</span><span style="color:rgba(255,255,255,.5)">${pctMes}%</span>
@@ -460,8 +439,6 @@ function _renderCFO(){
             pctGasto > 0 ? '✓ Ritmo proporcional al mes' : '—'}
         </div>
       </div>
-
-      <!-- I / E / Excedente -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
         <div style="background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.15);border-radius:8px;padding:8px 10px">
           <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(74,222,128,.7);margin-bottom:3px">Ingresos</div>
@@ -478,7 +455,6 @@ function _renderCFO(){
       </div>
     </div>
 
-    <!-- ④ PROYECCIÓN FIN DE MES — solo excedente, sin repetir egresos -->
     ${proy.diasRestantes > 0 ? `
     <div style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06)">
       <div style="display:flex;align-items:center;justify-content:space-between">
@@ -497,7 +473,6 @@ function _renderCFO(){
       </div>
     </div>` : ''}
 
-    <!-- ⑤ IDENTIDAD DEL PERÍODO — barra bipolar (una sola visualización) -->
     ${tieneRevision ? `
     <div style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -506,7 +481,6 @@ function _renderCFO(){
         </div>
         <div style="font-size:9px;color:#C4B5FD;font-weight:600;text-transform:uppercase;letter-spacing:.06em">${(rev.tipo||'').toUpperCase()}</div>
       </div>
-      <!-- Barra bipolar: verde=inversionista, rojo=consumidor -->
       <div>
         <div style="height:8px;border-radius:4px;overflow:hidden;display:flex">
           <div style="height:100%;width:${scoreInv}%;background:linear-gradient(90deg,#22C55E,#4ADE80);transition:width .6s ease"></div>
@@ -527,7 +501,6 @@ function _renderCFO(){
       Selecciona período para ver análisis
     </div>`}
 
-    <!-- ⑥ INSIGHTS (sin el "Buen ritmo de ahorro" que ya se ve arriba) -->
     ${insightsFiltrados.length ? `
     <div style="padding:10px 16px">
       <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--m);margin-bottom:8px">💡 INSIGHTS</div>
@@ -546,7 +519,6 @@ function _renderCFO(){
     </div>` : ''}
   `;
 
-  // Inicializar fecha del saldo
   setTimeout(function(){
     const sf = document.getElementById('saldo-fecha');
     if(sf && !sf.value){
@@ -641,9 +613,8 @@ function renderSalud(data){
 }
 
 // ══════════════════════════════════════════
-//  APARTADOS — fix: renderApartados usa fila real del GAS
+//  APARTADOS
 // ══════════════════════════════════════════
-
 function renderApartados(data){
   window._apartadosData = (data && data.items) ? data.items : [];
   const body = document.getElementById('apartados-list') || document.getElementById('apartados-body');
@@ -891,7 +862,6 @@ function renderScore(data){
   var pct   = (data.score||{}).total || 0;
   var des   = (data.score||{}).desglose || {};
   var mx    = (data.score||{}).maximos  || {dinero:25,habitos:25,salud:20,relaciones:15,mental:15};
-  var fin   = data.finDetalle || {};
   var color = pct>=70?'#4ADE80':pct>=55?'#F59E0B':'#EF4444';
   var estado = (data.score||{}).estado || '';
   var R = 54, C = 2*Math.PI*R;
@@ -916,7 +886,6 @@ function renderScore(data){
     });
     html += '</div>';
   }
-  html += '<div style="text-align:center;font-size:10px;color:rgba(255,255,255,.25);padding:0 16px 8px;letter-spacing:.05em;text-transform:uppercase">'+estado+'</div>';
   var areas = [
     {key:'dinero',    label:'Dinero',     icon:'💰', color:'#4ADE80', max:mx.dinero||25},
     {key:'habitos',   label:'Hábitos',    icon:'⚡', color:'#3B82F6', max:mx.habitos||25},
@@ -950,7 +919,8 @@ var _radarInlineChart = null;
 
 // ══════════════════════════════════════════
 //  SIMS NEEDS PANEL — Bitácora
-//  8 necesidades reales derivadas de los datos
+//  Barras estilo The Sims: verde→amarillo→rojo
+//  8 necesidades reales de datos LifeOS
 // ══════════════════════════════════════════
 function renderSimsNeeds(){
   var el = document.getElementById('sims-needs-panel');
@@ -959,68 +929,72 @@ function renderSimsNeeds(){
   var hoy = new Date(); hoy.setHours(0,0,0,0);
   var hace7 = new Date(hoy); hace7.setDate(hoy.getDate()-7);
 
-  // ── Calcular scores 0-100 desde datos reales ──
   var needs = [];
 
-  // 1. NUTRICIÓN — basado en registros de hoy en hoja Nutrición
-  // Se carga via api si está disponible, sino usa score neutro
-  var nutScore = 50; // default neutro
-  // Si _nutData está disponible (cargado por renderNutricion)
+  // 1. NUTRICIÓN
+  var nutScore = 50;
   if(window._nutHoyData){
     var cal = window._nutHoyData.cal || 0;
     var prot = window._nutHoyData.prot || 0;
-    // Score basado en calorías del día (meta ~1800)
     nutScore = cal > 0 ? Math.min(100, Math.round(cal / 1800 * 80) + (prot > 100 ? 20 : 10)) : 20;
   }
-  needs.push({ id:'nutricion', icon:'🍽️', label:'Nutrición',   score:nutScore,   desc:'Alimentación del día' });
+  needs.push({ icon:'🍽️', label:'Hambre',   score:nutScore,   desc:'Nutrición del día',       color:'#4ADE80' });
 
-  // 2. ENERGÍA — basado en Activity Check (hábito Descanso)
-  var energiaScore = 50;
+  // 2. ENERGÍA — hábito Descanso
+  var energiaScore = 55;
   if(window._actData && window._actData.habitosPersonal){
-    var checkDescanso = (window._apartadosData||[]).length > 0 ? 65 : 50; // placeholder
-    energiaScore = checkDescanso;
+    var descanso = (window._actData.habitosPersonal||[]).find(function(h){
+      return (h.nombre||'').toLowerCase().includes('descanso');
+    });
+    if(descanso) energiaScore = 70;
   }
-  needs.push({ id:'energia',   icon:'⚡',  label:'Energía',     score:energiaScore, desc:'Descanso y sueño' });
+  needs.push({ icon:'⚡', label:'Energía',   score:energiaScore, desc:'Sueño y descanso',       color:'#FBBF24' });
 
-  // 3. SOCIAL — basado en interacciones recientes (SIMS Relaciones)
+  // 3. SOCIAL — interacciones últimos 7 días
   var socialScore = 0;
   if(window._relacionesData){
     var recientes = (window._relacionesData.items||[]).filter(function(p){
       return p.ultimaVez && new Date(p.ultimaVez) >= hace7;
     });
     socialScore = Math.min(100, recientes.length * 20);
-    // Ajuste por energía de las interacciones
     var positivas = recientes.filter(function(p){ return (p.energia||0) > 0; }).length;
     socialScore = Math.min(100, socialScore + positivas * 5);
   }
-  needs.push({ id:'social',    icon:'👥',  label:'Social',      score:socialScore,  desc:'Interacciones recientes' });
+  needs.push({ icon:'👥', label:'Social',    score:socialScore,  desc:'Interacciones recientes', color:'#3B82F6' });
 
-  // 4. DISFRUTE — basado en Activity (libros, movies, no-rutinarias)
+  // 4. DISFRUTE — libros, movies, no-rutinarias
   var disfrScore = 40;
   if(window._actData){
     var mediaComp = ((window._actData.libros||[]).filter(function(l){return l.completado;}).length +
                     (window._actData.movies||[]).filter(function(m){return m.completado;}).length);
-    var noRut = (window._actData.noRutinarias||[]).filter(function(n){return n.completado;}).length;
-    disfrScore = Math.min(100, mediaComp * 15 + noRut * 20);
+    var noRutComp = (window._actData.noRutinarias||[]).filter(function(n){return n.completado;}).length;
+    disfrScore = Math.min(100, mediaComp * 12 + noRutComp * 18);
   }
-  needs.push({ id:'disfrute',  icon:'🎮',  label:'Disfrute',    score:disfrScore,   desc:'Ocio y entretenimiento' });
+  needs.push({ icon:'🎮', label:'Disfrute',  score:disfrScore,   desc:'Ocio y entretenimiento',  color:'#EC4899' });
 
-  // 5. HIGIENE — basado en Activity (hábito Aseo/Ducha)
-  var higieneScore = 70; // default: asumimos ok
-  needs.push({ id:'higiene',   icon:'🚿',  label:'Higiene',     score:higieneScore, desc:'Aseo personal' });
+  // 5. HIGIENE
+  var higieneScore = 70;
+  if(window._actData && window._actData.habitosPersonal){
+    var aseoHab = (window._actData.habitosPersonal||[]).find(function(h){
+      var n = (h.nombre||'').toLowerCase();
+      return n.includes('aseo') || n.includes('baño') || n.includes('ducha');
+    });
+    higieneScore = aseoHab ? 85 : 65;
+  }
+  needs.push({ icon:'🚿', label:'Higiene',   score:higieneScore, desc:'Aseo personal',            color:'#06B6D4' });
 
-  // 6. CUERPO — basado en Activity (Fitness+/Ecobici/PROTEÍNA) y Entrenamiento
+  // 6. CUERPO — fitness/ejercicio
   var cuerpoScore = 30;
   if(window._actData && window._actData.habitosPersonal){
     var fitHabits = (window._actData.habitosPersonal||[]).filter(function(h){
       var n = (h.nombre||'').toLowerCase();
-      return n.includes('fitness') || n.includes('ecobici') || n.includes('proteína') || n.includes('preentreno');
+      return n.includes('fitness') || n.includes('ecobici') || n.includes('proteína') || n.includes('preentreno') || n.includes('ejercicio');
     }).length;
-    cuerpoScore = Math.min(100, fitHabits * 20);
+    cuerpoScore = Math.min(100, fitHabits * 20 + 10);
   }
-  needs.push({ id:'cuerpo',    icon:'💪',  label:'Cuerpo',      score:cuerpoScore,  desc:'Ejercicio y salud física' });
+  needs.push({ icon:'💪', label:'Cuerpo',    score:cuerpoScore,  desc:'Ejercicio y salud física', color:'#F97316' });
 
-  // 7. ENTORNO — basado en salud mental/pensamientos (energía promedio)
+  // 7. ENTORNO — energía pensamientos recientes
   var entornoScore = 60;
   if(window._pensamientosData){
     var pens = (window._pensamientosData.items||[]).slice(0,5);
@@ -1029,56 +1003,69 @@ function renderSimsNeeds(){
       entornoScore = Math.round(avgE / 5 * 100);
     }
   }
-  needs.push({ id:'entorno',   icon:'🌿',  label:'Entorno',     score:entornoScore, desc:'Ambiente y orden' });
+  needs.push({ icon:'🌿', label:'Entorno',   score:entornoScore, desc:'Ambiente y orden',          color:'#8B5CF6' });
 
-  // 8. MENTAL — basado en pensamientos recientes y logros
+  // 8. MENTAL — logros completados
   var mentalScore = 40;
   if(window._logrosData){
     var logros = window._logrosData.items || [];
     var comp = logros.filter(function(l){ return l.completado==='Sí'||l.completado==='Si'; }).length;
     mentalScore = logros.length > 0 ? Math.round(comp/logros.length*100) : 40;
   }
-  needs.push({ id:'mental',    icon:'🧠',  label:'Mental',      score:mentalScore,  desc:'Claridad y propósito' });
+  needs.push({ icon:'🧠', label:'Mental',    score:mentalScore,  desc:'Claridad y propósito',     color:'#A78BFA' });
 
-  // ── Render ──
-  var html = '<div style="padding:12px 16px 0;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--m);margin-bottom:10px">Estado del Sim</div>';
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 14px">';
+  // ── Render — estilo Sims: 2 columnas, barras horizontales ──
+  var html =
+    '<div style="padding:12px 16px 14px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+        '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4)">Estado del Sim</div>' +
+        '<div style="font-size:9px;color:rgba(255,255,255,.25)">datos reales</div>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px">';
 
   needs.forEach(function(n){
     var pct = Math.max(0, Math.min(100, n.score));
-    var color = pct >= 70 ? '#4ADE80' : pct >= 40 ? '#F59E0B' : '#EF4444';
-    var bgColor = pct >= 70 ? 'rgba(74,222,128,.08)' : pct >= 40 ? 'rgba(245,158,11,.08)' : 'rgba(239,68,68,.08)';
-    var label = pct >= 70 ? 'OK' : pct >= 40 ? 'Bajo' : 'Crítico';
+    // Color dinámico verde→amarillo→rojo
+    var barColor = pct >= 70 ? n.color : pct >= 40 ? '#F59E0B' : '#EF4444';
+    var statusTxt = pct >= 70 ? 'OK' : pct >= 40 ? 'Bajo' : 'Crítico';
+    var statusColor = pct >= 70 ? '#4ADE80' : pct >= 40 ? '#F59E0B' : '#EF4444';
 
-    html += '<div style="background:'+bgColor+';border:1px solid '+color+'22;border-radius:8px;padding:8px 10px">';
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">';
-    html += '<div style="display:flex;align-items:center;gap:5px">';
-    html += '<span style="font-size:14px">'+n.icon+'</span>';
-    html += '<span style="font-size:11px;font-weight:700;color:rgba(255,255,255,.8)">'+n.label+'</span>';
-    html += '</div>';
-    html += '<span style="font-size:10px;font-weight:700;color:'+color+'">'+label+'</span>';
-    html += '</div>';
-    // Barra estilo Sims — verde→rojo
-    html += '<div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;position:relative">';
-    html += '<div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,'+color+','+color+'aa);border-radius:4px;transition:width .6s ease"></div>';
-    html += '</div>';
-    html += '<div style="font-size:9px;color:var(--m);margin-top:3px">'+n.desc+'</div>';
-    html += '</div>';
+    html +=
+      '<div style="display:flex;flex-direction:column;gap:3px">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between">' +
+          '<div style="display:flex;align-items:center;gap:5px">' +
+            '<span style="font-size:13px;line-height:1">'+n.icon+'</span>' +
+            '<span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.75)">'+n.label+'</span>' +
+          '</div>' +
+          '<span style="font-size:9px;color:'+statusColor+';font-weight:700">'+statusTxt+' '+pct+'</span>' +
+        '</div>' +
+        // Barra estilo Sims
+        '<div style="height:10px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;position:relative">' +
+          '<div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:3px;transition:width .6s ease;position:relative">' +
+            '<div style="position:absolute;right:0;top:0;bottom:0;width:3px;background:rgba(255,255,255,.35);border-radius:0 3px 3px 0"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="font-size:9px;color:rgba(255,255,255,.3);line-height:1">'+n.desc+'</div>' +
+      '</div>';
   });
 
-  html += '</div>';
+  html += '</div></div>';
   el.innerHTML = html;
-}
-
-function _cacheAndRenderNeeds(){
-  if(typeof renderSimsNeeds==='function') renderSimsNeeds();
 }
 
 function renderNecesidadesInline(data){
   if(!data) return;
   _necInlineData = data;
   _initNecInlineSelectors();
-  actualizarNecInline();
+  // Lazy-load Chart.js si no está disponible
+  if(!window.Chart){
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+    s.onload = function(){ actualizarNecInline(); };
+    document.head.appendChild(s);
+  } else {
+    actualizarNecInline();
+  }
 }
 
 function _dataNivelInline(key, arr){
@@ -1182,36 +1169,8 @@ function _dibujarPiramideInline(niveles){
   cont.innerHTML = html;
 }
 
-function _dibujarRadarInline(niveles){
-  var wrap = document.getElementById('nec-inline-radar-wrap');
-  if(!wrap) return;
-  wrap.innerHTML = '<canvas id="radar-inline-canvas" style="max-height:300px"></canvas>';
-  var canvas = document.getElementById('radar-inline-canvas');
-  if(!canvas || !window.Chart) return;
-  var labels  = NEC_NIVELES.map(function(n){ return n.label; });
-  var valores = NEC_NIVELES.map(function(n){ return Math.abs(_dataNivelInline(n.key,niveles).total||0); });
-  var colors  = NEC_NIVELES.map(function(n){ return n.color; });
-  var maxVal  = Math.max.apply(null, valores.concat([1]));
-  var norm    = valores.map(function(v){ return v/maxVal*100; });
-  if(_radarInlineChart){ try{_radarInlineChart.destroy();}catch(e){} _radarInlineChart=null; }
-  _radarInlineChart = new Chart(canvas, {
-    type: 'radar', data: { labels: labels, datasets: [{ label: 'Gasto', data: norm,
-      backgroundColor: 'rgba(139,92,246,.12)', borderColor: 'rgba(139,92,246,.6)',
-      borderWidth: 1.5, pointBackgroundColor: colors, pointBorderColor: '#111',
-      pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7, fill: true }]},
-    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 1.3,
-      plugins: { legend: {display: false} },
-      scales: { r: { min: 0, max: 100,
-        angleLines: {color: 'rgba(255,255,255,.06)'},
-        grid: {color: 'rgba(255,255,255,.06)'},
-        ticks: {display: false},
-        pointLabels: { font: {size: 11, weight: '600', family: 'system-ui'},
-          color: function(ctx){ return colors[ctx.index]||'#94A3B8'; }}}}}
-  });
-}
-
 // ══════════════════════════════════════════
-//  NECESIDADES INLINE — control de período
+//  PATRIMONIO
 // ══════════════════════════════════════════
 function renderPatrimonio(data){
   var body = document.getElementById('patrimonio-body');
@@ -1228,7 +1187,6 @@ function renderPatrimonio(data){
   var fisico    = data.fisico    || {saldo:0, pct:0, items:[]};
   var inversion = data.inversion || {saldo:0, pct:0, rendimientoTotal:0, items:[]};
   var total     = data.total     || 0;
-  var prestamo  = data.prestamo  || 0;
 
   var saludColor = f.salud==='ok'?'#4ADE80':f.salud==='warn'?'#F59E0B':'#EF4444';
   var saludLbl   = f.salud==='ok'?'Fondo completo':f.salud==='warn'?'Fondo parcial':'Sin fondo';
@@ -1246,7 +1204,6 @@ function renderPatrimonio(data){
   var totalBruto      = total;
   var html = '';
 
-  // ── CABECERA — misma estructura que Financiero ──
   html += '<div style="padding:14px 16px 12px;border-bottom:1px solid rgba(255,255,255,.06)">';
   html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">';
   html += '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--m)">Disponible</div>';
@@ -1259,20 +1216,14 @@ function renderPatrimonio(data){
   html += '<div style="flex:0 0 auto"><div style="font-size:34px;font-weight:800;letter-spacing:-.04em;color:#4ADE80;line-height:1;white-space:nowrap">'+fmt2(totalDisponible)+'</div></div>';
 
   var chipItems = [];
-  // Chip "Banco" = suma de todos los items de tipo banco
   if((banco.items||[]).length > 0){
     var totalApBanco = 0;
-    (banco.items||[]).forEach(function(it){
-      totalApBanco += apPorBanco[(it.nombre||'').toUpperCase()]||0;
-    });
+    (banco.items||[]).forEach(function(it){ totalApBanco += apPorBanco[(it.nombre||'').toUpperCase()]||0; });
     chipItems.push({ nombre:'Banco', disp:banco.saldo - totalApBanco, saldo:banco.saldo, color:'#4ADE80', apIt:totalApBanco });
   }
-  // Chip "Efectivo" = suma de todos los items de tipo efectivo
   if((fisico.items||[]).length > 0){
     var totalApFisico = 0;
-    (fisico.items||[]).forEach(function(it){
-      totalApFisico += apPorBanco[(it.nombre||'').toUpperCase()]||0;
-    });
+    (fisico.items||[]).forEach(function(it){ totalApFisico += apPorBanco[(it.nombre||'').toUpperCase()]||0; });
     chipItems.push({ nombre:'Efectivo', disp:fisico.saldo - totalApFisico, saldo:fisico.saldo, color:'#FBBF24', apIt:totalApFisico });
   }
   if(inversion.saldo > 0){
@@ -1289,7 +1240,6 @@ function renderPatrimonio(data){
   html += '</div>';
   html += '</div>';
 
-  // Barra
   if(totalBruto > 0){
     html += '<div style="margin:0 16px 10px;height:5px;border-radius:3px;overflow:hidden;display:flex;gap:1px">';
     (banco.items||[]).forEach(function(it){
@@ -1310,7 +1260,6 @@ function renderPatrimonio(data){
     html += '</div>';
   }
 
-  // Fondo emergencia
   if(f.meta > 0){
     html += '<div style="margin:0 16px 10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px">';
     html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">';
@@ -1328,7 +1277,6 @@ function renderPatrimonio(data){
 
   html += '<div style="border-top:1px solid rgba(255,255,255,.06);margin:2px 0 0"></div>';
 
-  // Saldos editables
   html += '<div style="padding:4px 0 0">';
   var _fijosGlobal = window._fijosData || [];
   if(_fijosGlobal.length){
@@ -1365,7 +1313,6 @@ function renderPatrimonio(data){
     if(hayP) html += '<div class="ente-excluido-nota">* excluido del total</div>';
   }
 
-  // Apartados
   if((window._apartadosData||[]).length){
     html += '<div style="padding:8px 16px 4px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.06);margin-top:4px">';
     html += '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--m)">Apartados</div>';
