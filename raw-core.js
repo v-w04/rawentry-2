@@ -1,4 +1,6 @@
-/* RAW Entry — Core v.5.053
+/* RAW Entry — Core v.5.054
+   Fix v5.054: renderNecesidadesInline ya no pasa datos del año completo al cargar.
+               Llama actualizarNecInline() con mes actual inmediatamente después.
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Globales compartidas entre raw-core y raw-dashboard
@@ -357,7 +359,12 @@ window.addEventListener('DOMContentLoaded',()=>{
       if(typeof renderAnualidad==='function') renderAnualidad(d.gastos);
       if(typeof renderLogros==='function') renderLogros(d.logros);
       if(typeof renderNecesidades==='function') renderNecesidades(d.necesidades);
-      if(typeof renderNecesidadesInline==='function') renderNecesidadesInline(d.necesidades);
+      // FIX v5.054: getAll() devuelve necesidades sin filtro de mes (año completo).
+      // Inicializar estructura con datos globales, luego re-consultar solo el mes actual.
+      if(typeof renderNecesidadesInline==='function'){
+        renderNecesidadesInline(d.necesidades);
+        setTimeout(function(){ if(typeof actualizarNecInline==='function') actualizarNecInline(); }, 50);
+      }
       if(typeof renderFlujoMensual==='function') renderFlujoMensual(d.flujoPorMes);
       if(d.activityCheck){ _actData=d.activityCheck; }
       if(typeof renderFinancieroAvanzado==='function' && d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
@@ -1413,11 +1420,10 @@ function _selectOpt(swId, val){
 //  ENTES (Bancos)
 // ══════════════════════════════════════════
 function renderEntes(data){
-  window._fijosData = data || []; // guardar globalmente para renderPatrimonio
+  window._fijosData = data || [];
   const body=document.getElementById('entes-list');
   if(!data||!data.length){body.innerHTML='<div style="padding:16px;color:var(--m);text-align:center">Sin datos</div>';return;}
 
-  // Calcular apartados por banco (solo activos, no usados)
   const apartadosPorBanco = {};
   let totalApartadosActivos = 0;
   (window._apartadosData||[]).forEach(ap=>{
@@ -1427,7 +1433,6 @@ function renderEntes(data){
     totalApartadosActivos += (ap.monto||0);
   });
 
-  // Total bancos excluyendo P y mostrando disponible real (saldo - apartados de ese banco)
   const total = data.reduce((s,f)=>f.nombre==='P'?s:s+(f.monto||0),0);
   const totalDisponible = total - totalApartadosActivos;
   const {txt:tt,cls:tc} = fmtMoneda(totalDisponible);
@@ -1482,7 +1487,6 @@ function guardarEnte(fila){
         const em=document.getElementById('em-'+fila);
         if(em){em.textContent=txt;em.className='ente-monto '+cls;}
         togEnteEdit(fila);
-        // Recargar fijos + apartados + patrimonio para que todo quede consistente
         Promise.all([api.getFijos(), api.getApartados(), api.getPatrimonio()])
           .then(([fijos, apData, pat])=>{
             if(apData && typeof renderApartados==='function') renderApartados(apData);
