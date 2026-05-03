@@ -647,7 +647,7 @@ function _htmlDiasHeader(dias, hoyIso, color){
 function _htmlHabitosCol(habitos, semana, dias, hoyIso, color, colId){
   if(!habitos || !habitos.length)
     return '<div style="padding:12px;font-size:11px;color:var(--m);text-align:center">Sin hábitos</div>';
-  var header = _htmlDiasHeader(dias, hoyIso, color);
+  // iniciales van dentro de cada fila
   var pendientes = [], completados = [];
   habitos.forEach(function(hab){
     var key7 = hab.nombre+'_'+semana+'_'+dias[6].date;
@@ -682,13 +682,20 @@ function _htmlHabitosCol(habitos, semana, dias, hoyIso, color, colId){
         (setimo?'<span style="font-size:9px;color:var(--ok);font-weight:600">✓ '+obj.ultimaFecha.slice(5)+'</span>':
                 '<span style="font-size:9px;color:var(--m)">'+pctNum+'%</span>') +
       '</div>' +
+      '<div style="display:flex;gap:3px;flex-wrap:nowrap;margin-bottom:2px">' +
+        dias.map(function(d){
+          var esHoy = d.date === hoyIso;
+          return '<div style="width:20px;text-align:center;font-size:8px;font-weight:'+(esHoy?'800':'400')+';'+
+            'color:'+(esHoy?color:'rgba(255,255,255,.2)')+';line-height:14px">'+ d.label+'</div>';
+        }).join('') +
+      '</div>' +
       '<div style="display:flex;gap:3px;flex-wrap:nowrap;margin-bottom:5px">'+checks+'</div>' +
       '<div style="height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden">' +
         '<div style="height:100%;width:'+pctNum+'%;background:'+color+';border-radius:1px;opacity:'+(setimo?.3:.7)+';transition:width .3s"></div>' +
       '</div>' +
     '</div>';
   }
-  var html=header;
+  var html='';
   pendientes.forEach(function(obj){ html+=renderHabRow(obj); });
   if(completados.length){
     html+='<div style="padding:5px 10px 3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(74,222,128,.5);border-top:1px solid rgba(74,222,128,.1);margin-top:4px">Completados esta semana</div>';
