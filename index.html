@@ -20,7 +20,7 @@
       <button class="hero-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
       <div class="hero-brand">
         <div class="hero-title">Life<span style="color:var(--p)">OS</span></div>
-        <div class="hero-sub">v.5.67 · Trello · Sheets</div>
+        <div class="hero-sub">v.5.68 · Trello · Sheets</div>
       </div>
     </div>
 
@@ -326,17 +326,18 @@
           <span class="sec-hdr-title">Necesidades</span>
         </div>
         <div class="sec-hdr-right" onclick="event.stopPropagation()" style="gap:4px">
-          <select id="nec-inline-anio" onchange="actualizarNecInline()" style="background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:var(--rad-pill);font-family:inherit;font-size:10px;padding:3px 8px;outline:none;cursor:pointer">
+          <select id="nec-inline-anio" onchange="actualizarNecInline(true)" style="background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:var(--rad-pill);font-family:inherit;font-size:10px;padding:3px 8px;outline:none;cursor:pointer">
             <option value="2026">2026</option>
             <option value="2025">2025</option>
           </select>
-          <select id="nec-inline-mes" onchange="actualizarNecInline()" style="background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:var(--rad-pill);font-family:inherit;font-size:10px;padding:3px 8px;outline:none;cursor:pointer">
-            <option value="">Todo el año</option>
+          <select id="nec-inline-mes" onchange="actualizarNecInline(true)" style="background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:var(--rad-pill);font-family:inherit;font-size:10px;padding:3px 8px;outline:none;cursor:pointer">
+            <option value="">Mes completo</option>
             <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
             <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
             <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
             <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
           </select>
+          <button id="nec-btn-hoy" onclick="necVolverHoy()" style="padding:3px 10px;border-radius:var(--rad-pill);font-family:inherit;font-size:10px;font-weight:700;background:rgba(139,92,246,.3);border:1px solid rgba(139,92,246,.5);color:#C4B5FD;cursor:pointer">Hoy</button>
           <i class="fas fa-chevron-down sec-chevron"></i>
         </div>
       </div>
