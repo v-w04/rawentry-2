@@ -174,7 +174,7 @@ function pintarReverso(){
             '<div style="font-size:10px;color:var(--m);margin-top:2px">'+it.proyecto+(it.grupo&&it.grupo!==it.proyecto?' · '+it.grupo:'')+(it.fechaCompletado?' · '+it.fechaCompletado:'')+'</div>' +
           '</div>' +
           '<div style="font-size:12px;font-weight:700;color:var(--ok);flex-shrink:0">'+monto+'</div>' +
-          '<button onclick="revertirLogro(''+it.fila+'')" '+
+          '<button onclick="revertirLogro('+it.fila+')" '+
             'style="padding:3px 8px;border-radius:var(--rad-pill);border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);'+
             'color:var(--err);cursor:pointer;font-size:10px;font-weight:600;font-family:inherit;flex-shrink:0">'+
             'Revertir</button>' +
