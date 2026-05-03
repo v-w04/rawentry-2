@@ -84,28 +84,22 @@ function irAActivity(){
   if(typeof api !== 'undefined' && api.resetearElectronics){
     api.resetearElectronics().catch(function(){});
   }
-  if(_actData) renderActivity();
-  else {
-    var grid = document.getElementById('act-container');
-    if(grid) grid.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px"></i></div>';
-    api.getActivityCheck().then(function(d){
-      _actData=d;
-      var semana = _getSemanaKey();
-      api.cargarActivityChecks(semana).then(function(r){
-        console.log('[AC] cargar respuesta:', JSON.stringify(r));
-        console.log('[AC] semana frontend:', semana);
-        if(r && r.ok && r.checks && r.checks.length){
-          r.checks.forEach(function(c){
-            var key = c.nombre+'_'+semana+'_'+c.fecha;
-            console.log('[AC] key restaurada:', key);
-            _actChecks[key] = true;
-          });
-        }
-        renderActivity();
-        if(typeof renderSimsNeeds==='function') renderSimsNeeds();
-      }).catch(function(e){ console.log('[AC] error:', e); renderActivity(); });
-    }).catch(function(){});
-  }
+  var grid = document.getElementById('act-container');
+  if(grid) grid.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px"></i></div>';
+  var semana = _getSemanaKey();
+  var p1 = _actData ? Promise.resolve(_actData) : api.getActivityCheck().then(function(d){ _actData=d; return d; });
+  p1.then(function(d){
+    api.cargarActivityChecks(semana).then(function(r){
+      _actChecks = {};
+      if(r && r.ok && r.checks && r.checks.length){
+        r.checks.forEach(function(c){
+          _actChecks[c.nombre+'_'+semana+'_'+c.fecha] = true;
+        });
+      }
+      renderActivity();
+      if(typeof renderSimsNeeds==='function') renderSimsNeeds();
+    }).catch(function(){ renderActivity(); });
+  }).catch(function(){ renderActivity(); });
 }
 function irAScore(){ if(_pantalla==='score'){ volverAlAnverso(); return; } _setPantalla('score'); cargarScore(); }
 
