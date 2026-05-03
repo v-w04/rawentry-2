@@ -1,5 +1,6 @@
-/* RAW Entry — Dashboard v.5.075
-   Fix: actualizarNecInline incluye días transcurridos mes actual
+/* RAW Entry — Dashboard v.5.077
+   Fix: actualizarNecInline modo HOY envía mes actual + fechaHoy como tope superior
+   Fix: botón HOY regresa correctamente a vista del 1 al día de hoy
    Fix: renderNecesidadesInline lazy-load Chart.js antes de render
    Fix: dropdowns Necesidades reaccionan correctamente
    New: Sims Needs barras estilo Sims, color verde→amarillo→rojo
@@ -30,20 +31,18 @@ function actualizarNecInline(forzarMes){
   }
 
   var hoyDate = new Date();
-  var fechaHoy = null;
   var mesFinal;
 
   if(_necModoHoy){
-    // Modo HOY: mes actual + fecha de hoy como tope superior (del 1 al hoy)
-    fechaHoy = hoyDate.getFullYear()+'-'+String(hoyDate.getMonth()+1).padStart(2,'0')+'-'+String(hoyDate.getDate()).padStart(2,'0');
+    // Modo HOY: mes actual sin fechaHoy.
+    // Backend ya tiene "if (fNec > hoy) continue" -> corta automaticamente en hoy.
     mesFinal = String(hoyDate.getMonth()+1);
   } else {
-    // Mes seleccionado explícitamente o mes actual completo
+    // Mes seleccionado explicitamente
     mesFinal = m || String(hoyDate.getMonth()+1);
-    fechaHoy = null;
   }
 
-  api.getNecesidades(a, mesFinal, fechaHoy).then(function(data){
+  api.getNecesidades(a, mesFinal, null).then(function(data){
     _necInlineData = data;
     if(data && data.ok){
       var niveles = data.niveles || [];
@@ -57,7 +56,7 @@ function necVolverHoy(){
   _necModoHoy = true;
   var mesEl = document.getElementById('nec-inline-mes');
   if(mesEl) mesEl.value = '';
-  actualizarNecInline(); // _necModoHoy=true → usará mes actual + fechaHoy como tope
+  actualizarNecInline(); // _necModoHoy=true -> mes actual, backend corta en hoy automaticamente
 }
 
 function _initNecInlineSelectors(){
