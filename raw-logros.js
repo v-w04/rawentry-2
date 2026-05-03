@@ -644,12 +644,13 @@ function _htmlHabitosCol(habitos, semana, dias, hoyIso, color, colId){
   });
   function renderHabRow(obj){
     var hab=obj.hab, setimo=obj.setimo, pct=0;
+    var habIdx = habitos.indexOf(hab);
     var checks=dias.map(function(d){
       var key=hab.nombre+'_'+semana+'_'+d.date;
       var done=!!_actChecks[key], past=d.isPast;
       if(done) pct++;
-      var nEsc=encodeURIComponent(hab.nombre);
-      return '<button data-nom="'+hab.nombre.replace(/"/g,'&quot;')+'" data-sem="'+semana+'" data-dat="'+d.date+'" onclick="_toggleHabitoKey(this)" '+
+
+      return '<button data-idx="'+habIdx+'" data-src="'+(colId||'pers')+'" data-sem="'+semana+'" data-dat="'+d.date+'" onclick="_toggleHabitoKey(this)" '+
         'style="width:20px;height:20px;border-radius:5px;border:1px solid '+(done?color+'88':'rgba(255,255,255,.1)')+';'+
         'background:'+(done?color+'33':'rgba(255,255,255,.03)')+';cursor:'+(past?'pointer':'default')+';'+
         'display:flex;align-items:center;justify-content:center;font-size:10px;'+
@@ -680,10 +681,15 @@ function _htmlHabitosCol(habitos, semana, dias, hoyIso, color, colId){
 }
 
 function _toggleHabitoKey(btn){
-  var nom = btn.getAttribute('data-nom');
+  var idx = parseInt(btn.getAttribute('data-idx'));
+  var src = btn.getAttribute('data-src');
   var sem = btn.getAttribute('data-sem');
   var dat = btn.getAttribute('data-dat');
-  _actChecks[nom+'_'+sem+'_'+dat] = !_actChecks[nom+'_'+sem+'_'+dat];
+  var lista = (src==='elec') ? (_actData&&_actData.habitosElectronics||[]) : (_actData&&_actData.habitosPersonal||[]);
+  var hab = lista[idx];
+  if(!hab) return;
+  var key = hab.nombre+'_'+sem+'_'+dat;
+  _actChecks[key] = !_actChecks[key];
   renderActivity();
 }
 
@@ -741,9 +747,16 @@ function _htmlNoRutCol(items){
 
 function guardarChecks(){
   var semana=_getSemanaKey();
+  var habPers = (_actData&&_actData.habitosPersonal||[]).map(function(h){return h.nombre;});
+  var habElec = (_actData&&_actData.habitosElectronics||[]).map(function(h){return h.nombre;});
   var checks=Object.entries(_actChecks)
     .filter(function(e){return e[1]&&e[0].includes('_'+semana+'_');})
-    .map(function(e){return {nombre:e[0].split('_'+semana+'_')[0],fecha:e[0].split('_'+semana+'_')[1]};});
+    .map(function(e){
+      var nombre = e[0].split('_'+semana+'_')[0];
+      var fecha  = e[0].split('_'+semana+'_')[1];
+      var columna = habElec.indexOf(nombre) >= 0 ? 'Trabajo' : 'Personal';
+      return {nombre:nombre, fecha:fecha, columna:columna};
+    });
   api.guardarActivityChecks(semana,checks)
     .then(function(r){showToast(r.ok?'✓ Semana guardada':'Error: '+r.mensaje,r.ok);})
     .catch(function(){showToast('Error al guardar',false);});
