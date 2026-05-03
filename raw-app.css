@@ -1065,8 +1065,8 @@ html.mob .hero-right{display:none !important}
 }
 .entrada-selector-grid{
   position:relative;
-  width:420px;
-  height:420px;
+  width:380px;
+  height:380px;
   margin:0 auto;
   flex-shrink:0;
 }
