@@ -1,4 +1,4 @@
-/* RAW Entry — Dashboard v.5.080
+/* RAW Entry — Dashboard v.5.079
    Fix: actualizarNecInline modo HOY envía mes actual + fechaHoy como tope superior
    Fix v5.079: modo HOY envia fechaHoy al backend; backend filtra del 1 al dia de hoy
    Fix: renderNecesidadesInline lazy-load Chart.js antes de render
@@ -35,8 +35,7 @@ function actualizarNecInline(forzarMes){
   var fechaHoy = null;
 
   if(_necModoHoy){
-    // Modo HASTA HOY: enviar mes actual + fechaHoy como tope superior.
-    // Backend filtra del 1 del mes hasta fechaHoy inclusive.
+    // Modo HASTA HOY: enviar fechaHoy como tope superior al backend
     mesFinal = String(hoyDate.getMonth()+1);
     fechaHoy = hoyDate.getFullYear()+'-'+String(hoyDate.getMonth()+1).padStart(2,'0')+'-'+String(hoyDate.getDate()).padStart(2,'0');
   } else {
