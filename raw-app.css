@@ -1062,9 +1062,9 @@ html.mob .hero-right{display:none !important}
 }
 .entrada-selector-grid{
   display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:6px;
-  padding:12px;
+  grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
+  gap:8px;
+  padding:14px;
 }
 .entrada-tipo-btn{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -1073,6 +1073,7 @@ html.mob .hero-right{display:none !important}
   border:1px solid rgba(255,255,255,.07);
   border-radius:12px;
   cursor:pointer;font-family:inherit;
+  min-height:90px;
   transition:all .2s;
   color:var(--t);
   min-height:90px;
