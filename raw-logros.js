@@ -159,6 +159,30 @@ function pintarReverso(){
     </div>`;
     return;
   }
+  // Renderizar tabla de completados adyacente
+  var completadosList = _logrosRaw.filter(it => it.completado);
+  var tablaComp = document.getElementById('logros-completados-tabla');
+  if(tablaComp){
+    if(!completadosList.length){
+      tablaComp.innerHTML = '<div style="padding:16px;color:var(--m);font-size:12px;text-align:center">Sin logros completados</div>';
+    } else {
+      tablaComp.innerHTML = completadosList.map(function(it){
+        var monto = it.monto ? '$ '+Math.abs(it.monto).toLocaleString('es-MX',{minimumFractionDigits:0}) : '—';
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04)">' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+it.concepto+'</div>' +
+            '<div style="font-size:10px;color:var(--m);margin-top:2px">'+it.proyecto+(it.grupo&&it.grupo!==it.proyecto?' · '+it.grupo:'')+(it.fechaCompletado?' · '+it.fechaCompletado:'')+'</div>' +
+          '</div>' +
+          '<div style="font-size:12px;font-weight:700;color:var(--ok);flex-shrink:0">'+monto+'</div>' +
+          '<button onclick="revertirLogro(''+it.fila+'')" '+
+            'style="padding:3px 8px;border-radius:var(--rad-pill);border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);'+
+            'color:var(--err);cursor:pointer;font-size:10px;font-weight:600;font-family:inherit;flex-shrink:0">'+
+            'Revertir</button>' +
+        '</div>';
+      }).join('');
+    }
+  }
+
   grid.innerHTML = items.map((it,i)=>{
     const icon   = getLogroIcon(it);
     const label  = it.concepto;
@@ -182,6 +206,20 @@ function pintarReverso(){
     </div>`;
   }).join('');
   if(_pantalla==='bitacora') dibujarNecesidades();
+}
+
+function revertirLogro(fila){
+  var item = _logrosRaw.find(function(it){ return String(it.fila) === String(fila); });
+  if(!item) return;
+  item.completado = false;
+  item.fechaCompletado = '';
+  pintarReverso();
+  api.marcarLogro(item.fila, 'No')
+    .then(function(r){
+      if(!r.ok){ item.completado=true; pintarReverso(); showToast('Error al revertir',false); }
+      else showToast('Logro revertido a pendiente');
+    })
+    .catch(function(){ item.completado=true; pintarReverso(); });
 }
 
 function toggleLogroReverso(uid){
@@ -284,7 +322,8 @@ function renderLogros(data) {
     const fecha      = (it.recurrencia && it.recurrencia !== '-' && it.recurrencia !== 'null') ? it.recurrencia : '';
     const completado = (it.completado === 'Sí' || it.completado === 'Si' || it.completado === 'sí');
     const incompleto = concepto === 'Sin Concepto';
-    return { proyecto, grupo, concepto, monto, fecha, completado, incompleto, fila: it.fila };
+    const fechaCompletado = it.fecha || '';
+    return { proyecto, grupo, concepto, monto, fecha, completado, incompleto, fila: it.fila, fechaCompletado };
   });
   _logrosRaw = normalizados;
   poblarFiltrosReverso();
