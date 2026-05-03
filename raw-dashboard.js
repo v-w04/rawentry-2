@@ -35,14 +35,15 @@ function actualizarNecInline(forzarMes){
   var fechaHoy = null;
 
   if(_necModoHoy){
+    // Modo HASTA HOY: pasar solo mes actual, sin fechaHoy.
+    // El backend detecta que es el mes actual y corta en hoy automaticamente.
     mesFinal = String(hoyDate.getMonth()+1);
-    fechaHoy = hoyDate.getFullYear()+'-'+String(hoyDate.getMonth()+1).padStart(2,'0')+'-'+String(hoyDate.getDate()).padStart(2,'0');
   } else {
+    // Mes seleccionado explicitamente → mes completo
     mesFinal = m || String(hoyDate.getMonth()+1);
-    fechaHoy = null;
   }
 
-  api.getNecesidades(a, mesFinal, fechaHoy).then(function(data){
+  api.getNecesidades(a, mesFinal, null).then(function(data){
     _necInlineData = data;
     if(data && data.ok){
       var niveles = data.niveles || [];
@@ -925,109 +926,126 @@ function renderSimsNeeds(){
   var el = document.getElementById('sims-needs-panel');
   if(!el) return;
 
-  var hoy = new Date(); hoy.setHours(0,0,0,0);
-  var hace7 = new Date(hoy); hace7.setDate(hoy.getDate()-7);
+  var hoyIso = (function(){
+    var d = new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  })();
+  var semana = (function(){
+    var d = new Date();
+    var jan1 = new Date(d.getFullYear(),0,1);
+    var w = Math.ceil(((d-jan1)/86400000 + jan1.getDay()+1)/7);
+    return d.getFullYear()+'-W'+String(w).padStart(2,'0');
+  })();
 
-  var needs = [];
-
-  // 1. NUTRICIÓN
-  var nutScore = 50;
-  if(window._nutHoyData){
-    var cal = window._nutHoyData.cal || 0;
-    var prot = window._nutHoyData.prot || 0;
-    nutScore = cal > 0 ? Math.min(100, Math.round(cal / 1800 * 80) + (prot > 100 ? 20 : 10)) : 20;
-  }
-  needs.push({ icon:'🍽️', label:'Hambre',   score:nutScore,   desc:'Nutrición del día',       color:'#4ADE80' });
-
-  // 2. ENERGÍA — hábito Descanso
-  var energiaScore = 55;
-  if(window._actData && window._actData.habitosPersonal){
-    var descanso = (window._actData.habitosPersonal||[]).find(function(h){
-      return (h.nombre||'').toLowerCase().includes('descanso');
+  // ── Calcular score por categoría Sims ──────────────────────────
+  // Toma los hábitos personales con sims definido,
+  // cuenta cuántos están marcados HOY en _actChecks vs total de esa categoría
+  function simsScore(categoria) {
+    var habsCategoria = (_actData && _actData.habitosPersonal || []).filter(function(h){
+      return h.sims === categoria;
     });
-    if(descanso) energiaScore = 70;
+    if(!habsCategoria.length) return 0;
+    var marcados = habsCategoria.filter(function(h){
+      var key = h.nombre+'_'+semana+'_'+hoyIso;
+      return !!_actChecks[key];
+    }).length;
+    return Math.round(marcados / habsCategoria.length * 100);
   }
-  needs.push({ icon:'⚡', label:'Energía',   score:energiaScore, desc:'Sueño y descanso',       color:'#FBBF24' });
 
-  // 3. SOCIAL — interacciones últimos 7 días
-  var socialScore = 0;
-  if(window._relacionesData){
-    var recientes = (window._relacionesData.items||[]).filter(function(p){
+  // ── Score Trabajo: hábitos Electronics con bw='trabajo' ────────
+  function trabajoScore() {
+    var habsWork = (_actData && _actData.habitosElectronics || []).filter(function(h){
+      return h.bw === 'trabajo';
+    });
+    if(!habsWork.length) return 0;
+    var marcados = habsWork.filter(function(h){
+      var key = h.nombre+'_'+semana+'_'+hoyIso;
+      return !!_actChecks[key];
+    }).length;
+    return Math.round(marcados / habsWork.length * 100);
+  }
+
+  // ── Score Social: relaciones últimos 7 días ─────────────────────
+  function socialScore() {
+    if(!window._relacionesData) return 0;
+    var hoy = new Date(); hoy.setHours(0,0,0,0);
+    var hace7 = new Date(hoy); hace7.setDate(hoy.getDate()-7);
+    var recientes = (_relacionesData.items||[]).filter(function(p){
       return p.ultimaVez && new Date(p.ultimaVez) >= hace7;
     });
-    socialScore = Math.min(100, recientes.length * 20);
+    if(!recientes.length) return 0;
     var positivas = recientes.filter(function(p){ return (p.energia||0) > 0; }).length;
-    socialScore = Math.min(100, socialScore + positivas * 5);
+    return Math.min(100, recientes.length * 20 + positivas * 5);
   }
-  needs.push({ icon:'👥', label:'Social',    score:socialScore,  desc:'Interacciones recientes', color:'#3B82F6' });
 
-  // 4. DISFRUTE — libros, movies, no-rutinarias
-  var disfrScore = 40;
-  if(window._actData){
-    var mediaComp = ((window._actData.libros||[]).filter(function(l){return l.completado;}).length +
-                    (window._actData.movies||[]).filter(function(m){return m.completado;}).length);
-    var noRutComp = (window._actData.noRutinarias||[]).filter(function(n){return n.completado;}).length;
-    disfrScore = Math.min(100, mediaComp * 12 + noRutComp * 18);
-  }
-  needs.push({ icon:'🎮', label:'Disfrute',  score:disfrScore,   desc:'Ocio y entretenimiento',  color:'#EC4899' });
-
-  // 5. HIGIENE
-  var higieneScore = 70;
-  if(window._actData && window._actData.habitosPersonal){
-    var aseoHab = (window._actData.habitosPersonal||[]).find(function(h){
-      var n = (h.nombre||'').toLowerCase();
-      return n.includes('aseo') || n.includes('baño') || n.includes('ducha');
+  // ── Score Disfrute: libros+movies completados + noRutinarias ────
+  function disfruteScore() {
+    // Primero intentar con _actChecks (disfrute marcado hoy)
+    var habsDis = (_actData && _actData.habitosPersonal || []).filter(function(h){
+      return h.sims === 'disfrute';
     });
-    higieneScore = aseoHab ? 85 : 65;
+    if(habsDis.length) return simsScore('disfrute');
+    // Fallback: items completados
+    var mediaComp = ((_actData&&_actData.libros||[]).filter(function(l){return l.completado;}).length +
+                     (_actData&&_actData.movies||[]).filter(function(m){return m.completado;}).length);
+    var noRutComp = (_actData&&_actData.noRutinarias||[]).filter(function(n){return n.completado;}).length;
+    var total = ((_actData&&_actData.libros||[]).length + (_actData&&_actData.movies||[]).length +
+                 (_actData&&_actData.noRutinarias||[]).length);
+    return total > 0 ? Math.round((mediaComp + noRutComp) / total * 100) : 0;
   }
-  needs.push({ icon:'🚿', label:'Higiene',   score:higieneScore, desc:'Aseo personal',            color:'#06B6D4' });
 
-  // 6. CUERPO — fitness/ejercicio
-  var cuerpoScore = 30;
-  if(window._actData && window._actData.habitosPersonal){
-    var fitHabits = (window._actData.habitosPersonal||[]).filter(function(h){
-      var n = (h.nombre||'').toLowerCase();
-      return n.includes('fitness') || n.includes('ecobici') || n.includes('proteína') || n.includes('preentreno') || n.includes('ejercicio');
-    }).length;
-    cuerpoScore = Math.min(100, fitHabits * 20 + 10);
-  }
-  needs.push({ icon:'💪', label:'Cuerpo',    score:cuerpoScore,  desc:'Ejercicio y salud física', color:'#F97316' });
-
-  // 7. ENTORNO — energía pensamientos recientes
-  var entornoScore = 60;
-  if(window._pensamientosData){
-    var pens = (window._pensamientosData.items||[]).slice(0,5);
-    if(pens.length > 0){
-      var avgE = pens.reduce(function(s,p){ return s + (p.energia||3); },0) / pens.length;
-      entornoScore = Math.round(avgE / 5 * 100);
+  // ── Score Mental: logros completados ────────────────────────────
+  function mentalScore() {
+    // Primero intentar sims='mental' en _actChecks
+    var score = simsScore('mental');
+    if(score > 0) return score;
+    // Fallback: logros
+    if(window._logrosData){
+      var items = window._logrosData.items || [];
+      var comp = items.filter(function(l){ return l.completado==='Sí'||l.completado==='Si'; }).length;
+      return items.length > 0 ? Math.round(comp/items.length*100) : 0;
     }
+    return 0;
   }
-  needs.push({ icon:'🌿', label:'Entorno',   score:entornoScore, desc:'Ambiente y orden',          color:'#8B5CF6' });
 
-  // 8. MENTAL — logros completados
-  var mentalScore = 40;
-  if(window._logrosData){
-    var logros = window._logrosData.items || [];
-    var comp = logros.filter(function(l){ return l.completado==='Sí'||l.completado==='Si'; }).length;
-    mentalScore = logros.length > 0 ? Math.round(comp/logros.length*100) : 40;
+  // ── Score Entorno: pensamientos recientes ───────────────────────
+  function entornoScore() {
+    var score = simsScore('entorno');
+    if(score > 0) return score;
+    if(window._pensamientosData){
+      var pens = (_pensamientosData.items||[]).slice(0,5);
+      if(!pens.length) return 0;
+      var avgE = pens.reduce(function(s,p){ return s+(p.energia||3); },0) / pens.length;
+      return Math.round(avgE/5*100);
+    }
+    return 0;
   }
-  needs.push({ icon:'🧠', label:'Mental',    score:mentalScore,  desc:'Claridad y propósito',     color:'#A78BFA' });
 
-  // ── Render — estilo Sims: 2 columnas, barras horizontales ──
+  var needs = [
+    { icon:'🍽️', label:'Hambre',   score:simsScore('hambre'),   desc:'Alimentación · fasting',    color:'#4ADE80' },
+    { icon:'⚡',  label:'Energía',  score:simsScore('energia'),  desc:'Descanso · recuperación',   color:'#FBBF24' },
+    { icon:'💪',  label:'Cuerpo',   score:simsScore('cuerpo'),   desc:'Ejercicio · suplementos',   color:'#F97316' },
+    { icon:'🚿',  label:'Higiene',  score:simsScore('higiene'),  desc:'Aseo personal',             color:'#06B6D4' },
+    { icon:'🧠',  label:'Mental',   score:mentalScore(),         desc:'Hábitos mentales · logros', color:'#A78BFA' },
+    { icon:'🎮',  label:'Disfrute', score:disfruteScore(),       desc:'Ocio · lectura · media',    color:'#EC4899' },
+    { icon:'🌿',  label:'Entorno',  score:entornoScore(),        desc:'Ambiente · pensamientos',   color:'#8B5CF6' },
+    { icon:'👥',  label:'Social',   score:socialScore(),         desc:'Interacciones recientes',   color:'#3B82F6' },
+    { icon:'💼',  label:'Trabajo',  score:trabajoScore(),        desc:'Checks diarios Electronics',color:'#22D3EE' },
+  ];
+
   var html =
     '<div style="padding:12px 16px 14px">' +
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
         '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4)">Estado del Sim</div>' +
-        '<div style="font-size:9px;color:rgba(255,255,255,.25)">datos reales</div>' +
+        '<div style="font-size:9px;color:rgba(255,255,255,.25)">checks de hoy</div>' +
       '</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px">';
 
   needs.forEach(function(n){
     var pct = Math.max(0, Math.min(100, n.score));
-    // Color dinámico verde→amarillo→rojo
-    var barColor = pct >= 70 ? n.color : pct >= 40 ? '#F59E0B' : '#EF4444';
-    var statusTxt = pct >= 70 ? 'OK' : pct >= 40 ? 'Bajo' : 'Crítico';
-    var statusColor = pct >= 70 ? '#4ADE80' : pct >= 40 ? '#F59E0B' : '#EF4444';
+    var barColor = pct >= 70 ? n.color : pct >= 40 ? '#F59E0B' : pct > 0 ? '#EF4444' : 'rgba(255,255,255,.1)';
+    var statusTxt   = pct >= 70 ? 'OK' : pct >= 40 ? 'Bajo' : pct > 0 ? 'Crítico' : '—';
+    var statusColor = pct >= 70 ? '#4ADE80' : pct >= 40 ? '#F59E0B' : pct > 0 ? '#EF4444' : 'rgba(255,255,255,.2)';
 
     html +=
       '<div style="display:flex;flex-direction:column;gap:3px">' +
@@ -1036,12 +1054,11 @@ function renderSimsNeeds(){
             '<span style="font-size:13px;line-height:1">'+n.icon+'</span>' +
             '<span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.75)">'+n.label+'</span>' +
           '</div>' +
-          '<span style="font-size:9px;color:'+statusColor+';font-weight:700">'+statusTxt+' '+pct+'</span>' +
+          '<span style="font-size:9px;color:'+statusColor+';font-weight:700">'+statusTxt+(pct>0?' '+pct:'')+'</span>' +
         '</div>' +
-        // Barra estilo Sims
         '<div style="height:10px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;position:relative">' +
           '<div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:3px;transition:width .6s ease;position:relative">' +
-            '<div style="position:absolute;right:0;top:0;bottom:0;width:3px;background:rgba(255,255,255,.35);border-radius:0 3px 3px 0"></div>' +
+            (pct>0 ? '<div style="position:absolute;right:0;top:0;bottom:0;width:3px;background:rgba(255,255,255,.35);border-radius:0 3px 3px 0"></div>' : '') +
           '</div>' +
         '</div>' +
         '<div style="font-size:9px;color:rgba(255,255,255,.3);line-height:1">'+n.desc+'</div>' +
