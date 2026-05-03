@@ -394,14 +394,9 @@ function _posicionarRadial(){
   var btns = Array.from(grid.querySelectorAll('.entrada-tipo-btn'));
   if(!btns.length) return;
 
-  var SIZE = 420;
-  var cx = SIZE/2, cy = SIZE/2;
-  var r  = 150;
-  var btnR = 34; // radio de cada círculo
-
-  grid.style.width  = SIZE+'px';
-  grid.style.height = SIZE+'px';
-  grid.style.position = 'relative';
+  var SIZE = 420, cx = 210, cy = 210;
+  var R_OUT = 190, R_IN = 72, R_MID = (R_OUT+R_IN)/2;
+  var GAP  = 2.5; // grados de separación entre sectores
 
   // Separar RAW (centro) del resto
   var idxCentral = btns.findIndex(function(b){
@@ -409,47 +404,38 @@ function _posicionarRadial(){
   });
   var central = idxCentral >= 0 ? btns.splice(idxCentral,1)[0] : null;
 
-  // Tooltip global
-  var tip = document.getElementById('radial-tip');
-  if(!tip){
-    tip = document.createElement('div');
-    tip.id = 'radial-tip';
-    tip.style.cssText = 'position:fixed;background:#1a1a1a;border:1px solid rgba(255,255,255,.15);color:#fff;'+
-      'font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;pointer-events:none;'+
-      'z-index:9999;opacity:0;transition:opacity .15s;letter-spacing:-.01em;white-space:nowrap;font-family:inherit';
-    document.body.appendChild(tip);
-  }
-
-  function showTip(e, text){
-    tip.textContent = text;
-    tip.style.opacity = '1';
-    moveTip(e);
-  }
-  function moveTip(e){
-    tip.style.left = (e.clientX + 12)+'px';
-    tip.style.top  = (e.clientY - 28)+'px';
-  }
-  function hideTip(){ tip.style.opacity = '0'; }
-
-  // Posicionar botón central
+  // Estilo del botón central
   if(central){
     central.style.cssText = 'position:absolute;left:'+(cx-44)+'px;top:'+(cy-44)+'px;'+
       'width:88px;height:88px;border-radius:50%;display:flex;flex-direction:column;'+
-      'align-items:center;justify-content:center;gap:4px;cursor:pointer;'+
-      'background:rgba(99,102,241,.2);border:1.5px solid rgba(99,102,241,.5);'+
-      'transition:transform .2s,background .2s;z-index:2;font-family:inherit;'+
-      'box-shadow:0 0 0 6px rgba(99,102,241,.06),0 0 0 12px rgba(99,102,241,.03)';
+      'align-items:center;justify-content:center;gap:4px;cursor:pointer;z-index:3;'+
+      'background:rgba(99,102,241,.18);border:1.5px solid rgba(99,102,241,.45);font-family:inherit;'+
+      'transition:transform .2s,background .2s';
     var ico = central.querySelector('.entrada-tipo-ico');
     if(ico){ ico.style.fontSize='22px'; ico.style.color='#A5B4FC'; }
     var lbl = central.querySelector('.entrada-tipo-lbl');
     if(lbl){ lbl.style.cssText='font-size:10px;font-weight:700;color:#A5B4FC'; }
     var sub = central.querySelector('.entrada-tipo-sub');
     if(sub) sub.style.display='none';
-    central.addEventListener('mouseover',function(){ central.style.transform='scale(1.1)'; });
+    central.addEventListener('mouseover',function(){ central.style.transform='scale(1.08)'; });
     central.addEventListener('mouseout', function(){ central.style.transform='scale(1)'; });
   }
 
-  // SVG de fondo
+  // Tooltip
+  var tip = document.getElementById('radial-tip');
+  if(!tip){
+    tip = document.createElement('div');
+    tip.id = 'radial-tip';
+    tip.style.cssText = 'position:fixed;background:#1a1a1a;border:1px solid rgba(255,255,255,.15);'+
+      'color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;'+
+      'pointer-events:none;z-index:9999;opacity:0;transition:opacity .12s;white-space:nowrap;font-family:inherit';
+    document.body.appendChild(tip);
+  }
+  function showTip(e,t){ tip.textContent=t; tip.style.opacity='1'; moveTip(e); }
+  function moveTip(e){ tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY-28)+'px'; }
+  function hideTip(){ tip.style.opacity='0'; }
+
+  // SVG con sectores
   var svg = grid.querySelector('.radial-svg');
   if(!svg){
     svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
@@ -458,69 +444,87 @@ function _posicionarRadial(){
     svg.setAttribute('viewBox','0 0 '+SIZE+' '+SIZE);
     grid.insertBefore(svg, grid.firstChild);
   }
-  svg.innerHTML = '';
+  svg.innerHTML='';
 
-  // Arcos decorativos
-  function arc(rr, dash, op){
-    var c = document.createElementNS('http://www.w3.org/2000/svg','circle');
-    c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',rr);
-    c.setAttribute('fill','none'); c.setAttribute('stroke','rgba(255,255,255,'+op+')');
-    c.setAttribute('stroke-width','0.5');
-    if(dash) c.setAttribute('stroke-dasharray',dash);
-    svg.appendChild(c);
-  }
-  arc(r,'4 8','0.06');
-  arc(r-30,'','0.03');
-  arc(r+30,'2 10','0.03');
-
-  // Posicionar botones en círculo
   var n = btns.length;
   btns.forEach(function(btn, i){
-    var angle = (i/n)*2*Math.PI - Math.PI/2;
-    var bx = cx + r*Math.cos(angle);
-    var by = cy + r*Math.sin(angle);
+    var angleStart = (i/n)*360 - 90 + GAP/2;
+    var angleEnd   = ((i+1)/n)*360 - 90 - GAP/2;
+    var angleMid   = (angleStart+angleEnd)/2;
+    var a1=angleStart*Math.PI/180, a2=angleEnd*Math.PI/180;
 
-    // Línea del centro al botón
-    var line = document.createElementNS('http://www.w3.org/2000/svg','line');
-    line.setAttribute('x1',cx); line.setAttribute('y1',cy);
-    line.setAttribute('x2',bx); line.setAttribute('y2',by);
-    line.setAttribute('stroke','rgba(255,255,255,0.05)');
-    line.setAttribute('stroke-width','0.5');
-    svg.appendChild(line);
+    // Path del sector
+    var x1=cx+R_OUT*Math.cos(a1), y1=cy+R_OUT*Math.sin(a1);
+    var x2=cx+R_OUT*Math.cos(a2), y2=cy+R_OUT*Math.sin(a2);
+    var x3=cx+R_IN*Math.cos(a2),  y3=cy+R_IN*Math.sin(a2);
+    var x4=cx+R_IN*Math.cos(a1),  y4=cy+R_IN*Math.sin(a1);
+    var large=(angleEnd-angleStart)>180?1:0;
+    var d='M '+x1.toFixed(1)+' '+y1.toFixed(1)+
+          ' A '+R_OUT+' '+R_OUT+' 0 '+large+' 1 '+x2.toFixed(1)+' '+y2.toFixed(1)+
+          ' L '+x3.toFixed(1)+' '+y3.toFixed(1)+
+          ' A '+R_IN+' '+R_IN+' 0 '+large+' 0 '+x4.toFixed(1)+' '+y4.toFixed(1)+' Z';
 
-    // Estilos del botón → círculo limpio
-    btn.style.cssText = 'position:absolute;'+
-      'left:'+(bx-btnR)+'px;top:'+(by-btnR)+'px;'+
-      'width:'+(btnR*2)+'px;height:'+(btnR*2)+'px;'+
-      'border-radius:50%;display:flex;flex-direction:column;'+
-      'align-items:center;justify-content:center;gap:0;cursor:pointer;'+
-      'transition:transform .2s,box-shadow .2s;font-family:inherit;'+
-      'background:var(--tipo-bg,rgba(255,255,255,.06));'+
-      'border:1px solid rgba(255,255,255,.1);z-index:1';
+    // Color del botón
+    var tipoBg = btn.style.getPropertyValue('--tipo-bg') ||
+                 (btn.getAttribute('style')||'').match(/--tipo-bg:([^;]+)/)?.[1] || 'rgba(255,255,255,.06)';
+    var tipoColor = (btn.getAttribute('style')||'').match(/--tipo-color:([^;]+)/)?.[1] || 'rgba(255,255,255,.5)';
 
-    // Solo ícono, sin texto
-    var ico = btn.querySelector('.entrada-tipo-ico');
-    if(ico){ ico.style.cssText='font-size:20px;line-height:1;color:var(--tipo-color,rgba(255,255,255,.6))'; }
+    var path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'rgba(255,255,255,0.04)');
+    path.setAttribute('stroke', 'rgba(255,255,255,0.08)');
+    path.setAttribute('stroke-width','1');
+    path.style.cursor='pointer';
+    path.style.transition='fill .18s';
+
+    // Hover en el path SVG
     var lbl = btn.querySelector('.entrada-tipo-lbl');
-    var sub = btn.querySelector('.entrada-tipo-sub');
-    var tipText = lbl ? lbl.textContent : '';
-    if(lbl) lbl.style.display='none';
-    if(sub) sub.style.display='none';
-
-    // Hover
-    btn.addEventListener('mouseover',function(e){
-      btn.style.transform='scale(1.18)';
-      btn.style.boxShadow='0 0 0 4px rgba(255,255,255,.06)';
+    var tipText = lbl ? lbl.textContent.trim() : '';
+    path.addEventListener('mouseover',function(e){
+      path.setAttribute('fill','rgba(255,255,255,0.09)');
       showTip(e, tipText);
     });
-    btn.addEventListener('mousemove', moveTip);
-    btn.addEventListener('mouseout',function(){
-      btn.style.transform='scale(1)';
-      btn.style.boxShadow='none';
+    path.addEventListener('mousemove',moveTip);
+    path.addEventListener('mouseout',function(){
+      path.setAttribute('fill','rgba(255,255,255,0.04)');
       hideTip();
     });
+    path.addEventListener('click',function(){
+      btn.click();
+    });
+    svg.appendChild(path);
+
+    // Posición del ícono sobre el sector
+    var am = angleMid*Math.PI/180;
+    var ix = cx + R_MID*Math.cos(am);
+    var iy = cy + R_MID*Math.sin(am);
+
+    // Ocultar botón original pero mantenerlo funcional como trigger
+    btn.style.cssText = 'position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;';
+
+    // Ícono en SVG
+    var ico = btn.querySelector('.entrada-tipo-ico');
+    var icoChar = ico ? ico.getAttribute('data-icon') || '' : '';
+    // Usar foreignObject para renderizar el font-awesome icon
+    var fo = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
+    fo.setAttribute('x', (ix-16).toFixed(0));
+    fo.setAttribute('y', (iy-22).toFixed(0));
+    fo.setAttribute('width','32');
+    fo.setAttribute('height','44');
+    fo.style.pointerEvents='none';
+    // Clonar el ícono y label del botón
+    var div = document.createElement('div');
+    div.style.cssText='display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none';
+    if(ico){
+      var ic2 = ico.cloneNode(true);
+      ic2.style.cssText='font-size:16px;line-height:1;color:'+tipoColor+';display:block;text-align:center';
+      div.appendChild(ic2);
+    }
+    fo.appendChild(div);
+    svg.appendChild(fo);
   });
 }
+
 
 function abrirEntrada(){
   const paso1 = document.getElementById('entrada-paso1');
