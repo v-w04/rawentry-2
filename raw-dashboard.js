@@ -26,7 +26,7 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.069
+/* RAW Entry — Dashboard v.5.070
    Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
 */
 
@@ -93,11 +93,14 @@ function renderAnualidad(data){
       return `<tr><td>${g.concepto}</td>${celdas}</tr>`;
     }).join('');
     body.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
-    // Auto-scroll al mes actual
+    // Auto-scroll: columna mes actual alineada al inicio del área scrollable
     requestAnimationFrame(function(){
       var wrap = body.querySelector('.tbl-wrap');
       var mesActualEl = body.querySelector('th.mes-actual');
-      if(wrap && mesActualEl) wrap.scrollLeft = mesActualEl.offsetLeft - 60;
+      var primeraTh = body.querySelector('th');
+      if(wrap && mesActualEl && primeraTh){
+        wrap.scrollLeft = mesActualEl.offsetLeft - primeraTh.offsetWidth;
+      }
     });
   }
   initGraficaFijos(data);
@@ -156,11 +159,14 @@ function renderGastos(){
       return `<tr><td>${ente}</td>${celdas}</tr>`;
     }).join('');
     body.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
-    // Auto-scroll al mes actual
+    // Auto-scroll: columna mes actual alineada al inicio del área scrollable
     requestAnimationFrame(function(){
       var wrap = body.querySelector('.tbl-wrap');
       var mesActualEl = body.querySelector('th.mes-actual');
-      if(wrap && mesActualEl) wrap.scrollLeft = mesActualEl.offsetLeft - 60;
+      var primeraTh = body.querySelector('th');
+      if(wrap && mesActualEl && primeraTh){
+        wrap.scrollLeft = mesActualEl.offsetLeft - primeraTh.offsetWidth;
+      }
     });
   }
 }
