@@ -730,6 +730,7 @@ function _autoGuardarChecks(){
       var columna = habElec.indexOf(nombre) >= 0 ? 'Trabajo' : 'Personal';
       return { nombre:nombre, fecha:fecha, columna:columna };
     });
+  console.log('[GUARDAR] count='+checks.length, new Error().stack.split('\n')[2]);
   api.guardarActivityChecks(semana, checks).catch(function(){});
 }
 
@@ -746,13 +747,13 @@ function _limpiarSetimoCol(colId){
     if(_actChecks[key7]) dias.forEach(function(d){ delete _actChecks[hab.nombre+'_'+semana+'_'+d.date]; });
   });
   renderActivity();
-  _autoGuardarChecks();
   showToast('Séptimo día limpiado en '+(colId==='pers'?'Personal':'Trabajo'));
 }
 
 function _limpiarTodosSetimo(){
   _limpiarSetimoCol('pers');
   _limpiarSetimoCol('elec');
+  _autoGuardarChecks();
   showToast('Séptimo día limpiado en todas las columnas');
 }
 
