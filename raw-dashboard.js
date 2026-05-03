@@ -1,6 +1,6 @@
-/* RAW Entry — Dashboard v.5.078
+/* RAW Entry — Dashboard v.5.079
    Fix: actualizarNecInline modo HOY envía mes actual + fechaHoy como tope superior
-   Fix v5.078: actualizarNecInline solo sale de modo HOY si hay mes real (no Mes completo)
+   Fix v5.079: modo HOY envia fechaHoy al backend; backend filtra del 1 al dia de hoy
    Fix: renderNecesidadesInline lazy-load Chart.js antes de render
    Fix: dropdowns Necesidades reaccionan correctamente
    New: Sims Needs barras estilo Sims, color verde→amarillo→rojo
@@ -32,17 +32,20 @@ function actualizarNecInline(forzarMes){
 
   var hoyDate = new Date();
   var mesFinal;
+  var fechaHoy = null;
 
   if(_necModoHoy){
-    // Modo HOY: mes actual sin fechaHoy.
-    // Backend ya tiene "if (fNec > hoy) continue" -> corta automaticamente en hoy.
+    // Modo HASTA HOY: mes actual + fechaHoy como tope superior.
+    // Backend filtra del 1 del mes hasta fechaHoy inclusive.
     mesFinal = String(hoyDate.getMonth()+1);
+    fechaHoy = hoyDate.getFullYear()+'-'+String(hoyDate.getMonth()+1).padStart(2,'0')+'-'+String(hoyDate.getDate()).padStart(2,'0');
   } else {
-    // Mes seleccionado explicitamente
+    // Mes seleccionado explicitamente → mes completo
     mesFinal = m || String(hoyDate.getMonth()+1);
+    fechaHoy = null;
   }
 
-  api.getNecesidades(a, mesFinal, null).then(function(data){
+  api.getNecesidades(a, mesFinal, fechaHoy).then(function(data){
     _necInlineData = data;
     if(data && data.ok){
       var niveles = data.niveles || [];
