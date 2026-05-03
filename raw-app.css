@@ -901,10 +901,13 @@ html.mob .hero-right{display:none !important}
   border:1px solid rgba(255,255,255,.1);
   border-radius:var(--rad-lg);
   width:100%;
-  max-width:500px;
-  max-height:90vh;
+  max-width:460px;
+  max-height:92vh;
   overflow-y:auto;
   box-shadow:0 20px 60px rgba(0,0,0,.8);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 
@@ -1055,26 +1058,25 @@ html.mob .hero-right{display:none !important}
 /* ══ NUEVA ENTRADA — SELECTOR DE TIPO (PASO 1) ══ */
 .entrada-selector-hdr{
   display:flex;align-items:center;justify-content:space-between;
-  padding:14px 16px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  font-size:13px;font-weight:600;color:rgba(255,255,255,.8);
-  letter-spacing:-.02em;
+  padding:12px 16px 8px;
+  border-bottom:none;
+  font-size:12px;font-weight:600;color:rgba(255,255,255,.4);
+  letter-spacing:.04em;text-transform:uppercase;
 }
 .entrada-selector-grid{
   position:relative;
   width:420px;
   height:420px;
   margin:0 auto;
+  flex-shrink:0;
 }
 .entrada-tipo-btn{
-  position:absolute;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:6px;padding:10px 6px;
   background:var(--tipo-bg, rgba(255,255,255,.04));
   border:1px solid rgba(255,255,255,.07);
-  border-radius:14px;
+  border-radius:50%;
   cursor:pointer;font-family:inherit;
-  width:88px;height:88px;
   transition:all .2s;
   color:var(--t);
   min-height:90px;
