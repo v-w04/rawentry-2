@@ -88,7 +88,25 @@ function irAActivity(){
   else {
     var grid = document.getElementById('act-container');
     if(grid) grid.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px"></i></div>';
-    api.getActivityCheck().then(function(d){ _actData=d; renderActivity(); }).catch(function(){});
+    api.getActivityCheck().then(function(d){
+      _actData=d;
+      var semana = _getSemanaKey();
+      if(typeof api.cargarActivityChecks === 'function'){
+        api.cargarActivityChecks(semana).then(function(r){
+          if(r.ok && r.checks && r.checks.length){
+            var habPers = (d.habitosPersonal||[]).map(function(h){return h.nombre;});
+            var habElec = (d.habitosElectronics||[]).map(function(h){return h.nombre;});
+            r.checks.forEach(function(c){
+              var key = c.nombre+'_'+semana+'_'+c.fecha;
+              _actChecks[key] = true;
+            });
+          }
+          renderActivity();
+        }).catch(function(){ renderActivity(); });
+      } else {
+        renderActivity();
+      }
+    }).catch(function(){});
   }
 }
 function irAScore(){ if(_pantalla==='score'){ volverAlAnverso(); return; } _setPantalla('score'); cargarScore(); }
@@ -691,6 +709,22 @@ function _toggleHabitoKey(btn){
   var key = hab.nombre+'_'+sem+'_'+dat;
   _actChecks[key] = !_actChecks[key];
   renderActivity();
+  _autoGuardarChecks();
+}
+
+function _autoGuardarChecks(){
+  var semana = _getSemanaKey();
+  var habPers = (_actData&&_actData.habitosPersonal||[]).map(function(h){return h.nombre;});
+  var habElec = (_actData&&_actData.habitosElectronics||[]).map(function(h){return h.nombre;});
+  var checks = Object.entries(_actChecks)
+    .filter(function(e){ return e[1] && e[0].includes('_'+semana+'_'); })
+    .map(function(e){
+      var nombre  = e[0].split('_'+semana+'_')[0];
+      var fecha   = e[0].split('_'+semana+'_')[1];
+      var columna = habElec.indexOf(nombre) >= 0 ? 'Trabajo' : 'Personal';
+      return { nombre:nombre, fecha:fecha, columna:columna };
+    });
+  api.guardarActivityChecks(semana, checks).catch(function(){});
 }
 
 function _toggleHabitoInline(nombre, semana, fecha){
