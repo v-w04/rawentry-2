@@ -68,6 +68,7 @@ const api = {
   getGastos:         () => EN_GAS ? gasRun('getGastos') : apiGet('getGastos'),
   getLogros:         () => EN_GAS ? gasRun('getLogros') : apiGet('getLogros'),
   getActivityCheck:  () => EN_GAS ? gasRun('getActivityCheck') : apiGet('getActivityCheck'),
+  cargarActivityChecks:    (semana) => EN_GAS ? gasRun('cargarActivityChecks', semana) : apiGet('cargarActivityChecks', {semana}),
   guardarActivityChecks: (semana,checks) => EN_GAS ? gasRun('guardarActivityChecks',semana,checks) : apiPost('guardarActivityChecks',{semana,checks}),
   guardarEnBancos:      (nombre, monto, fecha) => EN_GAS ? gasRun('guardarEnBancos', nombre, monto, fecha) : apiPost('guardarEnBancos', { nombre, monto, fecha }),
   getFilaPorId:         (id) => EN_GAS ? gasRun('getFilaPorId', id) : apiGet('getFilaPorId', { id }),
