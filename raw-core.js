@@ -1,4 +1,4 @@
-/* RAW Entry — Core v.5.052
+/* RAW Entry — Core v.5.053
    API · Estado · Utils · Init · Formulario · Entes · Panel · Refresh
 */
 // Globales compartidas entre raw-core y raw-dashboard
@@ -82,7 +82,7 @@ const api = {
   actualizarApartado:   (fila, estado) => EN_GAS ? gasRun('actualizarApartado', fila, estado) : apiPost('actualizarApartado', { fila, estado }),
   getFinancieroAvanzado:() => EN_GAS ? gasRun('getFinancieroAvanzado') : apiGet('getFinancieroAvanzado'),
   getRevision:          (tipo, anio, mes, semana) => EN_GAS ? gasRun('getRevision', tipo, anio, mes, semana) : apiGet('getRevision', { tipo, anio, mes, semana }),
-  getNecesidades:       (anio, mes) => EN_GAS ? gasRun('getNecesidades', anio, mes) : apiGet('getNecesidades', {anio, mes}),
+  getNecesidades:       (anio, mes, fecha) => EN_GAS ? gasRun('getNecesidades', anio, mes, fecha) : apiGet('getNecesidades', {anio, mes, fecha}),
   getFlujoPorMes:       () => EN_GAS ? gasRun('getFlujoPorMes') : apiGet('getFlujoPorMes'),
   getScoreVida:         () => EN_GAS ? gasRun('getScoreVida') : apiGet('getScoreVida'),
   enviarSOS:            (d) => EN_GAS ? gasRun('enviarSOS', d) : apiPost('enviarSOS', { datos: d }),
