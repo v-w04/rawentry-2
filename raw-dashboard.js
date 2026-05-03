@@ -26,7 +26,7 @@ function _initNecInlineSelectors(){
   mesEl.value  = hoy.getMonth() + 1;
 }
 
-/* RAW Entry — Dashboard v.5.067
+/* RAW Entry — Dashboard v.5.069
    Patrimonio fusionado con Bancos · renderPatrimonio rediseñado
 */
 
@@ -93,6 +93,12 @@ function renderAnualidad(data){
       return `<tr><td>${g.concepto}</td>${celdas}</tr>`;
     }).join('');
     body.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+    // Auto-scroll al mes actual
+    requestAnimationFrame(function(){
+      var wrap = body.querySelector('.tbl-wrap');
+      var mesActualEl = body.querySelector('th.mes-actual');
+      if(wrap && mesActualEl) wrap.scrollLeft = mesActualEl.offsetLeft - 60;
+    });
   }
   initGraficaFijos(data);
 }
@@ -150,6 +156,12 @@ function renderGastos(){
       return `<tr><td>${ente}</td>${celdas}</tr>`;
     }).join('');
     body.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+    // Auto-scroll al mes actual
+    requestAnimationFrame(function(){
+      var wrap = body.querySelector('.tbl-wrap');
+      var mesActualEl = body.querySelector('th.mes-actual');
+      if(wrap && mesActualEl) wrap.scrollLeft = mesActualEl.offsetLeft - 60;
+    });
   }
 }
 
@@ -221,12 +233,12 @@ function refreshTodo(){
   Promise.all([api.getAll(),consultarSaldo()])
   .then(([d])=>{
     if(d&&d.catalogos)   onCats(d.catalogos);
-    if(d&&d.apartados)   renderApartados(d.apartados);   // primero apartados para que _apartadosData esté listo
-    if(d&&d.fijos)       renderEntes(d.fijos);            // luego bancos, ya con apartados disponibles
+    if(d&&d.apartados)   renderApartados(d.apartados);
+    if(d&&d.fijos)       renderEntes(d.fijos);
     if(d&&d.datosMes)    onDatosMes(d.datosMes);
     if(d&&d.gastos)      renderAnualidad(d.gastos);
     if(d&&d.logros)      renderLogros(d.logros);
-    if(d&&d.necesidades) renderNecesidades(d.necesidades);
+    if(d&&d.necesidades){ renderNecesidades(d.necesidades); if(typeof renderNecesidadesInline==='function') renderNecesidadesInline(d.necesidades); }
     if(d&&d.flujoPorMes) renderFlujoMensual(d.flujoPorMes);
     if(d&&d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
     api.getPensamientos().then(renderPensamientos).catch(()=>{});
@@ -1083,14 +1095,22 @@ function renderPatrimonio(data){
   html += '<div style="flex:0 0 auto"><div style="font-size:34px;font-weight:800;letter-spacing:-.04em;color:#4ADE80;line-height:1;white-space:nowrap">'+fmt2(totalDisponible)+'</div></div>';
 
   var chipItems = [];
-  (banco.items||[]).forEach(function(it){
-    var apIt = apPorBanco[(it.nombre||'').toUpperCase()]||0;
-    chipItems.push({ nombre:it.nombre, disp:(it.monto||0)-apIt, saldo:it.monto||0, color:'#4ADE80', apIt:apIt });
-  });
-  (fisico.items||[]).forEach(function(it){
-    var apIt = apPorBanco[(it.nombre||'').toUpperCase()]||0;
-    chipItems.push({ nombre:it.nombre, disp:(it.monto||0)-apIt, saldo:it.monto||0, color:'#FBBF24', apIt:apIt });
-  });
+  // Chip "Banco" = suma de todos los items de tipo banco
+  if((banco.items||[]).length > 0){
+    var totalApBanco = 0;
+    (banco.items||[]).forEach(function(it){
+      totalApBanco += apPorBanco[(it.nombre||'').toUpperCase()]||0;
+    });
+    chipItems.push({ nombre:'Banco', disp:banco.saldo - totalApBanco, saldo:banco.saldo, color:'#4ADE80', apIt:totalApBanco });
+  }
+  // Chip "Efectivo" = suma de todos los items de tipo efectivo
+  if((fisico.items||[]).length > 0){
+    var totalApFisico = 0;
+    (fisico.items||[]).forEach(function(it){
+      totalApFisico += apPorBanco[(it.nombre||'').toUpperCase()]||0;
+    });
+    chipItems.push({ nombre:'Efectivo', disp:fisico.saldo - totalApFisico, saldo:fisico.saldo, color:'#FBBF24', apIt:totalApFisico });
+  }
   if(inversion.saldo > 0){
     chipItems.push({ nombre:'Inversión', disp:inversion.saldo, saldo:inversion.saldo, color:'#C4B5FD', apIt:0 });
   }
