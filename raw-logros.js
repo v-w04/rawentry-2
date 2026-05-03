@@ -746,6 +746,7 @@ function _limpiarSetimoCol(colId){
     if(_actChecks[key7]) dias.forEach(function(d){ delete _actChecks[hab.nombre+'_'+semana+'_'+d.date]; });
   });
   renderActivity();
+  _autoGuardarChecks();
   showToast('Séptimo día limpiado en '+(colId==='pers'?'Personal':'Trabajo'));
 }
 
@@ -765,7 +766,10 @@ function _htmlMediaCol(items, tipo, color){
       '<button data-tipo="'+tipo+'" data-fila="'+fila+'" data-val="'+(!isDone)+'" onclick="_toggleActivityItem(this,this.dataset.tipo,this.dataset.fila,this.dataset.val===\'true\')" '+
       'style="width:18px;height:18px;border-radius:5px;flex-shrink:0;border:1px solid '+(isDone?color+'66':'rgba(255,255,255,.15)')+';'+
       'background:'+(isDone?color+'22':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:'+color+';transition:all .2s;font-family:inherit">'+(isDone?'✓':'')+'</button>' +
-      '<div style="flex:1;min-width:0"><div style="font-size:11px;color:'+(isDone?'var(--m)':'rgba(255,255,255,.85)')+';text-decoration:'+(isDone?'line-through':'none')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+nombre+'">'+nombre+'</div></div>' +
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:11px;color:'+(isDone?'var(--m)':'rgba(255,255,255,.85)')+';text-decoration:'+(isDone?'line-through':'none')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+nombre+'">'+nombre+'</div>'+
+        (isDone && item.fechaCompletado ? '<div style="font-size:9px;color:var(--ok);margin-top:1px">✓ '+item.fechaCompletado+'</div>' : '')+
+      '</div>' +
       '<span style="font-size:12px;flex-shrink:0;opacity:'+(isDone?.3:1)+'">'+emoji+'</span>' +
     '</div>';
   }).join('');
@@ -780,7 +784,10 @@ function _htmlNoRutCol(items){
       '<button data-tipo="norut" data-fila="'+fila+'" data-val="'+(!isDone)+'" onclick="_toggleActivityItem(this,this.dataset.tipo,this.dataset.fila,this.dataset.val===\'true\')" '+
       'style="width:18px;height:18px;border-radius:5px;flex-shrink:0;border:1px solid '+(isDone?'rgba(74,222,128,.4)':'rgba(139,92,246,.3)')+';'+
       'background:'+(isDone?'rgba(74,222,128,.15)':'rgba(139,92,246,.08)')+';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ok);transition:all .2s;font-family:inherit">'+(isDone?'✓':'')+'</button>' +
-      '<div style="font-size:11px;color:'+(isDone?'var(--m)':'rgba(255,255,255,.85)')+';text-decoration:'+(isDone?'line-through':'none')+';flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+nombre+'">'+nombre+'</div>' +
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:11px;color:'+(isDone?'var(--m)':'rgba(255,255,255,.85)')+';text-decoration:'+(isDone?'line-through':'none')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+nombre+'">'+nombre+'</div>'+
+        (isDone && item.fechaCompletado ? '<div style="font-size:9px;color:var(--ok);margin-top:1px">✓ '+item.fechaCompletado+'</div>' : '')+
+      '</div>' +
     '</div>';
   }).join('');
 }
@@ -810,7 +817,15 @@ function _toggleActivityItem(btn, tipo, fila, nuevoValor){
     .then(function(r){
       if(r.ok){
         var lista = tipo==='libro'?_actData.libros:tipo==='movie'?_actData.movies:_actData.noRutinarias;
-        if(lista && lista[fila-2]) lista[fila-2].completado = nuevoValor;
+        if(lista && lista[fila-2]){
+          lista[fila-2].completado = nuevoValor;
+          if(nuevoValor === true || nuevoValor === 'true'){
+            var hoy = new Date();
+            lista[fila-2].fechaCompletado = hoy.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'});
+          } else {
+            lista[fila-2].fechaCompletado = '';
+          }
+        }
         renderActivity();
       } else {
         btn.disabled = false;
