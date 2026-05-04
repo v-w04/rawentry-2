@@ -899,9 +899,9 @@ html.mob .hero-right{display:none !important}
 .entrada-dropdown-inner{
   background:none;
   border:none;
-  border-radius:50%;
-  width:400px;
-  height:400px;
+  border-radius:0;
+  width:auto;
+  height:auto;
   max-width:none;
   max-height:none;
   overflow:visible;
