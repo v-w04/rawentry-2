@@ -1,203 +1,959 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nueva entrada</title>
-<style>
-html, body { background: #09090f !important; color: #e0e0e0; }
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;background:#09090f !important;overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
-body{display:flex;align-items:center;justify-content:center}
-#dial-wrap{position:relative;width:min(1000px,95vmin);height:min(1000px,95vmin);flex-shrink:0}
-svg{position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible}
+/* ═══════════════════════════════════════════════════════
+   ENCOM THEME — LifeOS v1.0
+   Overlay sobre raw-app.css · activado con html.encom class
+   Inspirado en arscan/encom-boardroom (Tron: Legacy)
+   Default = apagado · se activa con botón en hero
+═══════════════════════════════════════════════════════ */
 
-/* ENCOM dial fix */
-html.encom .rdial path {
-  fill: #000f14 !important;
-  stroke: rgba(0,238,238,0.2) !important;
-}
-html.encom .rdial { background: #000000 !important; }
-.rdial { background: #09090f !important; }
-</style>
-</head>
-<body>
-<div id="dial-wrap"></div>
-<script>
-var isEncom = localStorage.getItem('lifeos_theme') === 'encom';
-if(isEncom){ document.documentElement.classList.add('encom'); }
-if(isEncom){
-  document.body.style.background = '#000000';
-  var lnk=document.createElement('link');lnk.rel='stylesheet';
-  lnk.href='https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;600;700&display=swap';
-  document.head.appendChild(lnk);
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;600;700&display=swap');
+
+@font-face {
+  font-family: 'terminator';
+  src: url('https://v-w04.github.io/rawentry-2/terminator.woff') format('woff');
 }
 
-// Colores — valores base primero, luego override si ENCOM
-var SECTOR_FILL  = isEncom ? '#000f14'              : '#1e2026';
-var SECTOR_HOVER = isEncom ? '#002830'              : '#373c46';
-var STROKE       = isEncom ? 'rgba(0,238,238,0.2)'  : 'rgba(255,255,255,0.06)';
-var BG_CIRCLE    = isEncom ? '#000000'              : '#09090f';
-var TEXT_COLOR   = isEncom ? 'rgba(0,238,238,0.85)' : 'rgba(255,255,255,0.85)';
-var RAW_FILL     = isEncom ? '#002830'              : '#1e2060';
-var RAW_STROKE   = isEncom ? '#00eeee'              : 'rgba(99,102,241,0.55)';
-var RAW_TEXT     = isEncom ? '#00eeee'              : '#A5B4FC';
-var ACT_FILL     = isEncom ? 'rgba(0,40,50,0.5)'    : 'rgba(34,211,238,0.12)';
-var ACT_HOVER    = isEncom ? '#003840'              : 'rgba(34,211,238,0.28)';
-
-var NS='http://www.w3.org/2000/svg';
-var n=10,CX=500,CY=500,SIZE=1000;
-var R_OUT=364,R_IN=136,R_CENT=2/3*(Math.pow(R_OUT,3)-Math.pow(R_IN,3))/(Math.pow(R_OUT,2)-Math.pow(R_IN,2));
-var R2_OUT=500,R2_IN=400,R2_CENT=2/3*(Math.pow(R2_OUT,3)-Math.pow(R2_IN,3))/(Math.pow(R2_OUT,2)-Math.pow(R2_IN,2));
-var RAW_R=128;
-
-var ICONS={
-  apartado:'<path d="M12 2C8.5 2 6 4.5 6 7c0 1.5.7 2.8 1.8 3.7L7 14h10l-.8-3.3C17.3 9.8 18 8.5 18 7c0-2.5-2.5-5-6-5zm-2 14v1a2 2 0 004 0v-1H10z" fill="currentColor"/>',
-  bancos:'<path d="M3 21h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18V7H3v2zm9-8L2 7h20L12 1z" fill="currentColor"/>',
-  entrenamiento:'<path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29l-1.43-1.43z" fill="currentColor"/>',
-  nutricion:'<path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7H1v-2h15.03v2zm0-4H1v-2h15.03v2z" fill="currentColor"/>',
-  patrimonio:'<path d="M4 10v7h3v-7H4zm6.5 0v7h3v-7h-3zM2 22h19v-3H2v3zm15-12v7h3v-7h-3zM11.5 1L2 6v2h19V6l-9.5-5z" fill="currentColor"/>',
-  pensamiento:'<path d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.34 8-7 8-11.5C20 5.81 16.19 2 11.5 2zm1 14.5h-2v-2h2v2zm0-4h-2c0-3.25 3-3 3-5 0-1.1-.9-2-2-2s-2 .9-2 2h-2c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.5-3 2.75-3 5z" fill="currentColor"/>',
-  persona:'<path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" fill="currentColor"/>',
-  editar:'<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/>',
-  salud:'<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/>',
-  activity:'<path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z" fill="currentColor"/>',
-  libro:'<path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z" fill="currentColor"/>',
-  movie:'<path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z" fill="currentColor"/>',
-  norut:'<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z" fill="currentColor"/>'
-};
-
-var items=[
-  {key:'apartado', ico:'apartado', color:'#4ADE80', label:'Apartado'},
-  {key:'bancos', ico:'bancos', color:'#F59E0B', label:'Bancos'},
-  {key:'entrenamiento', ico:'entrenamiento', color:'#FB923C', label:'Entrena'},
-  {key:'nutricion', ico:'nutricion', color:'#4ADE80', label:'Nutrición'},
-  {key:'patrimonio', ico:'patrimonio', color:'#C4B5FD', label:'Patrimonio'},
-  {key:'pensamiento', ico:'pensamiento', color:'#F9A8D4', label:'Pensa'},
-  {key:'persona', ico:'persona', color:'#93C5FD', label:'Persona'},
-  {key:'editar', ico:'editar', color:'#94A3B8', label:'Editar'},
-  {key:'salud', ico:'salud', color:'#FCA5A5', label:'Salud'},
-  {key:'activity', ico:'activity', color:'#22D3EE', label:'Activity'},
-];
-var subItems=[
-  {key:'libro', ico:'libro', color:'#EC4899', label:'Libros'},
-  {key:'movie', ico:'movie', color:'#F59E0B', label:'Movies'},
-  {key:'norut', ico:'norut', color:'#8B5CF6', label:'Pendientes'},
-];
-
-function elegir(modo){
-  sessionStorage.setItem('dial_modo', modo);
-  history.back();
-}
-function sp(i,ro,ri){
-  var a1=i/n*2*Math.PI-Math.PI/2, a2=(i+1)/n*2*Math.PI-Math.PI/2;
-  var x1=CX+ro*Math.cos(a1),y1=CY+ro*Math.sin(a1);
-  var x2=CX+ro*Math.cos(a2),y2=CY+ro*Math.sin(a2);
-  var x3=CX+ri*Math.cos(a2),y3=CY+ri*Math.sin(a2);
-  var x4=CX+ri*Math.cos(a1),y4=CY+ri*Math.sin(a1);
-  return 'M'+x1.toFixed(2)+','+y1.toFixed(2)+' A'+ro+','+ro+',0,0,1,'+x2.toFixed(2)+','+y2.toFixed(2)+' L'+x3.toFixed(2)+','+y3.toFixed(2)+' A'+ri+','+ri+',0,0,0,'+x4.toFixed(2)+','+y4.toFixed(2)+'Z';
-}
-function ma(i){return (i+0.5)/n*2*Math.PI-Math.PI/2;}
-function cp(r,i){var a=ma(i);return {x:CX+r*Math.cos(a),y:CY+r*Math.sin(a)};}
-
-var wrap=document.getElementById('dial-wrap');
-var svg=document.createElementNS(NS,'svg');
-svg.setAttribute('viewBox','0 0 1000 1000');
-svg.classList.add('rdial');
-svg.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;background:#09090f';
-wrap.appendChild(svg);
-
-var bg=document.createElementNS(NS,'circle');
-bg.setAttribute('cx',CX);bg.setAttribute('cy',CY);bg.setAttribute('r',R_OUT+8);
-bg.setAttribute('fill',BG_CIRCLE);svg.appendChild(bg);
-
-function mkIco(p,x,y,s,c){
-  var fo=document.createElementNS(NS,'svg');
-  fo.setAttribute('x',(x-s/2).toFixed(1));fo.setAttribute('y',(y-s/2).toFixed(1));
-  fo.setAttribute('width',s);fo.setAttribute('height',s);fo.setAttribute('viewBox','0 0 24 24');
-  fo.style.pointerEvents='none';fo.style.overflow='visible';
-  fo.setAttribute('fill',c);fo.setAttribute('color',c);fo.innerHTML=p;return fo;
+/* ── Variables Encom ── */
+html.encom {
+  --bg:    #000000;
+  --bg2:   #050505;
+  --card:  #080808;
+  --card2: #0a0a0a;
+  --border: rgba(0,238,238,.2);
+  --ok:    #00eeee;
+  --err:   #ff3333;
+  --warn:  #ffcc00;
+  --t:     #ffffff;
+  --m:     #4a8a8a;
+  --dim:   #1a3a3a;
+  --p:     #00eeee;
+  --s:     rgba(0,238,238,.6);
+  --rad:        0px;
+  --rad-lg:     0px;
+  --rad-pill:   0px;
+  --shadow: rgba(0,238,238,.08) 0px 0px 12px 0px;
+  --shadow-md: rgba(0,238,238,.15) 0px 0px 20px 0px;
 }
 
-var actSub=false,subG=null;
+/* ── Font global ── */
+html.encom,
+html.encom body,
+html.encom * {
+  font-family: 'Inconsolata', monospace !important;
+  letter-spacing: .04em;
+}
 
-items.forEach(function(item,i){
-  var pd=sp(i,R_OUT,R_IN);
-  var c=cp(R_CENT,i);
-  var isAct=item.key==='activity';
-  var fb=isAct?ACT_FILL:SECTOR_FILL;
-  var fh=isAct?ACT_HOVER:SECTOR_HOVER;
-  var g=document.createElementNS(NS,'g');g.style.cursor='pointer';
-  var p=document.createElementNS(NS,'path');
-  p.setAttribute('d',pd);p.setAttribute('fill',fb);
-  p.setAttribute('stroke',STROKE);p.setAttribute('stroke-width','2');
-  p.style.transition='fill .15s';g.appendChild(p);
-  g.appendChild(mkIco(ICONS[item.ico],c.x,c.y-20,52,item.color));
-  var lb=document.createElementNS(NS,'text');
-  lb.setAttribute('x',c.x.toFixed(1));lb.setAttribute('y',(c.y+34).toFixed(1));
-  lb.setAttribute('text-anchor','middle');lb.setAttribute('font-size','17');
-  lb.setAttribute('font-weight','600');lb.setAttribute('fill',TEXT_COLOR);
-  lb.setAttribute('font-family','system-ui,-apple-system,sans-serif');
-  lb.style.pointerEvents='none';lb.textContent=item.label;g.appendChild(lb);
-  g.addEventListener('mouseover',function(){p.setAttribute('fill',fh);});
-  g.addEventListener('mouseout',function(){p.setAttribute('fill',fb);});
-  g.addEventListener('click',function(){
-    if(isAct){actSub=!actSub;if(subG){subG.style.opacity=actSub?'1':'0';subG.style.pointerEvents=actSub?'all':'none';}}
-    else{elegir(item.key);}
-  });
-  svg.appendChild(g);
-});
+/* ── Fondo con scanlines ── */
+html.encom body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: url('https://v-w04.github.io/rawentry-2/scanlines.png') repeat;
+  opacity: .18;
+}
 
-var actA=ma(9),subSpan=Math.PI*0.55;
-subG=document.createElementNS(NS,'g');
-subG.style.opacity='0';subG.style.pointerEvents='none';subG.style.transition='opacity .2s';
-subItems.forEach(function(item,j){
-  var aS=actA-subSpan/2+j*subSpan/3,aE=actA-subSpan/2+(j+1)*subSpan/3;
-  var x1=CX+R2_OUT*Math.cos(aS),y1=CY+R2_OUT*Math.sin(aS);
-  var x2=CX+R2_OUT*Math.cos(aE),y2=CY+R2_OUT*Math.sin(aE);
-  var x3=CX+R2_IN*Math.cos(aE),y3=CY+R2_IN*Math.sin(aE);
-  var x4=CX+R2_IN*Math.cos(aS),y4=CY+R2_IN*Math.sin(aS);
-  var pd='M'+x1.toFixed(2)+','+y1.toFixed(2)+' A'+R2_OUT+','+R2_OUT+',0,0,1,'+x2.toFixed(2)+','+y2.toFixed(2)+' L'+x3.toFixed(2)+','+y3.toFixed(2)+' A'+R2_IN+','+R2_IN+',0,0,0,'+x4.toFixed(2)+','+y4.toFixed(2)+'Z';
-  var am=(aS+aE)/2,mx=CX+R2_CENT*Math.cos(am),my=CY+R2_CENT*Math.sin(am);
-  var sg=document.createElementNS(NS,'g');sg.style.cursor='pointer';
-  var sp2=document.createElementNS(NS,'path');
-  sp2.setAttribute('d',pd);sp2.setAttribute('fill',SECTOR_FILL);
-  sp2.setAttribute('stroke',STROKE);sp2.setAttribute('stroke-width','2');
-  sp2.style.transition='fill .15s';sg.appendChild(sp2);
-  sg.appendChild(mkIco(ICONS[item.ico],mx,my-22,52,item.color));
-  var sl=document.createElementNS(NS,'text');
-  sl.setAttribute('x',mx.toFixed(1));sl.setAttribute('y',(my+36).toFixed(1));
-  sl.setAttribute('text-anchor','middle');sl.setAttribute('font-size','17');
-  sl.setAttribute('font-weight','600');sl.setAttribute('fill',TEXT_COLOR);
-  sl.setAttribute('font-family','system-ui');sl.style.pointerEvents='none';sl.textContent=item.label;
-  sg.appendChild(sl);
-  sg.addEventListener('mouseover',function(){sp2.setAttribute('fill',SECTOR_HOVER);});
-  sg.addEventListener('mouseout',function(){sp2.setAttribute('fill',SECTOR_FILL);});
-  sg.addEventListener('click',function(){elegir(item.key);});
-  subG.appendChild(sg);
-});
-svg.appendChild(subG);
+/* hex background removido */
 
-var cO=document.createElementNS(NS,'circle');
-cO.setAttribute('cx',CX);cO.setAttribute('cy',CY);cO.setAttribute('r',RAW_R);
-cO.setAttribute('fill',RAW_FILL);cO.setAttribute('stroke',RAW_STROKE);cO.setAttribute('stroke-width','3');
-cO.style.cursor='pointer';cO.addEventListener('click',function(){elegir('nueva');});svg.appendChild(cO);
-var cI=document.createElementNS(NS,'circle');
-cI.setAttribute('cx',CX);cI.setAttribute('cy',CY);cI.setAttribute('r','96');
-cI.setAttribute('fill','rgba(99,102,241,0.08)');cI.setAttribute('stroke','rgba(99,102,241,0.25)');cI.setAttribute('stroke-width','1.5');svg.appendChild(cI);
-var cTx=document.createElementNS(NS,'text');
-cTx.setAttribute('x',CX);cTx.setAttribute('y',CY-12);cTx.setAttribute('text-anchor','middle');
-cTx.setAttribute('dominant-baseline','middle');cTx.setAttribute('font-size','54');
-cTx.setAttribute('fill',RAW_TEXT);cTx.style.cursor='pointer';cTx.textContent='⇄';
-cTx.addEventListener('click',function(){elegir('nueva');});svg.appendChild(cTx);
-var cLb=document.createElementNS(NS,'text');
-cLb.setAttribute('x',CX);cLb.setAttribute('y',CY+50);cLb.setAttribute('text-anchor','middle');
-cLb.setAttribute('font-size','22');cLb.setAttribute('font-weight','700');cLb.setAttribute('fill',RAW_TEXT);
-cLb.setAttribute('font-family','system-ui');cLb.style.cursor='pointer';cLb.textContent='RAW';
-cLb.addEventListener('click',function(){elegir('nueva');});svg.appendChild(cLb);
+/* ════════════════════════
+   HERO
+════════════════════════ */
+html.encom .hero {
+  background: rgba(0,0,0,.92) !important;
+  border-bottom: 1px solid #00eeee !important;
+  backdrop-filter: none !important;
+}
 
-document.addEventListener('keydown',function(e){if(e.key==='Escape')history.back();});
-document.body.addEventListener('click',function(e){if(e.target===document.body)history.back();});
-</script>
-</body>
-</html>
+html.encom .hero::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #00eeee;
+  opacity: .3;
+  box-shadow: 0 0 8px #00eeee;
+}
+
+/* Logo LifeOS en modo Encom */
+html.encom .hero-title {
+  font-family: 'terminator', 'Inconsolata', monospace !important;
+  color: #00eeee !important;
+  text-shadow: 0 0 10px #00eeee, 0 0 20px rgba(0,238,238,.4);
+  letter-spacing: .12em !important;
+  font-size: 15px !important;
+}
+
+html.encom .hero-title span {
+  color: #ffcc00 !important;
+  text-shadow: 0 0 10px #ffcc00, 0 0 20px rgba(255,204,0,.4);
+}
+
+html.encom .hero-sub {
+  color: #4a8a8a !important;
+  letter-spacing: .08em !important;
+}
+
+/* Chip de estado */
+html.encom .hero-chip {
+  border-radius: 0 !important;
+  border-color: #00eeee !important;
+  background: rgba(0,238,238,.08) !important;
+  color: #00eeee !important;
+}
+html.encom .hero-chip.ok {
+  background: rgba(0,238,238,.15) !important;
+  box-shadow: 0 0 8px rgba(0,238,238,.3), inset 0 0 4px rgba(0,238,238,.1);
+}
+html.encom .hero-chip.err {
+  border-color: #ff3333 !important;
+  background: rgba(255,51,51,.1) !important;
+  color: #ff3333 !important;
+}
+
+/* Botones del hero */
+html.encom .btn-flip {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.06) !important;
+  border: 1px solid rgba(0,238,238,.3) !important;
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  font-size: 10px !important;
+  letter-spacing: .08em !important;
+  transition: all .15s !important;
+}
+html.encom .btn-flip:hover {
+  background: rgba(0,238,238,.15) !important;
+  box-shadow: 0 0 8px rgba(0,238,238,.4) !important;
+  color: #fff !important;
+}
+html.encom .btn-flip.active {
+  background: #00eeee !important;
+  color: #000 !important;
+  box-shadow: 0 0 12px rgba(0,238,238,.6) !important;
+}
+
+html.encom .btn-refresh {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.3) !important;
+  background: rgba(0,238,238,.06) !important;
+  color: #00eeee !important;
+}
+html.encom .btn-refresh:hover {
+  box-shadow: 0 0 8px rgba(0,238,238,.4) !important;
+  color: #fff !important;
+}
+
+/* SOS */
+html.encom #btn-sos {
+  border-radius: 0 !important;
+  background: rgba(255,51,51,.12) !important;
+  border-color: #ff3333 !important;
+  color: #ff3333 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .08em !important;
+}
+html.encom #btn-sos:hover {
+  box-shadow: 0 0 10px rgba(255,51,51,.5) !important;
+}
+
+/* ════════════════════════
+   SECTIONS
+════════════════════════ */
+html.encom .section {
+  border: 1px solid rgba(0,238,238,.25) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 8px rgba(0,238,238,.06), inset 0 0 6px rgba(0,238,238,.03) !important;
+}
+html.encom .section:hover {
+  border-color: rgba(0,238,238,.5) !important;
+  box-shadow: 0 0 14px rgba(0,238,238,.12) !important;
+}
+
+html.encom .sec-hdr {
+  border-bottom-color: rgba(0,238,238,.15) !important;
+}
+html.encom .sec-hdr.open {
+  border-bottom-color: rgba(0,238,238,.3) !important;
+}
+
+html.encom .sec-hdr-title {
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  letter-spacing: .1em !important;
+  font-size: 11px !important;
+}
+
+html.encom .sec-hdr-icon {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.08) !important;
+  border: 1px solid rgba(0,238,238,.2) !important;
+  color: #00eeee !important;
+}
+html.encom .sec-hdr-icon.amber {
+  background: rgba(255,204,0,.08) !important;
+  border-color: rgba(255,204,0,.3) !important;
+  color: #ffcc00 !important;
+}
+
+html.encom .sec-hdr-val.pos { color: #00eeee !important; }
+html.encom .sec-hdr-val.neg { color: #ff3333 !important; }
+
+/* ════════════════════════
+   BANCOS — ente rows
+════════════════════════ */
+html.encom .ente-row {
+  border-bottom-color: rgba(0,238,238,.08) !important;
+}
+html.encom .ente-row:hover {
+  background: rgba(0,238,238,.04) !important;
+}
+html.encom .ente-nombre {
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  font-size: 13px !important;
+  letter-spacing: .06em !important;
+}
+html.encom .ente-monto.pos { color: #00eeee !important; }
+html.encom .ente-monto.neg { color: #ff3333 !important; }
+html.encom .ente-fecha { color: #4a8a8a !important; }
+
+html.encom .ente-edit {
+  background: rgba(0,238,238,.03) !important;
+  border-top-color: rgba(0,238,238,.15) !important;
+}
+html.encom .ente-edit input {
+  border-color: rgba(0,238,238,.3) !important;
+  border-radius: 0 !important;
+  color: #00eeee !important;
+  background: #000 !important;
+}
+html.encom .ente-edit input:focus {
+  border-color: #00eeee !important;
+  box-shadow: 0 0 8px rgba(0,238,238,.3) !important;
+}
+html.encom .btn-check {
+  border-radius: 0 !important;
+  background: #00eeee !important;
+  color: #000 !important;
+}
+
+/* ════════════════════════
+   FORMULARIO NUEVA ENTRADA
+════════════════════════ */
+html.encom .entrada-dropdown-inner {
+  border-radius: 0 !important;
+  border: 1px solid #00eeee !important;
+  background: #000 !important;
+  box-shadow: 0 0 20px rgba(0,238,238,.2) !important;
+}
+html.encom .entrada-selector-hdr {
+  border-bottom-color: rgba(0,238,238,.2) !important;
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  letter-spacing: .08em !important;
+}
+html.encom .entrada-tipo-btn {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  background: rgba(0,238,238,.04) !important;
+  transition: all .15s !important;
+}
+html.encom .entrada-tipo-btn:hover {
+  border-color: #00eeee !important;
+  background: rgba(0,238,238,.12) !important;
+  box-shadow: 0 0 10px rgba(0,238,238,.2) !important;
+  transform: none !important;
+}
+html.encom .entrada-tipo-ico { color: #00eeee !important; }
+html.encom .entrada-tipo-lbl { color: #fff !important; text-transform: uppercase !important; font-size: 10px !important; letter-spacing: .06em !important; }
+html.encom .entrada-tipo-sub { color: #4a8a8a !important; }
+
+/* CF rows */
+html.encom .cf {
+  border-bottom-color: rgba(0,238,238,.08) !important;
+}
+html.encom .cf:hover { background: rgba(0,238,238,.03) !important; }
+html.encom .cf.active { background: rgba(0,238,238,.05) !important; }
+html.encom .cf-label {
+  color: #4a8a8a !important;
+  letter-spacing: .1em !important;
+}
+html.encom .cf-val { color: #00eeee !important; }
+html.encom .cf-val.empty { color: #1a3a3a !important; }
+html.encom .cf-date,
+html.encom .cf-text { color: #00eeee !important; }
+
+/* Monto */
+html.encom .monto-input { color: #00eeee !important; font-size: 22px !important; }
+html.encom .msign.pos {
+  border-color: rgba(0,238,238,.4) !important;
+  background: rgba(0,238,238,.08) !important;
+  color: #00eeee !important;
+  border-radius: 0 !important;
+}
+html.encom .msign.neg {
+  border-radius: 0 !important;
+}
+html.encom .mprev.pos { color: #00eeee !important; }
+
+/* Opts */
+html.encom .opt {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  background: rgba(0,238,238,.04) !important;
+  color: #4a8a8a !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+}
+html.encom .opt:hover {
+  border-color: #00eeee !important;
+  color: #00eeee !important;
+  background: rgba(0,238,238,.1) !important;
+}
+html.encom .opt.on {
+  background: #00eeee !important;
+  border-color: #00eeee !important;
+  color: #000 !important;
+  font-weight: 700 !important;
+}
+
+/* Botón guardar */
+html.encom .btn-save {
+  border-radius: 0 !important;
+  background: #00eeee !important;
+  color: #000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .1em !important;
+  box-shadow: 0 0 12px rgba(0,238,238,.4) !important;
+  font-weight: 700 !important;
+}
+html.encom .btn-save:hover {
+  background: #fff !important;
+  box-shadow: 0 0 20px rgba(0,238,238,.6) !important;
+  transform: none !important;
+}
+
+html.encom .btn-sm.sec {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  background: rgba(0,238,238,.04) !important;
+  color: #4a8a8a !important;
+}
+html.encom .btn-sm.sec:hover {
+  color: #00eeee !important;
+  border-color: #00eeee !important;
+}
+
+/* Save result */
+html.encom .save-res.ok {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.08) !important;
+  border-color: rgba(0,238,238,.3) !important;
+  color: #00eeee !important;
+}
+html.encom .save-res.err {
+  border-radius: 0 !important;
+}
+
+/* Form actions */
+html.encom .form-actions {
+  border-top-color: rgba(0,238,238,.12) !important;
+}
+
+/* ════════════════════════
+   POPUP CONCEPTO
+════════════════════════ */
+html.encom .popup-overlay {
+  backdrop-filter: none !important;
+  background: rgba(0,0,0,.85) !important;
+}
+html.encom .popup-box {
+  border-radius: 0 !important;
+  border: 1px solid #00eeee !important;
+  background: #000 !important;
+  box-shadow: 0 0 24px rgba(0,238,238,.25) !important;
+}
+html.encom .popup-hdr {
+  border-bottom-color: rgba(0,238,238,.2) !important;
+}
+html.encom .popup-title {
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  letter-spacing: .1em !important;
+}
+html.encom .popup-close {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.08) !important;
+  color: #00eeee !important;
+}
+html.encom .popup-close:hover {
+  background: rgba(255,51,51,.15) !important;
+  color: #ff3333 !important;
+}
+html.encom .pop-search {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.3) !important;
+  background: #000 !important;
+  color: #00eeee !important;
+}
+html.encom .pop-search:focus {
+  border-color: #00eeee !important;
+  box-shadow: 0 0 8px rgba(0,238,238,.2) !important;
+}
+html.encom .pop-grupo-lbl {
+  color: #4a8a8a !important;
+  background: #000 !important;
+  letter-spacing: .1em !important;
+}
+html.encom .pop-item {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.15) !important;
+  background: rgba(0,238,238,.03) !important;
+  color: #4a8a8a !important;
+}
+html.encom .pop-item:hover {
+  border-color: #00eeee !important;
+  color: #00eeee !important;
+  background: rgba(0,238,238,.08) !important;
+}
+html.encom .pop-item.on {
+  background: #00eeee !important;
+  color: #000 !important;
+  border-color: #00eeee !important;
+}
+
+/* ════════════════════════
+   PANEL GESTIONAR LISTA
+════════════════════════ */
+html.encom .panel {
+  border-radius: 0 !important;
+  background: #000 !important;
+  border-left: 1px solid #00eeee !important;
+  box-shadow: -4px 0 20px rgba(0,238,238,.1) !important;
+}
+html.encom .panel-head {
+  border-bottom-color: rgba(0,238,238,.2) !important;
+}
+html.encom .panel-title {
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  letter-spacing: .1em !important;
+}
+html.encom .panel-close {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+}
+html.encom .panel-close:hover {
+  background: rgba(255,51,51,.15) !important;
+  border-color: #ff3333 !important;
+  color: #ff3333 !important;
+}
+html.encom .panel-group {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.03) !important;
+  border: 1px solid rgba(0,238,238,.12) !important;
+}
+html.encom .panel-group-name { color: #4a8a8a !important; text-transform: uppercase !important; }
+html.encom .panel-cnt {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.12) !important;
+  color: #00eeee !important;
+}
+html.encom .panel-add input {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  background: #000 !important;
+  color: #00eeee !important;
+}
+html.encom .panel-add input:focus {
+  border-color: #00eeee !important;
+}
+html.encom .btn-add {
+  border-radius: 0 !important;
+  background: #00eeee !important;
+  color: #000 !important;
+}
+html.encom .chip {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.15) !important;
+  color: #4a8a8a !important;
+}
+html.encom .chip.new {
+  border-color: #00eeee !important;
+  color: #00eeee !important;
+  background: rgba(0,238,238,.1) !important;
+}
+
+/* ════════════════════════
+   TOAST
+════════════════════════ */
+html.encom .toast {
+  border-radius: 0 !important;
+  background: #000 !important;
+  border: 1px solid #00eeee !important;
+  box-shadow: 0 0 16px rgba(0,238,238,.3) !important;
+  color: #00eeee !important;
+}
+html.encom .toast.ok i { color: #00eeee !important; }
+html.encom .toast.err {
+  border-color: #ff3333 !important;
+  box-shadow: 0 0 16px rgba(255,51,51,.3) !important;
+}
+html.encom .toast.err i { color: #ff3333 !important; }
+
+/* ════════════════════════
+   TABLAS
+════════════════════════ */
+html.encom .tbl th {
+  background: rgba(0,238,238,.06) !important;
+  border-bottom-color: rgba(0,238,238,.2) !important;
+  color: #00eeee !important;
+  letter-spacing: .08em !important;
+}
+html.encom .tbl th.mes-actual {
+  background: rgba(0,238,238,.12) !important;
+  color: #fff !important;
+  border-bottom-color: #00eeee !important;
+}
+html.encom .tbl td { border-bottom-color: rgba(0,238,238,.05) !important; }
+html.encom .tbl td:first-child {
+  background: #000 !important;
+  color: #00eeee !important;
+  border-right-color: rgba(0,238,238,.1) !important;
+}
+html.encom .tbl tr:hover td { background: rgba(0,238,238,.03) !important; }
+html.encom .tbl tr:hover td:first-child { background: rgba(0,238,238,.06) !important; }
+html.encom .tbl td.pos { color: #00eeee !important; }
+html.encom .tbl td.neg { color: #ff3333 !important; }
+html.encom .tbl td.mes-actual { background: rgba(0,238,238,.05) !important; }
+
+/* ════════════════════════
+   CARDS (móvil)
+════════════════════════ */
+html.encom .kard {
+  border-radius: 0 !important;
+  background: #080808 !important;
+  border: 1px solid rgba(0,238,238,.15) !important;
+}
+html.encom .kard:hover { box-shadow: 0 0 10px rgba(0,238,238,.12) !important; }
+html.encom .kard-name { color: #00eeee !important; text-transform: uppercase !important; letter-spacing: .06em !important; }
+html.encom .kard-val.pos { color: #00eeee !important; }
+html.encom .kard-val.neg { color: #ff3333 !important; }
+html.encom .kard-prog { background: rgba(0,238,238,.08) !important; }
+html.encom .kard-prog-fill { background: #00eeee !important; }
+
+/* ════════════════════════
+   FINANCIERO / CFO
+════════════════════════ */
+html.encom .fin-card {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.04) !important;
+  border: 1px solid rgba(0,238,238,.15) !important;
+}
+html.encom .fin-card-label {
+  color: #4a8a8a !important;
+  letter-spacing: .1em !important;
+}
+html.encom .fin-card-val { color: #00eeee !important; }
+html.encom .fin-card.ok .fin-card-val { color: #00eeee !important; }
+html.encom .fin-card.warn .fin-card-val { color: #ffcc00 !important; }
+html.encom .fin-card.alerta .fin-card-val { color: #ff3333 !important; }
+
+/* Insight items */
+html.encom .insight-item { border-bottom-color: rgba(0,238,238,.06) !important; }
+html.encom .insight-dot.positivo { background: #00eeee !important; }
+html.encom .insight-dot.alerta   { background: #ff3333 !important; }
+html.encom .insight-dot.identidad { background: #ffcc00 !important; }
+
+/* ════════════════════════
+   REVERSO — Logros / Bitácora / Activity
+════════════════════════ */
+html.encom .reverso-header {
+  background: rgba(0,0,0,.9) !important;
+  border-bottom: 1px solid rgba(0,238,238,.2) !important;
+  backdrop-filter: none !important;
+}
+html.encom .reverso-title {
+  color: #00eeee !important;
+  text-transform: uppercase !important;
+  letter-spacing: .1em !important;
+  text-shadow: 0 0 8px rgba(0,238,238,.4) !important;
+}
+
+/* Inv items (Logros) */
+html.encom .inv-item {
+  border-radius: 0 !important;
+  background: #080808 !important;
+  border: 1px solid rgba(0,238,238,.15) !important;
+}
+html.encom .inv-item::before { display: none !important; }
+html.encom .inv-item:hover {
+  border-color: #00eeee !important;
+  box-shadow: 0 0 14px rgba(0,238,238,.2) !important;
+  transform: none !important;
+}
+html.encom .inv-item.done {
+  background: rgba(0,238,238,.04) !important;
+  border-color: rgba(0,238,238,.3) !important;
+}
+html.encom .inv-icon {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.06) !important;
+  border-color: rgba(0,238,238,.2) !important;
+}
+html.encom .inv-item.done .inv-icon { border-color: rgba(0,238,238,.4) !important; }
+html.encom .inv-label { color: #00eeee !important; text-transform: uppercase !important; font-size: 10px !important; letter-spacing: .05em !important; }
+html.encom .inv-item.done .inv-label { color: #4a8a8a !important; }
+html.encom .inv-monto { color: #ffcc00 !important; }
+html.encom .inv-tag {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  color: #4a8a8a !important;
+}
+html.encom .inv-corner.done {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.1) !important;
+  border-color: rgba(0,238,238,.3) !important;
+  color: #00eeee !important;
+}
+html.encom .inv-corner.pend {
+  border-radius: 0 !important;
+}
+
+/* Rev pills */
+html.encom .rev-pill {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  background: rgba(0,238,238,.04) !important;
+  color: #4a8a8a !important;
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+}
+html.encom .rev-pill:hover {
+  border-color: #00eeee !important;
+  color: #00eeee !important;
+  background: rgba(0,238,238,.1) !important;
+}
+html.encom .rev-pill.on {
+  background: #00eeee !important;
+  border-color: #00eeee !important;
+  color: #000 !important;
+}
+
+/* ════════════════════════
+   PROG BAR
+════════════════════════ */
+html.encom .prog-bar { background: #00eeee !important; }
+html.encom .prog-bar.ind { background: #00eeee !important; }
+
+/* ════════════════════════
+   PROGRESS BAR wrapper
+════════════════════════ */
+html.encom #prog {
+  background: rgba(0,238,238,.15) !important;
+}
+
+/* ════════════════════════
+   SCROLLBAR
+════════════════════════ */
+html.encom *::-webkit-scrollbar-track { background: rgba(0,238,238,.03) !important; }
+html.encom *::-webkit-scrollbar-thumb { background: rgba(0,238,238,.2) !important; }
+html.encom *::-webkit-scrollbar-thumb:hover { background: rgba(0,238,238,.4) !important; }
+
+/* ════════════════════════
+   FLUJO MENSUAL
+════════════════════════ */
+html.encom #flujo-tbl th {
+  color: #4a8a8a !important;
+  letter-spacing: .08em !important;
+  border-bottom-color: rgba(0,238,238,.15) !important;
+}
+html.encom #flujo-tbl td { border-bottom-color: rgba(0,238,238,.05) !important; }
+html.encom #flujo-tbl tr:hover td { background: rgba(0,238,238,.03) !important; }
+
+/* ════════════════════════
+   APARTADOS
+════════════════════════ */
+html.encom .apartado-item { border-bottom-color: rgba(0,238,238,.06) !important; }
+html.encom .apartado-icon {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.08) !important;
+}
+html.encom .apartado-nombre { color: #00eeee !important; text-transform: uppercase !important; letter-spacing: .06em !important; }
+html.encom .apartado-monto { color: #00eeee !important; }
+html.encom .apartado-meta { color: #4a8a8a !important; }
+
+/* ════════════════════════
+   RELACIONES
+════════════════════════ */
+html.encom .rel-item { border-bottom-color: rgba(0,238,238,.06) !important; }
+html.encom .rel-item:hover { background: rgba(0,238,238,.03) !important; }
+html.encom .rel-avatar {
+  border-radius: 0 !important;
+  background: rgba(0,238,238,.08) !important;
+  color: #00eeee !important;
+}
+html.encom .rel-avatar.positivo { background: rgba(0,238,238,.12) !important; color: #00eeee !important; }
+html.encom .rel-avatar.negativo { background: rgba(255,51,51,.1) !important; color: #ff3333 !important; }
+html.encom .rel-nombre { color: #fff !important; }
+html.encom .rel-meta { color: #4a8a8a !important; }
+html.encom .rel-energia.pos { color: #00eeee !important; }
+html.encom .rel-energia.neg { color: #ff3333 !important; }
+html.encom .rel-energia.neu { color: #4a8a8a !important; }
+
+/* ════════════════════════
+   SALUD
+════════════════════════ */
+html.encom .salud-item { border-bottom-color: rgba(0,238,238,.06) !important; }
+html.encom .salud-tipo-badge {
+  border-radius: 0 !important;
+}
+html.encom .salud-tipo-badge.Cita { background: rgba(0,238,238,.1) !important; color: #00eeee !important; }
+html.encom .proxima-cita {
+  border-radius: 0 !important;
+  background: rgba(255,204,0,.06) !important;
+  border-color: rgba(255,204,0,.25) !important;
+}
+
+/* ════════════════════════
+   PATRIMONIO
+════════════════════════ */
+html.encom #patrimonio-body div[style*="border-radius:10px"] {
+  border-radius: 0 !important;
+}
+
+/* ════════════════════════
+   MOB TABBAR
+════════════════════════ */
+html.encom .mob-tabbar {
+  background: rgba(0,0,0,.95) !important;
+  border-top: 1px solid rgba(0,238,238,.25) !important;
+  backdrop-filter: none !important;
+}
+html.encom .mob-tab { color: rgba(0,238,238,.3) !important; }
+html.encom .mob-tab.active { color: #00eeee !important; }
+html.encom .mob-tab-label {
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+  font-size: 8px !important;
+}
+
+/* ════════════════════════
+   MASLOW COLS
+════════════════════════ */
+html.encom .maslow-cols .section {
+  border-color: rgba(0,238,238,.2) !important;
+}
+
+/* ════════════════════════
+   SEC-SUB-HDR (gráficas)
+════════════════════════ */
+html.encom .sec-sub-hdr { border-top-color: rgba(0,238,238,.1) !important; }
+html.encom .sec-sub-hdr-icon {
+  border-radius: 0 !important;
+  border-color: rgba(0,238,238,.2) !important;
+  background: rgba(0,238,238,.06) !important;
+  color: #00eeee !important;
+}
+html.encom .sec-sub-hdr span {
+  color: #4a8a8a !important;
+  letter-spacing: .1em !important;
+}
+
+/* ════════════════════════
+   THUMBPRINT — decorativo
+════════════════════════ */
+html.encom #encom-thumbprint {
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  opacity: .25;
+  pointer-events: none;
+  z-index: 100;
+  background: url('https://v-w04.github.io/rawentry-2/thumbprint.png') no-repeat center/contain;
+  animation: encPulsate 4s ease-in-out infinite;
+}
+@keyframes encPulsate {
+  0%,100% { opacity: .15; }
+  50%      { opacity: .45; }
+}
+
+/* ════════════════════════
+   BOTÓN TOGGLE ENCOM
+════════════════════════ */
+#btn-encom-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: var(--rad-pill);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.5);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s;
+  white-space: nowrap;
+}
+#btn-encom-toggle:hover {
+  background: rgba(0,238,238,.1);
+  border-color: rgba(0,238,238,.4);
+  color: #00eeee;
+}
+html.encom #btn-encom-toggle {
+  background: rgba(0,238,238,.12) !important;
+  border: 1px solid #00eeee !important;
+  color: #00eeee !important;
+  border-radius: 0 !important;
+  font-family: 'terminator', 'Inconsolata', monospace !important;
+  letter-spacing: .1em !important;
+  box-shadow: 0 0 8px rgba(0,238,238,.3) !important;
+}
+html.encom #btn-encom-toggle:hover {
+  background: rgba(0,238,238,.22) !important;
+  box-shadow: 0 0 14px rgba(0,238,238,.5) !important;
+}
+
+/* ════════════════════════
+   SELECTS de revisión en modo Encom
+════════════════════════ */
+html.encom #rev-sel-anio,
+html.encom #rev-sel-mes,
+html.encom #rev-sel-sem {
+  background-color: #000 !important;
+  border-color: rgba(0,238,238,.3) !important;
+  color: #00eeee !important;
+  border-radius: 0 !important;
+}
+html.encom #rev-sel-anio:hover,
+html.encom #rev-sel-mes:hover,
+html.encom #rev-sel-sem:hover {
+  border-color: #00eeee !important;
+  box-shadow: 0 0 6px rgba(0,238,238,.2) !important;
+}
+
+/* ════════════════════════
+   GLOW ANIMADO en bordes de sección activa
+════════════════════════ */
+@keyframes encBorderPulse {
+  0%,100% { box-shadow: 0 0 6px rgba(0,238,238,.06); }
+  50%      { box-shadow: 0 0 14px rgba(0,238,238,.15); }
+}
+html.encom .section {
+  animation: encBorderPulse 4s ease-in-out infinite !important;
+}
+
+/* ════════════════════════
+   COMPONENTES ENCOM — visibilidad
+════════════════════════ */
+
+/* Ocultos por default, visibles en modo Encom */
+#enc-clock-fin,
+#enc-ticker-fin,
+#enc-swirls-fin,
+#enc-swirls-activity {
+  display: none !important;
+}
+
+html.encom #enc-clock-fin {
+  display: block !important;
+}
+html.encom #enc-ticker-fin {
+  display: flex !important;
+}
+html.encom #enc-swirls-fin {
+  display: block !important;
+}
+html.encom #enc-swirls-activity {
+  display: block !important;
+}
+
+/* Header line animada */
+.enc-hdr-line {
+  display: none;
+  height: 1px;
+  width: 0;
+  background: linear-gradient(90deg, #00eeee, transparent);
+  margin: 0;
+}
+html.encom .enc-hdr-line {
+  display: block;
+}
+
+/* ════════════════════════
+   DIAL — Nueva Entrada
+════════════════════════ */
+html.encom .entrada-dropdown.show {
+  background: rgba(0,0,0,0.88) !important;
+  backdrop-filter: none !important;
+}
+html.encom .entrada-dropdown-inner {
+  background: #000 !important;
+  border: 1px solid rgba(0,238,238,.3) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 30px rgba(0,238,238,.12), inset 0 0 40px rgba(0,5,5,.9) !important;
+}
+html.encom .entrada-selector-hdr {
+  border-bottom: 1px solid rgba(0,238,238,.2) !important;
+  color: #00eeee !important;
+  letter-spacing: .1em !important;
+}
+
+/* Dial SVG en ENCOM — sectores cyan */
+html.encom .rdial path[fill*="30,32,38"] {
+  fill: rgba(0,15,20,0.95) !important;
+}
+
+/* dial.html en modo ENCOM — no aplica class pero sí podemos estilizar vía JS */
+
+/* ════════════════════════
+   ACTIVITY CHECK
+════════════════════════ */
+html.encom #act-container > div {
+  background: rgba(0,10,15,0.9) !important;
+  border-color: rgba(0,238,238,.2) !important;
+}
+html.encom #act-container [style*="border-radius:10px"] {
+  background: rgba(0,10,15,0.9) !important;
+  border: 1px solid rgba(0,238,238,.15) !important;
+}
+/* Header columnas */
+html.encom [id^="actcol-"] > div:first-child {
+  border-bottom: 1px solid rgba(0,238,238,.15) !important;
+}
+/* Checkboxes */
+html.encom [onclick*="_toggleHabitoKey"] {
+  border-radius: 0 !important;
+}
+/* Barra de progreso */
+html.encom [style*="height:2px"] > div {
+  box-shadow: 0 0 6px currentColor !important;
+}
+/* Texto hábito */
+html.encom [style*="font-size:13px;font-weight:600"] {
+  font-family: 'Inconsolata', monospace !important;
+  letter-spacing: .04em !important;
+}
+/* Columnas Libros/Movies/Pendientes */
+html.encom [onclick*="_toggleActivityItem"] {
+  border-radius: 0 !important;
+}
+/* Botón limpiar */
+html.encom [id^="act-limpiar-"] {
+  border-radius: 0 !important;
+  font-family: 'Inconsolata', monospace !important;
+}
+/* Header Activity Check */
+html.encom #act-semana-lbl {
+  color: #00eeee !important;
+  text-shadow: 0 0 8px rgba(0,238,238,.4) !important;
+  font-family: 'terminator', 'Inconsolata', monospace !important;
+  letter-spacing: .1em !important;
+}
