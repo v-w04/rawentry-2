@@ -718,9 +718,9 @@ function abrirEntrada(){
   if(paso2) paso2.style.display = 'none';
   // Paso1 = dial: quitar TODO fondo — dropdown, inner, overlay
   var ddEl=document.querySelector('.entrada-dropdown');
-  if(ddEl) ddEl.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:150;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);padding:0';
+  if(ddEl) ddEl.classList.add('dial-mode');
   var innerEl=document.querySelector('.entrada-dropdown-inner');
-  if(innerEl) innerEl.style.cssText='background:none!important;border:none!important;box-shadow:none!important;overflow:visible!important;padding:0!important;margin:0!important;width:600px!important;height:600px!important;min-height:0!important;max-width:none!important;max-height:none!important;border-radius:0!important;display:block!important';
+  if(innerEl) innerEl.removeAttribute('style');
   var hdrEl=document.querySelector('.entrada-selector-hdr');
   if(hdrEl) hdrEl.style.display='none';
   toggleEntradaDropdown();
@@ -1304,9 +1304,9 @@ function setModoEntrada(modo){
   if(paso2) paso2.style.display = 'block';
   // Restaurar inner y dropdown al estilo normal centrado
   var dd2=document.querySelector('.entrada-dropdown');
-  if(dd2){ dd2.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:150;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);padding:20px'; }
+  if(dd2) dd2.classList.remove('dial-mode');
   var inner2=document.querySelector('.entrada-dropdown-inner');
-  if(inner2){ inner2.style.cssText='background:#111!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:14px!important;width:100%!important;max-width:480px!important;max-height:88vh!important;overflow-y:auto!important;box-shadow:0 24px 64px rgba(0,0,0,.85)!important;padding:0!important;height:auto!important;min-height:0!important'; inner2.scrollTop=0; }
+  if(inner2){ inner2.removeAttribute('style'); inner2.scrollTop=0; }
   var hdr2=document.querySelector('.entrada-selector-hdr');
   if(hdr2) hdr2.style.display='flex';
 
@@ -1317,6 +1317,9 @@ function setModoEntrada(modo){
   ['nueva','editar','pensamiento','persona','salud','apartado','patrimonio','bancos','nutricion','entrenamiento'].forEach(t=>{
     const btn = document.getElementById('btn-tab-'+t);
     if(btn) btn.classList.toggle('on', t===modo);
+    // Limpiar el wrap de cada tab para evitar acumulación
+    const w = document.getElementById(t+'-wrap');
+    if(w && t !== modo) w.innerHTML = '';
   });
 
   const wraps = ['editar-id-wrap','pensamiento-wrap','persona-wrap','salud-wrap','apartado-wrap'];
