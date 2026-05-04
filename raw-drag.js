@@ -12,7 +12,7 @@
   // Guardar layout actual
   function saveLayout(){
     var layout = {};
-    ['col1-wrap','col-1','col-2','col-3','col-4'].forEach(function(colId){
+    ['col-1','col-2','col-3','col-4'].forEach(function(colId){
       var col = document.getElementById(colId);
       if(!col) return;
       layout[colId] = Array.from(col.querySelectorAll('.section')).map(function(s){ return s.id; });
@@ -77,7 +77,7 @@
 
   // Mantener columnas vacías con altura mínima para poder hacer drop
   function updateEmptyColumns(){
-    ['col1-wrap','col-1','col-2','col-3','col-4'].forEach(function(colId){
+    ['col-1','col-2','col-3','col-4'].forEach(function(colId){
       var col = document.getElementById(colId);
       if(!col) return;
       var hasSections = col.querySelectorAll('.section').length > 0;
@@ -87,7 +87,7 @@
 
   // Drop zones en columnas
   function initColumns(){
-    ['col1-wrap','col-1','col-2','col-3','col-4'].forEach(function(colId){
+    ['col-1','col-2','col-3','col-4'].forEach(function(colId){
       var col = document.getElementById(colId);
       if(!col) return;
 
@@ -152,7 +152,7 @@
 
   function initMaslowColumns(){
     var MASLOW_KEY = 'lifeos_maslow_layout_v1';
-    var mCols = ['mcol-1','mcol-2','mcol-3','mcol-4','mcol-5'];
+    var mCols = ['mcol-2','mcol-2','mcol-3','mcol-4','mcol-5'];
     mCols.forEach(function(colId){
       var col = document.getElementById(colId);
       if(!col) return;
@@ -193,7 +193,7 @@
     try {
       if(localStorage.getItem(STORAGE_KEY)) return;
       var layout = {};
-      ['col1-wrap','col-1','col-2','col-3','col-4'].forEach(function(colId){
+      ['col-1','col-2','col-3','col-4'].forEach(function(colId){
         var col = document.getElementById(colId);
         if(!col) return;
         layout[colId] = Array.from(col.querySelectorAll('.section')).map(function(s){ return s.id; });
