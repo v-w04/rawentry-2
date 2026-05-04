@@ -606,9 +606,7 @@ function abrirEntrada(){
   // Blur en .app — cubre todo el contenido sin afectar el dial
   var appEl=document.querySelector('.app, #app, [class*="app"]');
   if(appEl){ appEl.style.filter='blur(8px) brightness(0.5)'; appEl.style.transition='filter 0.2s'; appEl.style.pointerEvents='none'; }
-  // Mover el dropdown fuera del .app si está dentro
-  var ddMov=document.querySelector('.entrada-dropdown');
-  if(ddMov && appEl && appEl.contains(ddMov)){ document.body.appendChild(ddMov); }
+
   var innerEl=document.querySelector('.entrada-dropdown-inner');
   if(innerEl) innerEl.removeAttribute('style');
   var hdrEl=document.querySelector('.entrada-selector-hdr');
