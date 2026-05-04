@@ -887,7 +887,7 @@ html.mob .hero-right{display:none !important}
 .entrada-dropdown{
   position:fixed;
   top:0; left:0; right:0; bottom:0;
-  z-index:150;
+  z-index:9000;
   display:none;
   align-items:center;
   justify-content:center;
