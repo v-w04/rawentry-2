@@ -737,22 +737,20 @@ function _toggleHabitoKey(btn){
   if(!hab) return;
   var key = hab.nombre+'_'+sem+'_'+dat;
   _actChecks[key] = !_actChecks[key];
-  renderActivity();
-  _autoGuardarChecks();
-}
+  var nuevoValor = _actChecks[key];
 
-function _autoGuardarChecks(){
-  var semana = _getSemanaKey();
-  var habElec = (_actData&&_actData.habitosElectronics||[]).map(function(h){return h.nombre;});
-  var checks = Object.entries(_actChecks)
-    .filter(function(e){ return e[1] && e[0].includes('_'+semana+'_'); })
-    .map(function(e){
-      var nombre  = e[0].split('_'+semana+'_')[0];
-      var fecha   = e[0].split('_'+semana+'_')[1];
-      var columna = habElec.indexOf(nombre) >= 0 ? 'Trabajo' : 'Personal';
-      return { nombre:nombre, fecha:fecha, columna:columna };
-    });
-  api.guardarActivityChecks(semana, checks).catch(function(){});
+  // Mapear fecha ISO → día de la semana para la columna correcta
+  var DIAS_MAP = {'1':'L','2':'M','3':'W','4':'J','5':'V','6':'S','0':'D'};
+  var diasSemana = new Date(dat+'T12:00:00');
+  var diaLetra = DIAS_MAP[String(diasSemana.getDay())];
+
+  // Escribir directamente en la hoja Activity Check
+  var tipo = (src==='elec') ? 'electronics' : 'personal';
+  if(hab.fila && diaLetra){
+    api.setActivityCheck(tipo, hab.fila, diaLetra, nuevoValor).catch(function(){});
+  }
+
+  renderActivity();
 }
 
 function _limpiarSetimoCol(colId){
@@ -768,7 +766,6 @@ function _limpiarSetimoCol(colId){
     }
   });
   renderActivity();
-  _autoGuardarChecks();
   showToast('7° limpiado — '+(colId==='pers'?'Personal':'Trabajo'));
 }
 
@@ -817,7 +814,6 @@ function _htmlNoRutCol(items){
 }
 
 function guardarChecks(){
-  _autoGuardarChecks();
   showToast('✓ Semana guardada');
 }
 
