@@ -101,11 +101,6 @@
           <div class="entrada-tipo-lbl">Salud</div>
           <div class="entrada-tipo-sub">Cita · Síntoma</div>
         </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('activity')" style="--tipo-color:#22D3EE;--tipo-bg:rgba(34,211,238,.1)">
-          <i class="fas fa-bolt entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Activity</div>
-          <div class="entrada-tipo-sub">Hábito · Libro · Movie</div>
-        </button>
       </div>
     </div>
 
@@ -174,6 +169,19 @@
         <div id="save-res" class="save-res">
           <span id="res-ico"></span> <span id="res-msg"></span>
         </div>
+        <!-- Wraps para tabs del dial -->
+        <div id="pensamiento-wrap" style="display:none"></div>
+        <div id="persona-wrap"     style="display:none"></div>
+        <div id="salud-wrap"       style="display:none"></div>
+        <div id="apartado-wrap"    style="display:none"></div>
+        <div id="patrimonio-wrap"  style="display:none"></div>
+        <div id="bancos-wrap"      style="display:none"></div>
+        <div id="nutricion-wrap"   style="display:none"></div>
+        <div id="entrenamiento-wrap" style="display:none"></div>
+        <div id="libro-wrap"       style="display:none"></div>
+        <div id="movie-wrap"       style="display:none"></div>
+        <div id="norut-wrap"       style="display:none"></div>
+        <div id="editar-id-wrap"   style="display:none"></div>
       </div>
     </div>
 
@@ -379,7 +387,13 @@
         <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
       </div>
     </div>
-    <div id="inv-grid-full"></div>
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start;padding:0 var(--pad,16px) 20px">
+      <div id="inv-grid-full" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px"></div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden;position:sticky;top:10px">
+        <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(74,222,128,.7)">✓ Completados</div>
+        <div id="logros-completados-tabla" style="max-height:calc(100vh - 160px);overflow-y:auto"></div>
+      </div>
+    </div>
   </div>
 
   <!-- PANEL MASLOW -->
