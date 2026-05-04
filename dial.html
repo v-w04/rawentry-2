@@ -15,6 +15,30 @@ svg{position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible}
 <body>
 <div id="dial-wrap"></div>
 <script>
+// Detectar modo ENCOM
+var isEncom = localStorage.getItem('lifeos_theme') === 'encom';
+if(isEncom){
+  document.body.style.background = '#000000';
+  document.body.style.fontFamily = "'Inconsolata', monospace";
+  // Importar fuente
+  var lnk = document.createElement('link');
+  lnk.rel='stylesheet'; lnk.href='https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;600;700&display=swap';
+  document.head.appendChild(lnk);
+  // Scanlines
+  document.body.style.setProperty('--enc','1');
+}
+
+var ENCOM_SECTOR_FILL   = isEncom ? 'rgba(0,15,20,0.95)'   : ENCOM_SECTOR_FILL;
+var ENCOM_SECTOR_HOVER  = isEncom ? 'rgba(0,40,45,0.98)'   : ENCOM_SECTOR_HOVER;
+var ENCOM_STROKE        = isEncom ? 'rgba(0,238,238,0.2)'  : ENCOM_STROKE;
+var ENCOM_BG_CIRCLE     = isEncom ? 'rgba(0,5,10,0.96)'    : ENCOM_BG_CIRCLE;
+var ENCOM_TEXT          = isEncom ? 'rgba(0,238,238,0.85)' : ENCOM_TEXT;
+var ENCOM_RAW_FILL      = isEncom ? 'rgba(0,40,50,0.9)'    : ENCOM_RAW_FILL;
+var ENCOM_RAW_STROKE    = isEncom ? '#00eeee'              : 'rgba(99,102,241,0.55)';
+var ENCOM_RAW_TEXT      = isEncom ? '#00eeee'              : ENCOM_RAW_TEXT;
+var ENCOM_ACT_FILL      = isEncom ? 'rgba(0,40,50,0.5)'    : ENCOM_ACT_FILL;
+var ENCOM_ACT_HOVER     = isEncom ? 'rgba(0,80,90,0.8)'    : ENCOM_ACT_HOVER;
+
 var NS='http://www.w3.org/2000/svg';
 var n=10,CX=500,CY=500,SIZE=1000;
 var R_OUT=364,R_IN=136,R_CENT=2/3*(Math.pow(R_OUT,3)-Math.pow(R_IN,3))/(Math.pow(R_OUT,2)-Math.pow(R_IN,2));
@@ -96,18 +120,18 @@ items.forEach(function(item,i){
   var pd=sp(i,R_OUT,R_IN);
   var c=cp(R_CENT,i);
   var isAct=item.key==='activity';
-  var fb=isAct?'rgba(34,211,238,0.12)':'rgba(30,32,38,0.92)';
-  var fh=isAct?'rgba(34,211,238,0.28)':'rgba(55,60,70,0.98)';
+  var fb=isAct?ENCOM_ACT_FILL:ENCOM_SECTOR_FILL;
+  var fh=isAct?ENCOM_ACT_HOVER:ENCOM_SECTOR_HOVER;
   var g=document.createElementNS(NS,'g');g.style.cursor='pointer';
   var p=document.createElementNS(NS,'path');
   p.setAttribute('d',pd);p.setAttribute('fill',fb);
-  p.setAttribute('stroke','rgba(255,255,255,0.06)');p.setAttribute('stroke-width','2');
+  p.setAttribute('stroke',ENCOM_STROKE);p.setAttribute('stroke-width','2');
   p.style.transition='fill .15s';g.appendChild(p);
   g.appendChild(mkIco(ICONS[item.ico],c.x,c.y-20,52,item.color));
   var lb=document.createElementNS(NS,'text');
   lb.setAttribute('x',c.x.toFixed(1));lb.setAttribute('y',(c.y+34).toFixed(1));
   lb.setAttribute('text-anchor','middle');lb.setAttribute('font-size','17');
-  lb.setAttribute('font-weight','600');lb.setAttribute('fill','rgba(255,255,255,0.85)');
+  lb.setAttribute('font-weight','600');lb.setAttribute('fill',ENCOM_TEXT);
   lb.setAttribute('font-family','system-ui,-apple-system,sans-serif');
   lb.style.pointerEvents='none';lb.textContent=item.label;g.appendChild(lb);
   g.addEventListener('mouseover',function(){p.setAttribute('fill',fh);});
@@ -135,18 +159,18 @@ subItems.forEach(function(item,j){
   var am=(aS+aE)/2, mx=CX+R2_CENT*Math.cos(am), my=CY+R2_CENT*Math.sin(am);
   var sg=document.createElementNS(NS,'g');sg.style.cursor='pointer';
   var sp2=document.createElementNS(NS,'path');
-  sp2.setAttribute('d',pd);sp2.setAttribute('fill','rgba(30,32,38,0.92)');
-  sp2.setAttribute('stroke','rgba(255,255,255,0.06)');sp2.setAttribute('stroke-width','2');
+  sp2.setAttribute('d',pd);sp2.setAttribute('fill',ENCOM_SECTOR_FILL);
+  sp2.setAttribute('stroke',ENCOM_STROKE);sp2.setAttribute('stroke-width','2');
   sp2.style.transition='fill .15s';sg.appendChild(sp2);
   sg.appendChild(mkIco(ICONS[item.ico],mx,my-22,52,item.color));
   var sl=document.createElementNS(NS,'text');
   sl.setAttribute('x',mx.toFixed(1));sl.setAttribute('y',(my+36).toFixed(1));
   sl.setAttribute('text-anchor','middle');sl.setAttribute('font-size','17');
-  sl.setAttribute('font-weight','600');sl.setAttribute('fill','rgba(255,255,255,0.85)');
+  sl.setAttribute('font-weight','600');sl.setAttribute('fill',ENCOM_TEXT);
   sl.setAttribute('font-family','system-ui');sl.style.pointerEvents='none';sl.textContent=item.label;
   sg.appendChild(sl);
-  sg.addEventListener('mouseover',function(){sp2.setAttribute('fill','rgba(55,60,70,0.98)');});
-  sg.addEventListener('mouseout',function(){sp2.setAttribute('fill','rgba(30,32,38,0.92)');});
+  sg.addEventListener('mouseover',function(){sp2.setAttribute('fill',ENCOM_SECTOR_HOVER);});
+  sg.addEventListener('mouseout',function(){sp2.setAttribute('fill',ENCOM_SECTOR_FILL);});
   sg.addEventListener('click',function(){elegir(item.key);});
   subG.appendChild(sg);
 });
@@ -155,7 +179,7 @@ svg.appendChild(subG);
 // Centro RAW
 var cO=document.createElementNS(NS,'circle');
 cO.setAttribute('cx',CX);cO.setAttribute('cy',CY);cO.setAttribute('r',RAW_R);
-cO.setAttribute('fill','rgba(99,102,241,0.22)');cO.setAttribute('stroke','rgba(99,102,241,0.55)');cO.setAttribute('stroke-width','3');
+cO.setAttribute('fill',ENCOM_RAW_FILL);cO.setAttribute('stroke','rgba(99,102,241,0.55)');cO.setAttribute('stroke-width','3');
 cO.style.cursor='pointer';cO.addEventListener('click',function(){elegir('nueva');});svg.appendChild(cO);
 var cI=document.createElementNS(NS,'circle');
 cI.setAttribute('cx',CX);cI.setAttribute('cy',CY);cI.setAttribute('r','96');
@@ -163,11 +187,11 @@ cI.setAttribute('fill','rgba(99,102,241,0.08)');cI.setAttribute('stroke','rgba(9
 var cTx=document.createElementNS(NS,'text');
 cTx.setAttribute('x',CX);cTx.setAttribute('y',CY-12);cTx.setAttribute('text-anchor','middle');
 cTx.setAttribute('dominant-baseline','middle');cTx.setAttribute('font-size','54');
-cTx.setAttribute('fill','#A5B4FC');cTx.style.cursor='pointer';cTx.textContent='⇄';
+cTx.setAttribute('fill',ENCOM_RAW_TEXT);cTx.style.cursor='pointer';cTx.textContent='⇄';
 cTx.addEventListener('click',function(){elegir('nueva');});svg.appendChild(cTx);
 var cLb=document.createElementNS(NS,'text');
 cLb.setAttribute('x',CX);cLb.setAttribute('y',CY+50);cLb.setAttribute('text-anchor','middle');
-cLb.setAttribute('font-size','22');cLb.setAttribute('font-weight','700');cLb.setAttribute('fill','#A5B4FC');
+cLb.setAttribute('font-size','22');cLb.setAttribute('font-weight','700');cLb.setAttribute('fill',ENCOM_RAW_TEXT);
 cLb.setAttribute('font-family','system-ui');cLb.style.cursor='pointer';cLb.textContent='RAW';
 cLb.addEventListener('click',function(){elegir('nueva');});svg.appendChild(cLb);
 
