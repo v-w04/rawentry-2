@@ -603,9 +603,12 @@ function abrirEntrada(){
     ddEl.classList.add('dial-mode');
     ddEl.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9000;display:flex;align-items:center;justify-content:center;background:none';
   }
-  // Blur en body — cubre toda la pantalla sin excepción
-  document.body.style.setProperty('filter','blur(8px) brightness(0.5)');
-  document.body.style.overflow='hidden';
+  // Blur en .app — cubre todo el contenido sin afectar el dial
+  var appEl=document.querySelector('.app, #app, [class*="app"]');
+  if(appEl){ appEl.style.filter='blur(8px) brightness(0.5)'; appEl.style.transition='filter 0.2s'; appEl.style.pointerEvents='none'; }
+  // Mover el dropdown fuera del .app si está dentro
+  var ddMov=document.querySelector('.entrada-dropdown');
+  if(ddMov && appEl && appEl.contains(ddMov)){ document.body.appendChild(ddMov); }
   var innerEl=document.querySelector('.entrada-dropdown-inner');
   if(innerEl) innerEl.removeAttribute('style');
   var hdrEl=document.querySelector('.entrada-selector-hdr');
@@ -615,8 +618,8 @@ function abrirEntrada(){
 }
 
 function cerrarEntrada(){
-  document.body.style.filter='';
-  document.body.style.overflow='';
+  var appEl=document.querySelector('.app, #app');
+  if(appEl){ appEl.style.filter=''; appEl.style.pointerEvents=''; }
   const dd = document.getElementById('entrada-dropdown');
   const btn = document.getElementById('btn-nueva-entrada');
   if(dd){ dd.classList.remove('show'); dd.style.display='none'; }
@@ -1193,8 +1196,8 @@ function setModoEntrada(modo){
   if(paso2) paso2.style.display = 'block';
   // Restaurar inner y dropdown al estilo normal centrado
 
-  document.body.style.filter='';
-  document.body.style.overflow='';
+  var appEl=document.querySelector('.app, #app');
+  if(appEl){ appEl.style.filter=''; appEl.style.pointerEvents=''; }
   var dd2=document.querySelector('.entrada-dropdown');
   if(dd2) dd2.classList.remove('dial-mode');
   var inner2=document.querySelector('.entrada-dropdown-inner');
