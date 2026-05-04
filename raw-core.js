@@ -392,139 +392,319 @@ document.addEventListener('keydown', function(e){
 function _posicionarRadial(){
   var grid = document.querySelector('.entrada-selector-grid');
   if(!grid) return;
-  var btns = Array.from(grid.querySelectorAll('.entrada-tipo-btn'));
-  if(!btns.length) return;
 
-  var SIZE = 380, cx = 190, cy = 190;
-  var R_OUT = 178, R_IN = 68, R_MID = 128;
-  var GAP = 3;
-
-  grid.style.width  = SIZE+'px';
-  grid.style.height = SIZE+'px';
-  grid.style.position = 'relative';
-  grid.style.margin = '0 auto';
-
-  // Separar RAW (centro)
-  var idxCentral = btns.findIndex(function(b){
-    return (b.getAttribute('onclick')||'').includes("'nueva'");
+  // Ocultar todos los botones originales
+  Array.from(grid.querySelectorAll('.entrada-tipo-btn')).forEach(function(b){
+    b.style.cssText='position:absolute;opacity:0;width:0;height:0;overflow:hidden;pointer-events:none';
   });
-  var central = idxCentral >= 0 ? btns.splice(idxCentral,1)[0] : null;
 
-  if(central){
-    central.style.cssText = 'position:absolute;left:'+(cx-40)+'px;top:'+(cy-40)+'px;'+
-      'width:80px;height:80px;border-radius:50%;display:flex;flex-direction:column;'+
-      'align-items:center;justify-content:center;gap:3px;cursor:pointer;z-index:3;'+
-      'background:rgba(99,102,241,.2);border:1.5px solid rgba(99,102,241,.5);font-family:inherit;'+
-      'transition:transform .2s';
-    var ico = central.querySelector('.entrada-tipo-ico');
-    if(ico){ ico.style.fontSize='20px'; ico.style.color='#A5B4FC'; }
-    var lbl = central.querySelector('.entrada-tipo-lbl');
-    if(lbl){ lbl.style.cssText='font-size:10px;font-weight:700;color:#A5B4FC'; }
-    var sub = central.querySelector('.entrada-tipo-sub');
-    if(sub) sub.style.display='none';
-    central.addEventListener('mouseover',function(){ central.style.transform='scale(1.08)'; });
-    central.addEventListener('mouseout', function(){ central.style.transform='scale(1)'; });
-  }
+  grid.style.width='400px'; grid.style.height='400px';
+  grid.style.position='relative'; grid.style.margin='0 auto';
+
+  var existing = grid.querySelector('.radial-svg-dial');
+  if(existing) existing.remove();
+
+  var svgNS='http://www.w3.org/2000/svg';
+  var svg=document.createElementNS(svgNS,'svg');
+  svg.setAttribute('viewBox','0 0 400 400');
+  svg.setAttribute('class','radial-svg-dial');
+  svg.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible';
+  grid.appendChild(svg);
 
   // Tooltip
-  var tip = document.getElementById('radial-tip');
-  if(!tip){
-    tip = document.createElement('div');
-    tip.id = 'radial-tip';
-    tip.style.cssText = 'position:fixed;background:#1a1a1a;border:1px solid rgba(255,255,255,.15);'+
-      'color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;'+
-      'pointer-events:none;z-index:9999;opacity:0;transition:opacity .12s;white-space:nowrap;font-family:inherit';
-    document.body.appendChild(tip);
-  }
-  function showTip(e,t){ tip.textContent=t; tip.style.opacity='1'; moveTip(e); }
-  function moveTip(e){ tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY-28)+'px'; }
-  function hideTip(){ tip.style.opacity='0'; }
+  var tip=document.getElementById('radial-tip');
+  if(!tip){tip=document.createElement('div');tip.id='radial-tip';
+    tip.style.cssText='position:fixed;background:#111;border:1px solid rgba(255,255,255,.15);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;pointer-events:none;z-index:9999;opacity:0;transition:opacity .12s;white-space:nowrap;font-family:inherit';
+    document.body.appendChild(tip);}
+  function showT(e,t){tip.textContent=t;tip.style.opacity='1';moveT(e);}
+  function moveT(e){tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-28)+'px';}
+  function hideT(){tip.style.opacity='0';}
 
-  // SVG
-  var svg = grid.querySelector('.radial-svg');
-  if(!svg){
-    svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-    svg.setAttribute('class','radial-svg');
-    svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:1';
-    svg.setAttribute('viewBox','0 0 '+SIZE+' '+SIZE);
-    grid.insertBefore(svg, grid.firstChild);
-  }
-  svg.innerHTML = '';
+  var actSubVisible=false;
+  var subGroup=null;
 
-  var n = btns.length;
-
-  btns.forEach(function(btn, i){
-    var aStart = (i/n)*360 - 90 + GAP/2;
-    var aEnd   = ((i+1)/n)*360 - 90 - GAP/2;
-    var aMid   = (aStart+aEnd)/2;
-    var a1=aStart*Math.PI/180, a2=aEnd*Math.PI/180, am=aMid*Math.PI/180;
-
-    var x1=cx+R_OUT*Math.cos(a1), y1=cy+R_OUT*Math.sin(a1);
-    var x2=cx+R_OUT*Math.cos(a2), y2=cy+R_OUT*Math.sin(a2);
-    var x3=cx+R_IN*Math.cos(a2),  y3=cy+R_IN*Math.sin(a2);
-    var x4=cx+R_IN*Math.cos(a1),  y4=cy+R_IN*Math.sin(a1);
-    var large=(aEnd-aStart)>180?1:0;
-    var d='M '+x1.toFixed(1)+' '+y1.toFixed(1)+
-          ' A '+R_OUT+' '+R_OUT+' 0 '+large+' 1 '+x2.toFixed(1)+' '+y2.toFixed(1)+
-          ' L '+x3.toFixed(1)+' '+y3.toFixed(1)+
-          ' A '+R_IN+' '+R_IN+' 0 '+large+' 0 '+x4.toFixed(1)+' '+y4.toFixed(1)+' Z';
-
-    // Extraer color del botón
-    var styleStr = btn.getAttribute('style')||'';
-    var colorMatch = styleStr.match(/--tipo-color:\s*([^;]+)/);
-    var tipoColor = colorMatch ? colorMatch[1].trim() : 'rgba(255,255,255,0.5)';
-
-    // Path clickeable
-    var path = document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d', d);
-    path.setAttribute('fill','rgba(255,255,255,0.04)');
-    path.setAttribute('stroke','rgba(255,255,255,0.07)');
-    path.setAttribute('stroke-width','1');
-    path.style.cursor = 'pointer';
-    path.style.transition = 'fill .15s';
-
-    var lbl = btn.querySelector('.entrada-tipo-lbl');
-    var tipText = lbl ? lbl.textContent.trim() : '';
-
-    path.addEventListener('mouseover',function(e){
-      path.setAttribute('fill','rgba(255,255,255,0.1)');
-      showTip(e,tipText);
+  function makeSector(pathD,fillColor,strokeColor,action,label,isAct){
+    var g=document.createElementNS(svgNS,'g');
+    g.style.cursor='pointer';
+    var path=document.createElementNS(svgNS,'path');
+    path.setAttribute('d',pathD);
+    path.setAttribute('fill',fillColor);
+    path.setAttribute('stroke',strokeColor);
+    path.setAttribute('stroke-width','0.5');
+    path.style.transition='fill .15s';
+    g.appendChild(path);
+    g.addEventListener('mouseover',function(e){path.setAttribute('fill',isAct?'rgba(34,211,238,0.2)':'rgba(255,255,255,0.1)');showT(e,label);});
+    g.addEventListener('mousemove',moveT);
+    g.addEventListener('mouseout',function(){path.setAttribute('fill',fillColor);hideT();});
+    g.addEventListener('click',function(){
+      if(isAct){
+        actSubVisible=!actSubVisible;
+        if(subGroup) subGroup.style.opacity=actSubVisible?'1':'0';
+        if(subGroup) subGroup.style.pointerEvents=actSubVisible?'all':'none';
+      } else {
+        setModoEntrada(action);
+      }
     });
-    path.addEventListener('mousemove',moveTip);
-    path.addEventListener('mouseout',function(){
-      path.setAttribute('fill','rgba(255,255,255,0.04)');
-      hideTip();
-    });
-    path.addEventListener('click',function(){ btn.click(); });
-    svg.appendChild(path);
+    return {g:g, path:path};
+  }
 
-    // Ícono: foreignObject centrado en el sector
-    var ix = cx + R_MID*Math.cos(am);
-    var iy = cy + R_MID*Math.sin(am);
-    var fo = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
-    fo.setAttribute('x',(ix-20).toFixed(0));
-    fo.setAttribute('y',(iy-24).toFixed(0));
-    fo.setAttribute('width','40');
-    fo.setAttribute('height','44');
-    fo.style.pointerEvents='none';
-    fo.style.overflow='visible';
 
-    var wrap = document.createElement('div');
-    wrap.style.cssText='width:40px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px';
+  var s0=makeSector("M202.77,15.02 A185,185,0,0,1,306.48,48.72 L241.44,141.12 A72,72,0,0,0,201.08,128.01Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","apartado","Apartado",false);
+  // Ícono FA
+  var ico0=document.createElementNS(svgNS,'text');
+  ico0.setAttribute('x','236.6');ico0.setAttribute('y','93.3');
+  ico0.setAttribute('text-anchor','middle');ico0.setAttribute('font-size','15');
+  ico0.setAttribute('font-family','Font Awesome 6 Free');ico0.setAttribute('font-weight','900');
+  ico0.setAttribute('fill','#4ADE80');ico0.style.pointerEvents='none';
+  var t0=document.createElementNS(svgNS,'text');
+  t0.setAttribute('x','246.5');t0.setAttribute('y','60.9');
+  t0.setAttribute('text-anchor','middle');t0.setAttribute('font-size','8.5');
+  t0.setAttribute('font-weight','700');t0.setAttribute('fill','rgba(255,255,255,0.7)');
+  t0.setAttribute('font-family','system-ui');t0.style.pointerEvents='none';
+  t0.textContent='Apartado';
+  s0.g.appendChild(ico0);s0.g.appendChild(t0);
+  svg.appendChild(s0.g);
 
-    var icoEl = btn.querySelector('.entrada-tipo-ico');
-    if(icoEl){
-      var ic2 = icoEl.cloneNode(true);
-      ic2.style.cssText='font-size:18px;color:'+tipoColor+';display:block;text-align:center;line-height:1';
-      wrap.appendChild(ic2);
-    }
+  var s1=makeSector("M310.97,51.98 A185,185,0,0,1,375.07,140.20 L268.13,176.73 A72,72,0,0,0,243.19,142.39Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","bancos","Bancos",false);
+  // Ícono FA
+  var ico1=document.createElementNS(svgNS,'text');
+  ico1.setAttribute('x','295.9');ico1.setAttribute('y','136.3');
+  ico1.setAttribute('text-anchor','middle');ico1.setAttribute('font-size','15');
+  ico1.setAttribute('font-family','Font Awesome 6 Free');ico1.setAttribute('font-weight','900');
+  ico1.setAttribute('fill','#F59E0B');ico1.style.pointerEvents='none';
+  var t1=document.createElementNS(svgNS,'text');
+  t1.setAttribute('x','321.8');t1.setAttribute('y','115.5');
+  t1.setAttribute('text-anchor','middle');t1.setAttribute('font-size','8.5');
+  t1.setAttribute('font-weight','700');t1.setAttribute('fill','rgba(255,255,255,0.7)');
+  t1.setAttribute('font-family','system-ui');t1.style.pointerEvents='none';
+  t1.textContent='Bancos';
+  s1.g.appendChild(ico1);s1.g.appendChild(t1);
+  svg.appendChild(s1.g);
 
-    fo.appendChild(wrap);
-    svg.appendChild(fo);
+  var s2=makeSector("M376.78,145.48 A185,185,0,0,1,376.78,254.52 L268.80,221.22 A72,72,0,0,0,268.80,178.78Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","entrenamiento","Entrena",false);
+  // Ícono FA
+  var ico2=document.createElementNS(svgNS,'text');
+  ico2.setAttribute('x','318.5');ico2.setAttribute('y','206.0');
+  ico2.setAttribute('text-anchor','middle');ico2.setAttribute('font-size','15');
+  ico2.setAttribute('font-family','Font Awesome 6 Free');ico2.setAttribute('font-weight','900');
+  ico2.setAttribute('fill','#FB923C');ico2.style.pointerEvents='none';
+  var t2=document.createElementNS(svgNS,'text');
+  t2.setAttribute('x','350.5');t2.setAttribute('y','204.0');
+  t2.setAttribute('text-anchor','middle');t2.setAttribute('font-size','8.5');
+  t2.setAttribute('font-weight','700');t2.setAttribute('fill','rgba(255,255,255,0.7)');
+  t2.setAttribute('font-family','system-ui');t2.style.pointerEvents='none';
+  t2.textContent='Entrena';
+  s2.g.appendChild(ico2);s2.g.appendChild(t2);
+  svg.appendChild(s2.g);
 
-    // Ocultar botón original
-    btn.style.cssText='position:absolute;opacity:0;width:0;height:0;pointer-events:none;overflow:hidden';
-  });
+  var s3=makeSector("M375.07,259.80 A185,185,0,0,1,310.97,348.02 L243.19,257.61 A72,72,0,0,0,268.13,223.27Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","nutricion","Nutrición",false);
+  // Ícono FA
+  var ico3=document.createElementNS(svgNS,'text');
+  ico3.setAttribute('x','295.9');ico3.setAttribute('y','275.7');
+  ico3.setAttribute('text-anchor','middle');ico3.setAttribute('font-size','15');
+  ico3.setAttribute('font-family','Font Awesome 6 Free');ico3.setAttribute('font-weight','900');
+  ico3.setAttribute('fill','#4ADE80');ico3.style.pointerEvents='none';
+  var t3=document.createElementNS(svgNS,'text');
+  t3.setAttribute('x','321.8');t3.setAttribute('y','292.5');
+  t3.setAttribute('text-anchor','middle');t3.setAttribute('font-size','8.5');
+  t3.setAttribute('font-weight','700');t3.setAttribute('fill','rgba(255,255,255,0.7)');
+  t3.setAttribute('font-family','system-ui');t3.style.pointerEvents='none';
+  t3.textContent='Nutrición';
+  s3.g.appendChild(ico3);s3.g.appendChild(t3);
+  svg.appendChild(s3.g);
+
+  var s4=makeSector("M306.48,351.28 A185,185,0,0,1,202.77,384.98 L201.08,271.99 A72,72,0,0,0,241.44,258.88Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","patrimonio","Patrimonio",false);
+  // Ícono FA
+  var ico4=document.createElementNS(svgNS,'text');
+  ico4.setAttribute('x','236.6');ico4.setAttribute('y','318.7');
+  ico4.setAttribute('text-anchor','middle');ico4.setAttribute('font-size','15');
+  ico4.setAttribute('font-family','Font Awesome 6 Free');ico4.setAttribute('font-weight','900');
+  ico4.setAttribute('fill','#C4B5FD');ico4.style.pointerEvents='none';
+  var t4=document.createElementNS(svgNS,'text');
+  t4.setAttribute('x','246.5');t4.setAttribute('y','347.1');
+  t4.setAttribute('text-anchor','middle');t4.setAttribute('font-size','8.5');
+  t4.setAttribute('font-weight','700');t4.setAttribute('fill','rgba(255,255,255,0.7)');
+  t4.setAttribute('font-family','system-ui');t4.style.pointerEvents='none';
+  t4.textContent='Patrimonio';
+  s4.g.appendChild(ico4);s4.g.appendChild(t4);
+  svg.appendChild(s4.g);
+
+  var s5=makeSector("M197.23,384.98 A185,185,0,0,1,93.52,351.28 L158.56,258.88 A72,72,0,0,0,198.92,271.99Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","pensamiento","Pensa",false);
+  // Ícono FA
+  var ico5=document.createElementNS(svgNS,'text');
+  ico5.setAttribute('x','163.4');ico5.setAttribute('y','318.7');
+  ico5.setAttribute('text-anchor','middle');ico5.setAttribute('font-size','15');
+  ico5.setAttribute('font-family','Font Awesome 6 Free');ico5.setAttribute('font-weight','900');
+  ico5.setAttribute('fill','#F9A8D4');ico5.style.pointerEvents='none';
+  var t5=document.createElementNS(svgNS,'text');
+  t5.setAttribute('x','153.5');t5.setAttribute('y','347.1');
+  t5.setAttribute('text-anchor','middle');t5.setAttribute('font-size','8.5');
+  t5.setAttribute('font-weight','700');t5.setAttribute('fill','rgba(255,255,255,0.7)');
+  t5.setAttribute('font-family','system-ui');t5.style.pointerEvents='none';
+  t5.textContent='Pensa';
+  s5.g.appendChild(ico5);s5.g.appendChild(t5);
+  svg.appendChild(s5.g);
+
+  var s6=makeSector("M89.03,348.02 A185,185,0,0,1,24.93,259.80 L131.87,223.27 A72,72,0,0,0,156.81,257.61Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","persona","Persona",false);
+  // Ícono FA
+  var ico6=document.createElementNS(svgNS,'text');
+  ico6.setAttribute('x','104.1');ico6.setAttribute('y','275.7');
+  ico6.setAttribute('text-anchor','middle');ico6.setAttribute('font-size','15');
+  ico6.setAttribute('font-family','Font Awesome 6 Free');ico6.setAttribute('font-weight','900');
+  ico6.setAttribute('fill','#93C5FD');ico6.style.pointerEvents='none';
+  var t6=document.createElementNS(svgNS,'text');
+  t6.setAttribute('x','78.2');t6.setAttribute('y','292.5');
+  t6.setAttribute('text-anchor','middle');t6.setAttribute('font-size','8.5');
+  t6.setAttribute('font-weight','700');t6.setAttribute('fill','rgba(255,255,255,0.7)');
+  t6.setAttribute('font-family','system-ui');t6.style.pointerEvents='none';
+  t6.textContent='Persona';
+  s6.g.appendChild(ico6);s6.g.appendChild(t6);
+  svg.appendChild(s6.g);
+
+  var s7=makeSector("M23.22,254.52 A185,185,0,0,1,23.22,145.48 L131.20,178.78 A72,72,0,0,0,131.20,221.22Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","editar","Editar",false);
+  // Ícono FA
+  var ico7=document.createElementNS(svgNS,'text');
+  ico7.setAttribute('x','81.5');ico7.setAttribute('y','206.0');
+  ico7.setAttribute('text-anchor','middle');ico7.setAttribute('font-size','15');
+  ico7.setAttribute('font-family','Font Awesome 6 Free');ico7.setAttribute('font-weight','900');
+  ico7.setAttribute('fill','#94A3B8');ico7.style.pointerEvents='none';
+  var t7=document.createElementNS(svgNS,'text');
+  t7.setAttribute('x','49.5');t7.setAttribute('y','204.0');
+  t7.setAttribute('text-anchor','middle');t7.setAttribute('font-size','8.5');
+  t7.setAttribute('font-weight','700');t7.setAttribute('fill','rgba(255,255,255,0.7)');
+  t7.setAttribute('font-family','system-ui');t7.style.pointerEvents='none';
+  t7.textContent='Editar';
+  s7.g.appendChild(ico7);s7.g.appendChild(t7);
+  svg.appendChild(s7.g);
+
+  var s8=makeSector("M24.93,140.20 A185,185,0,0,1,89.03,51.98 L156.81,142.39 A72,72,0,0,0,131.87,176.73Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","salud","Salud",false);
+  // Ícono FA
+  var ico8=document.createElementNS(svgNS,'text');
+  ico8.setAttribute('x','104.1');ico8.setAttribute('y','136.3');
+  ico8.setAttribute('text-anchor','middle');ico8.setAttribute('font-size','15');
+  ico8.setAttribute('font-family','Font Awesome 6 Free');ico8.setAttribute('font-weight','900');
+  ico8.setAttribute('fill','#FCA5A5');ico8.style.pointerEvents='none';
+  var t8=document.createElementNS(svgNS,'text');
+  t8.setAttribute('x','78.2');t8.setAttribute('y','115.5');
+  t8.setAttribute('text-anchor','middle');t8.setAttribute('font-size','8.5');
+  t8.setAttribute('font-weight','700');t8.setAttribute('fill','rgba(255,255,255,0.7)');
+  t8.setAttribute('font-family','system-ui');t8.style.pointerEvents='none';
+  t8.textContent='Salud';
+  s8.g.appendChild(ico8);s8.g.appendChild(t8);
+  svg.appendChild(s8.g);
+
+  var s9=makeSector("M93.52,48.72 A185,185,0,0,1,197.23,15.02 L198.92,128.01 A72,72,0,0,0,158.56,141.12Z","rgba(34,211,238,0.1)","#22D3EE","activity","Activity",true);
+  // Ícono FA
+  var ico9=document.createElementNS(svgNS,'text');
+  ico9.setAttribute('x','163.4');ico9.setAttribute('y','93.3');
+  ico9.setAttribute('text-anchor','middle');ico9.setAttribute('font-size','15');
+  ico9.setAttribute('font-family','Font Awesome 6 Free');ico9.setAttribute('font-weight','900');
+  ico9.setAttribute('fill','#22D3EE');ico9.style.pointerEvents='none';
+  var t9=document.createElementNS(svgNS,'text');
+  t9.setAttribute('x','153.5');t9.setAttribute('y','60.9');
+  t9.setAttribute('text-anchor','middle');t9.setAttribute('font-size','8.5');
+  t9.setAttribute('font-weight','700');t9.setAttribute('fill','rgba(255,255,255,0.7)');
+  t9.setAttribute('font-family','system-ui');t9.style.pointerEvents='none';
+  t9.textContent='Activity';
+  s9.g.appendChild(ico9);s9.g.appendChild(t9);
+  svg.appendChild(s9.g);
+
+  // Segundo anillo Activity
+  subGroup=document.createElementNS(svgNS,'g');
+  subGroup.style.opacity='0';subGroup.style.pointerEvents='none';subGroup.style.transition='opacity .2s';
+
+  var sg0=document.createElementNS(svgNS,'g'); sg0.style.cursor='pointer';
+  var sp0=document.createElementNS(svgNS,'path');
+  sp0.setAttribute('d',"M-62.54,136.97 A270,270,0,0,1,35.63,-14.21 L84.34,49.26 A190,190,0,0,0,15.25,155.65Z");
+  sp0.setAttribute('fill','rgba(34,211,238,0.08)');
+  sp0.setAttribute('stroke','rgba(34,211,238,0.35)');sp0.setAttribute('stroke-width','0.5');
+  sp0.style.transition='fill .15s';
+  sg0.appendChild(sp0);
+  var se0=document.createElementNS(svgNS,'text');
+  se0.setAttribute('x','7.1');se0.setAttribute('y','74.7');
+  se0.setAttribute('text-anchor','middle');se0.setAttribute('dominant-baseline','middle');
+  se0.setAttribute('font-size','14');se0.style.pointerEvents='none';se0.textContent='📚';
+  var sl0=document.createElementNS(svgNS,'text');
+  sl0.setAttribute('x','7.1');sl0.setAttribute('y','90.7');
+  sl0.setAttribute('text-anchor','middle');sl0.setAttribute('font-size','8');
+  sl0.setAttribute('font-weight','700');sl0.setAttribute('fill','rgba(34,211,238,0.9)');
+  sl0.setAttribute('font-family','system-ui');sl0.style.pointerEvents='none';sl0.textContent='Libros';
+  sg0.appendChild(se0);sg0.appendChild(sl0);
+  sg0.addEventListener('mouseover',function(){sp0.setAttribute('fill','rgba(34,211,238,0.2)');});
+  sg0.addEventListener('mouseout', function(){sp0.setAttribute('fill','rgba(34,211,238,0.08)');});
+  sg0.addEventListener('click',function(){setModoEntrada('libro');});
+  subGroup.appendChild(sg0);
+
+  var sg1=document.createElementNS(svgNS,'g'); sg1.style.cursor='pointer';
+  var sp1=document.createElementNS(svgNS,'path');
+  sp1.setAttribute('d',"M35.63,-14.21 A270,270,0,0,1,207.07,-69.91 L204.97,10.07 A190,190,0,0,0,84.34,49.26Z");
+  sp1.setAttribute('fill','rgba(34,211,238,0.08)');
+  sp1.setAttribute('stroke','rgba(34,211,238,0.35)');sp1.setAttribute('stroke-width','0.5');
+  sp1.style.transition='fill .15s';
+  sg1.appendChild(sp1);
+  var se1=document.createElementNS(svgNS,'text');
+  se1.setAttribute('x','128.9');se1.setAttribute('y','-18.7');
+  se1.setAttribute('text-anchor','middle');se1.setAttribute('dominant-baseline','middle');
+  se1.setAttribute('font-size','14');se1.style.pointerEvents='none';se1.textContent='🎬';
+  var sl1=document.createElementNS(svgNS,'text');
+  sl1.setAttribute('x','128.9');sl1.setAttribute('y','-2.7');
+  sl1.setAttribute('text-anchor','middle');sl1.setAttribute('font-size','8');
+  sl1.setAttribute('font-weight','700');sl1.setAttribute('fill','rgba(34,211,238,0.9)');
+  sl1.setAttribute('font-family','system-ui');sl1.style.pointerEvents='none';sl1.textContent='Movies';
+  sg1.appendChild(se1);sg1.appendChild(sl1);
+  sg1.addEventListener('mouseover',function(){sp1.setAttribute('fill','rgba(34,211,238,0.2)');});
+  sg1.addEventListener('mouseout', function(){sp1.setAttribute('fill','rgba(34,211,238,0.08)');});
+  sg1.addEventListener('click',function(){setModoEntrada('movie');});
+  subGroup.appendChild(sg1);
+
+  var sg2=document.createElementNS(svgNS,'g'); sg2.style.cursor='pointer';
+  var sp2=document.createElementNS(svgNS,'path');
+  sp2.setAttribute('d',"M207.07,-69.91 A270,270,0,0,1,375.35,-5.31 L323.40,55.52 A190,190,0,0,0,204.97,10.07Z");
+  sp2.setAttribute('fill','rgba(34,211,238,0.08)');
+  sp2.setAttribute('stroke','rgba(34,211,238,0.35)');sp2.setAttribute('stroke-width','0.5');
+  sp2.style.transition='fill .15s';
+  sg2.appendChild(sp2);
+  var se2=document.createElementNS(svgNS,'text');
+  se2.setAttribute('x','282.4');se2.setAttribute('y','-14.7');
+  se2.setAttribute('text-anchor','middle');se2.setAttribute('dominant-baseline','middle');
+  se2.setAttribute('font-size','14');se2.style.pointerEvents='none';se2.textContent='📌';
+  var sl2=document.createElementNS(svgNS,'text');
+  sl2.setAttribute('x','282.4');sl2.setAttribute('y','1.3');
+  sl2.setAttribute('text-anchor','middle');sl2.setAttribute('font-size','8');
+  sl2.setAttribute('font-weight','700');sl2.setAttribute('fill','rgba(34,211,238,0.9)');
+  sl2.setAttribute('font-family','system-ui');sl2.style.pointerEvents='none';sl2.textContent='Pendientes';
+  sg2.appendChild(se2);sg2.appendChild(sl2);
+  sg2.addEventListener('mouseover',function(){sp2.setAttribute('fill','rgba(34,211,238,0.2)');});
+  sg2.addEventListener('mouseout', function(){sp2.setAttribute('fill','rgba(34,211,238,0.08)');});
+  sg2.addEventListener('click',function(){setModoEntrada('norut');});
+  subGroup.appendChild(sg2);
+
+  svg.appendChild(subGroup);
+
+  // Centro RAW
+  var cOuter=document.createElementNS(svgNS,'circle');
+  cOuter.setAttribute('cx','200');cOuter.setAttribute('cy','200');cOuter.setAttribute('r','62');
+  cOuter.setAttribute('fill','rgba(99,102,241,0.15)');cOuter.setAttribute('stroke','rgba(99,102,241,0.45)');cOuter.setAttribute('stroke-width','1.5');
+  cOuter.style.cursor='pointer';cOuter.addEventListener('click',function(){setModoEntrada('nueva');});
+  svg.appendChild(cOuter);
+
+  var cInner=document.createElementNS(svgNS,'circle');
+  cInner.setAttribute('cx','200');cInner.setAttribute('cy','200');cInner.setAttribute('r','48');
+  cInner.setAttribute('fill','rgba(99,102,241,0.08)');cInner.setAttribute('stroke','rgba(99,102,241,0.2)');cInner.setAttribute('stroke-width','0.5');
+  svg.appendChild(cInner);
+
+  var cIco=document.createElementNS(svgNS,'text');
+  cIco.setAttribute('x','200');cIco.setAttribute('y','197');cIco.setAttribute('text-anchor','middle');
+  cIco.setAttribute('font-size','22');cIco.setAttribute('fill','#A5B4FC');cIco.style.cursor='pointer';
+  cIco.textContent='⇄';cIco.addEventListener('click',function(){setModoEntrada('nueva');});
+  svg.appendChild(cIco);
+
+  var cLbl=document.createElementNS(svgNS,'text');
+  cLbl.setAttribute('x','200');cLbl.setAttribute('y','214');cLbl.setAttribute('text-anchor','middle');
+  cLbl.setAttribute('font-size','11');cLbl.setAttribute('font-weight','700');cLbl.setAttribute('fill','#A5B4FC');
+  cLbl.setAttribute('font-family','system-ui');cLbl.style.cursor='pointer';
+  cLbl.textContent='RAW';cLbl.addEventListener('click',function(){setModoEntrada('nueva');});
+  svg.appendChild(cLbl);
 }
 
 
