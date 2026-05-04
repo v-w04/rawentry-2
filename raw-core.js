@@ -597,41 +597,7 @@ function abrirEntrada(){
   if(paso1) paso1.style.display = 'block';
   if(paso2) paso2.style.display = 'none';
 
-  // Pantalla de blur — div simple sobre todo
-  var ov = document.getElementById('dial-screen-overlay');
-  if(!ov){
-    ov = document.createElement('div');
-    ov.id = 'dial-screen-overlay';
-    document.body.appendChild(ov);
-  }
-  // Blur fuera del círculo: capa blur total + agujero circular encima
-  ov.innerHTML = '';
-  ov.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:8000;pointer-events:none';
 
-  var cx = window.innerWidth / 2;
-  var cy = window.innerHeight / 2;
-  var r = 500; // radio del dial en px de pantalla
-
-  // Capa 1: blur en todo el viewport con clip-path que deja agujero circular
-  var blurLayer = document.createElement('div');
-  blurLayer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;' +
-    'backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);' +
-    'background:rgba(0,0,0,0.5);' +
-    'clip-path:evenodd polygon(' +
-      '0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, ' +
-      // Trazar un círculo con puntos (aproximación poligonal de 64 puntos)
-      (function(){
-        var pts = [];
-        for(var a=0; a<=64; a++){
-          var ang = (a/64)*2*Math.PI;
-          var px = ((cx + r*Math.cos(ang))/window.innerWidth*100).toFixed(2)+'%';
-          var py = ((cy + r*Math.sin(ang))/window.innerHeight*100).toFixed(2)+'%';
-          pts.push(px+' '+py);
-        }
-        return pts.join(', ');
-      })() +
-    ')';
-  ov.appendChild(blurLayer);
 
   // Dropdown encima del overlay
   var ddEl = document.querySelector('.entrada-dropdown');
@@ -649,8 +615,7 @@ function abrirEntrada(){
 }
 
 function cerrarEntrada(){
-  var ov=document.getElementById('dial-screen-overlay');
-  if(ov) ov.style.display='none';
+
   const dd = document.getElementById('entrada-dropdown');
   const btn = document.getElementById('btn-nueva-entrada');
   if(dd){ dd.classList.remove('show'); dd.style.display='none'; }
@@ -1227,8 +1192,7 @@ function setModoEntrada(modo){
   if(paso2) paso2.style.display = 'block';
   // Restaurar inner y dropdown al estilo normal centrado
 
-  var ov=document.getElementById('dial-screen-overlay');
-  if(ov) ov.style.display='none';
+
   var dd2=document.querySelector('.entrada-dropdown');
   if(dd2) dd2.classList.remove('dial-mode');
   var inner2=document.querySelector('.entrada-dropdown-inner');
