@@ -410,13 +410,9 @@ function _posicionarRadial(){
   svg.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible';
   grid.appendChild(svg);
 
-  var tip=document.getElementById('radial-tip');
-  if(!tip){tip=document.createElement('div');tip.id='radial-tip';
-    tip.style.cssText='position:fixed;background:#1a1a1a;border:1px solid rgba(255,255,255,.2);color:#fff;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;pointer-events:none;z-index:9999;opacity:0;transition:opacity .12s;white-space:nowrap;font-family:inherit';
-    document.body.appendChild(tip);}
-  function sT(e,t){tip.textContent=t;tip.style.opacity='1';mT(e);}
-  function mT(e){tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-32)+'px';}
-  function hT(){tip.style.opacity='0';}
+  function sT(e,t){}
+  function mT(e){}
+  function hT(){}
   var actSub=false,subG=null;
 
   function makeSVGIcon(iconPath,x,y,size,color){
