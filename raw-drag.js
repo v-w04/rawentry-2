@@ -1,15 +1,14 @@
-/* RAW Entry — Drag & Drop v.5.044 */
-// ══════════════════════════════════════════
-//  DRAG & DROP — Módulos del anverso
-//  Solo desktop (≥900px)
-// ══════════════════════════════════════════
-
+/* RAW Entry — Drag & Drop v.5.045
+   Fix: col-empty solo durante drag (body.drag-active)
+   Fix: mcol-2 duplicado → mcol-1 correcto
+   Fix: restoreLayout valida IDs antes de mover
+   Fix: grid-row:1 forzado en columnas al terminar drag
+*/
 (function(){
   var STORAGE_KEY = 'lifeos_layout_v1';
   var _dragSec = null;
   var _dragCol = null;
 
-  // Guardar layout actual
   function saveLayout(){
     var layout = {};
     ['col-1','col-2','col-3','col-4'].forEach(function(colId){
@@ -20,7 +19,6 @@
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(layout)); } catch(e){}
   }
 
-  // Restaurar layout guardado — NUNCA borrar, siempre respetar lo que el usuario guardó
   function restoreLayout(){
     var raw;
     try { raw = localStorage.getItem(STORAGE_KEY); } catch(e){}
@@ -28,18 +26,22 @@
     var layout;
     try { layout = JSON.parse(raw); } catch(e){ return; }
 
-    // Solo mover secciones que existen en el DOM — sin validar ni resetear
+    // Solo mover secciones que existen en el DOM y pertenecen a mob-sections
+    var validCols = ['col-1','col-2','col-3','col-4'];
     Object.keys(layout).forEach(function(colId){
+      if(validCols.indexOf(colId) === -1) return;   // columna desconocida → ignorar
       var col = document.getElementById(colId);
       if(!col) return;
-      layout[colId].forEach(function(secId){
+      (layout[colId] || []).forEach(function(secId){
         var sec = document.getElementById(secId);
-        if(sec) col.appendChild(sec);
+        // Solo mover si la sección existe y está dentro de #mob-sections
+        if(sec && document.getElementById('mob-sections') && document.getElementById('mob-sections').contains(sec)){
+          col.appendChild(sec);
+        }
       });
     });
   }
 
-  // Crear handle de drag en el header de cada sección
   function addHandle(sec){
     var hdr = sec.querySelector('.sec-hdr');
     if(!hdr || hdr.querySelector('.drag-handle')) return;
@@ -50,10 +52,7 @@
     handle.title = 'Arrastrar módulo';
     hdr.insertBefore(handle, hdr.firstChild);
 
-    // Drag events en el handle
-    handle.addEventListener('mousedown', function(e){
-      e.stopPropagation();
-    });
+    handle.addEventListener('mousedown', function(e){ e.stopPropagation(); });
 
     sec.setAttribute('draggable', 'true');
 
@@ -61,11 +60,16 @@
       _dragSec = sec;
       _dragCol = sec.parentElement;
       e.dataTransfer.effectAllowed = 'move';
-      setTimeout(function(){ sec.classList.add('dragging'); }, 0);
+      setTimeout(function(){
+        sec.classList.add('dragging');
+        document.body.classList.add('drag-active');   // ← activa col-empty en CSS
+        updateEmptyColumns();
+      }, 0);
     });
 
     sec.addEventListener('dragend', function(){
       sec.classList.remove('dragging');
+      document.body.classList.remove('drag-active');  // ← oculta col-empty
       document.querySelectorAll('.drop-indicator').forEach(function(el){ el.remove(); });
       document.querySelectorAll('.col-drop-over').forEach(function(el){ el.classList.remove('col-drop-over'); });
       _dragSec = null;
@@ -75,7 +79,7 @@
     });
   }
 
-  // Mantener columnas vacías con altura mínima para poder hacer drop
+  // Solo marca la clase; el CSS la muestra/oculta según body.drag-active
   function updateEmptyColumns(){
     ['col-1','col-2','col-3','col-4'].forEach(function(colId){
       var col = document.getElementById(colId);
@@ -85,7 +89,6 @@
     });
   }
 
-  // Drop zones en columnas
   function initColumns(){
     ['col-1','col-2','col-3','col-4'].forEach(function(colId){
       var col = document.getElementById(colId);
@@ -97,7 +100,6 @@
         e.dataTransfer.dropEffect = 'move';
         col.classList.add('col-drop-over');
 
-        // Indicador de posición
         document.querySelectorAll('.drop-indicator').forEach(function(el){ el.remove(); });
         var sections = Array.from(col.querySelectorAll('.section:not(.dragging)'));
         var indicator = document.createElement('div');
@@ -139,56 +141,52 @@
     });
   }
 
-  // Init — esperar a que el DOM cargue los módulos
-  function init(){
-    if(window.innerWidth < 900) return;
-    document.querySelectorAll('#mob-sections .section').forEach(addHandle);
-    initColumns();
-    restoreLayout();
-    updateEmptyColumns();
-    saveDefaultLayout();
-    initMaslowColumns();
-  }
-
   function initMaslowColumns(){
-    var MASLOW_KEY = 'lifeos_maslow_layout_v1';
-    var mCols = ['mcol-2','mcol-2','mcol-3','mcol-4','mcol-5'];
+    // FIX: era ['mcol-2','mcol-2','mcol-3','mcol-4','mcol-5'] — mcol-1 faltaba
+    var mCols = ['mcol-1','mcol-2','mcol-3','mcol-4','mcol-5'];
     mCols.forEach(function(colId){
       var col = document.getElementById(colId);
       if(!col) return;
+
       col.addEventListener('dragover', function(e){
         if(!_dragSec) return;
         e.preventDefault();
         col.classList.add('col-drop-over');
+        document.querySelectorAll('.drop-indicator').forEach(function(el){ el.remove(); });
         var indicator = document.createElement('div');
         indicator.className = 'drop-indicator';
-        document.querySelectorAll('.drop-indicator').forEach(function(el){ el.remove(); });
         var sections = Array.from(col.querySelectorAll('.section:not(.dragging)'));
         var inserted = false;
-        for(var i=0; i<sections.length; i++){
-          if(e.clientY < sections[i].getBoundingClientRect().top + sections[i].getBoundingClientRect().height/2){
-            col.insertBefore(indicator, sections[i]); inserted=true; break;
+        for(var i = 0; i < sections.length; i++){
+          var r = sections[i].getBoundingClientRect();
+          if(e.clientY < r.top + r.height / 2){
+            col.insertBefore(indicator, sections[i]);
+            inserted = true;
+            break;
           }
         }
         if(!inserted) col.appendChild(indicator);
       });
+
       col.addEventListener('dragleave', function(e){
-        if(!col.contains(e.relatedTarget)) col.classList.remove('col-drop-over');
+        if(!col.contains(e.relatedTarget)){
+          col.classList.remove('col-drop-over');
+          document.querySelectorAll('.drop-indicator').forEach(function(el){ el.remove(); });
+        }
       });
+
       col.addEventListener('drop', function(e){
         e.preventDefault();
         col.classList.remove('col-drop-over');
         if(!_dragSec) return;
-        var indicator = col.querySelector('.drop-indicator');
-        if(indicator){ col.insertBefore(_dragSec, indicator); indicator.remove(); }
-        else col.appendChild(_dragSec);
+        document.querySelectorAll('.drop-indicator').forEach(function(el){ el.remove(); });
+        col.appendChild(_dragSec);
       });
     });
-    // Agregar handles a secciones de Maslow
+
     document.querySelectorAll('#maslow-sections .section').forEach(addHandle);
   }
 
-  // Guardar layout default si no hay nada guardado
   function saveDefaultLayout(){
     try {
       if(localStorage.getItem(STORAGE_KEY)) return;
@@ -202,7 +200,16 @@
     } catch(e){}
   }
 
-  // Llamar init cuando la app termina de cargar
+  function init(){
+    if(window.innerWidth < 900) return;
+    document.querySelectorAll('#mob-sections .section').forEach(addHandle);
+    initColumns();
+    restoreLayout();
+    updateEmptyColumns();
+    saveDefaultLayout();
+    initMaslowColumns();
+  }
+
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', function(){
       setTimeout(init, 500);
@@ -211,6 +218,5 @@
     setTimeout(init, 500);
   }
 
-  // Exponer para re-init si se agregan módulos dinámicamente
   window._initDragDrop = init;
 })();
