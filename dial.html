@@ -210,9 +210,9 @@ var subItems = [
 
 function elegir(modo){
   sessionStorage.setItem('dial_modo', modo);
-  location.href = 'index.html';
+  history.back();
 }
-function cerrar(){ location.href = 'index.html'; }
+function cerrar(){ history.back(); }
 
 var canvas = document.getElementById('dial');
 var ctx = canvas.getContext('2d');
