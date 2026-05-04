@@ -415,6 +415,28 @@ function _posicionarRadial(){
   function hT(){}
   var actSub=false,subG=null;
 
+  // Fondo circular oscuro (blur solo dentro del dial)
+  var defs=document.createElementNS(NS,'defs');
+  // ClipPath circular
+  var cp=document.createElementNS(NS,'clipPath');cp.setAttribute('id','rdial-clip');
+  var cpCirc=document.createElementNS(NS,'circle');cpCirc.setAttribute('cx','300');cpCirc.setAttribute('cy','300');cpCirc.setAttribute('r','276');
+  cp.appendChild(cpCirc);defs.appendChild(cp);
+  // Filter de blur circular
+  var flt=document.createElementNS(NS,'filter');flt.setAttribute('id','rdial-blur');flt.setAttribute('x','-10%');flt.setAttribute('y','-10%');flt.setAttribute('width','120%');flt.setAttribute('height','120%');
+  var fgb=document.createElementNS(NS,'feGaussianBlur');fgb.setAttribute('stdDeviation','12');flt.appendChild(fgb);
+  defs.appendChild(flt);svg.appendChild(defs);
+  // Fondo con blur circular
+  var bgBlur=document.createElementNS(NS,'circle');
+  bgBlur.setAttribute('cx','300');bgBlur.setAttribute('cy','300');bgBlur.setAttribute('r','276');
+  bgBlur.setAttribute('fill','rgba(0,0,0,0.01)');bgBlur.setAttribute('filter','url(#rdial-blur)');
+  bgBlur.style.backdropFilter='blur(12px)';
+  svg.appendChild(bgBlur);
+  // Círculo de fondo sólido semitransparente
+  var bgCirc=document.createElementNS(NS,'circle');
+  bgCirc.setAttribute('cx','300');bgCirc.setAttribute('cy','300');bgCirc.setAttribute('r','276');
+  bgCirc.setAttribute('fill','rgba(10,12,18,0.82)');
+  svg.appendChild(bgCirc);
+
   function makeSVGIcon(iconPath,x,y,size,color){
     var fo=document.createElementNS(NS,'svg');
     fo.setAttribute('x',(x-size/2).toFixed(1));fo.setAttribute('y',(y-size/2).toFixed(1));
