@@ -594,7 +594,8 @@ function renderActivity(){
   var habPers = _actData.habitosPersonal || _actData.habitos || [];
   var habElec = _actData.habitosElectronics || [];
 
-  // Poblar _actChecks desde los datos del sheet (hab.checks)
+  // Resetear y poblar _actChecks desde los datos frescos del sheet
+  _actChecks = {};
   var DIAS_KEYS = {L:'1',M:'2',W:'3',J:'4',V:'5',S:'6',D:'0'};
   habPers.forEach(function(hab){
     if(!hab.checks) return;
