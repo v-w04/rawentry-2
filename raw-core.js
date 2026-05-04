@@ -604,7 +604,8 @@ function abrirEntrada(){
     ov.id = 'dial-screen-overlay';
     document.body.appendChild(ov);
   }
-  ov.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:8000;background:rgba(0,0,0,0.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);pointer-events:none';
+  // Máscara circular: oscuro en los bordes, transparente en el centro
+  ov.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:8000;pointer-events:none;background:radial-gradient(circle at center, transparent 36%, rgba(0,0,0,0.7) 58%, rgba(0,0,0,0.85) 100%)';
 
   // Dropdown encima del overlay
   var ddEl = document.querySelector('.entrada-dropdown');
