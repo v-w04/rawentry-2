@@ -736,7 +736,7 @@ function abrirEntrada(){
   if(paso2) paso2.style.display = 'none';
   // Paso1 = dial: quitar TODO fondo — dropdown, inner, overlay
   var ddEl=document.querySelector('.entrada-dropdown');
-  if(ddEl){ ddEl.classList.add('dial-mode'); ddEl.style.backdropFilter='none'; ddEl.style.webkitBackdropFilter='none'; ddEl.style.background='rgba(0,0,0,0.5)'; }
+  if(ddEl){ ddEl.classList.add('dial-mode'); ddEl.style.cssText=''; }
   var innerEl=document.querySelector('.entrada-dropdown-inner');
   if(innerEl) innerEl.removeAttribute('style');
   var hdrEl=document.querySelector('.entrada-selector-hdr');
@@ -1332,12 +1332,11 @@ function setModoEntrada(modo){
   const tituloEl = document.getElementById('entrada-paso2-titulo');
   if(tituloEl) tituloEl.textContent = titulos[modo] || modo;
 
-  ['nueva','editar','pensamiento','persona','salud','apartado','patrimonio','bancos','nutricion','entrenamiento'].forEach(t=>{
+  ['nueva','editar','pensamiento','persona','salud','apartado','patrimonio','bancos','nutricion','entrenamiento','libro','movie','norut'].forEach(t=>{
     const btn = document.getElementById('btn-tab-'+t);
     if(btn) btn.classList.toggle('on', t===modo);
-    // Limpiar el wrap de cada tab para evitar acumulación
     const w = document.getElementById(t+'-wrap');
-    if(w && t !== modo) w.innerHTML = '';
+    if(w) w.innerHTML = '';
   });
 
   const wraps = ['editar-id-wrap','pensamiento-wrap','persona-wrap','salud-wrap','apartado-wrap'];
