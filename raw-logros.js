@@ -593,6 +593,29 @@ function renderActivity(){
   var hoyIso  = new Date().toISOString().slice(0,10);
   var habPers = _actData.habitosPersonal || _actData.habitos || [];
   var habElec = _actData.habitosElectronics || [];
+
+  // Poblar _actChecks desde los datos del sheet (hab.checks)
+  var DIAS_KEYS = {L:'1',M:'2',W:'3',J:'4',V:'5',S:'6',D:'0'};
+  habPers.forEach(function(hab){
+    if(!hab.checks) return;
+    dias.forEach(function(d){
+      var dow = String(new Date(d.date+'T12:00:00').getDay());
+      var letra = Object.keys(DIAS_KEYS).find(function(k){ return DIAS_KEYS[k]===dow; });
+      if(letra && hab.checks[letra]){
+        _actChecks[hab.nombre+'_'+semana+'_'+d.date] = true;
+      }
+    });
+  });
+  habElec.forEach(function(hab){
+    if(!hab.checks) return;
+    dias.forEach(function(d){
+      var dow = String(new Date(d.date+'T12:00:00').getDay());
+      var letra = Object.keys(DIAS_KEYS).find(function(k){ return DIAS_KEYS[k]===dow; });
+      if(letra && hab.checks[letra]){
+        _actChecks[hab.nombre+'_'+semana+'_'+d.date] = true;
+      }
+    });
+  });
   var libros  = _actData.libros  || [];
   var movies  = _actData.movies  || [];
   var noRut   = _actData.noRutinarias || [];
