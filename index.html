@@ -14,400 +14,375 @@
 <div id="prog" class="prog-bar"></div>
 
 <div class="app">
+
   <!-- HERO -->
   <div class="hero" id="hero">
     <div class="hero-left">
       <button class="hero-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
       <div class="hero-brand">
         <div class="hero-title">Life<span style="color:var(--p)">OS</span></div>
-        <div class="hero-sub">v.5.069 · Trello · Sheets</div>
+        <div class="hero-sub">v.5.070 · Trello · Sheets</div>
       </div>
     </div>
-
     <div class="hero-right">
       <div id="chip" class="hero-chip load"><span id="chip-txt">Cargando</span></div>
-      <button class="btn-flip btn-nueva-entrada-hero" id="btn-nueva-entrada" onclick="toggleEntradaDropdown()" title="Nueva Entrada" style="background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#A5B4FC"><i class="fas fa-plus"></i> Nueva</button>
-      <button class="btn-flip" id="btn-logros" onclick="irALogros()" title="Logros"><i class="fas fa-trophy"></i> Logros</button>
-      <button class="btn-flip" id="btn-maslow" onclick="irABitacora()" title="Bitácora"><i class="fas fa-book-open"></i> Bitácora</button>
-      <button class="btn-flip" id="btn-activity" onclick="irAActivity()" title="Activity Check">⚡ Activity</button>
-      <button class="nav-btn sos" id="btn-sos" onclick="activarSOS()" title="SOS"><i class="fas fa-circle-exclamation"></i> SOS</button>
+      <button class="btn-flip btn-nueva-entrada-hero" id="btn-nueva-entrada" onclick="toggleEntradaDropdown()" title="Nueva Entrada" style="background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#A5B4FC">
+        <i class="fas fa-plus"></i> Nueva
+      </button>
+      <button class="btn-flip" id="btn-logros"    onclick="irALogros()"   title="Logros"><i class="fas fa-trophy"></i> Logros</button>
+      <button class="btn-flip" id="btn-maslow"    onclick="irABitacora()" title="Bitácora"><i class="fas fa-book-open"></i> Bitácora</button>
+      <button class="btn-flip" id="btn-activity"  onclick="irAActivity()" title="Activity Check">⚡ Activity</button>
+      <button class="nav-btn sos" id="btn-sos"    onclick="activarSOS()"  title="SOS"><i class="fas fa-circle-exclamation"></i> SOS</button>
       <button class="btn-flip" id="btn-nutricion" onclick="irANutricion()" title="Nutrición" style="background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.3);color:#4ADE80"><i class="fas fa-leaf"></i> Nutrición</button>
-      <button class="btn-flip" id="btn-sheets" onclick="irASheets('raw')" title="RAW Sheets"><i class="fas fa-table"></i> RAW</button>
-      <!-- BOTÓN ENCOM THEME -->
+      <button class="btn-flip" id="btn-sheets"    onclick="irASheets('raw')" title="RAW Sheets"><i class="fas fa-table"></i> RAW</button>
       <button id="btn-encom-toggle" onclick="toggleEncomTheme()" title="Encom Mode">⬡ ENCOM</button>
       <button class="btn-refresh" id="btn-rf" onclick="refreshTodo()" title="Actualizar"><i class="fas fa-rotate-right"></i></button>
     </div>
   </div>
 
-
-<!-- DROPDOWN NUEVA ENTRADA -->
-
-
-
+  <!-- BOARD -->
   <div class="board-wrap">
-   <!-- ANVERSO -->
-   <div class="board-face anverso" id="board-anverso">
-   <div class="sections" id="mob-sections">
 
-    <!-- COL 1: Patrimonio fusionado (antes Bancos) -->
-    <div id="col-1">
-    <div class="section" id="sec-entes" style="display:none">
-      <div class="sec-hdr" id="sec-entes-hdr">
-        <div class="sec-hdr-left">
-          <div class="sec-hdr-icon amber"><i class="fas fa-building-columns"></i></div>
-          <span class="sec-hdr-title">Bancos</span>
-        </div>
-        <div class="sec-hdr-right">
-          <span class="sec-hdr-val" id="entes-total"></span>
-        </div>
-      </div>
-      <div class="sec-body" id="sec-entes-body">
-        <div id="entes-list"></div>
-        <div style="border-top:1px solid rgba(255,255,255,.06);margin:12px 0 0">
-          <div style="padding:10px var(--pad) 4px;display:flex;justify-content:space-between;align-items:center">
-            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Apartados</div>
-            <span style="font-size:13px;font-weight:700;color:var(--warn)" id="apartados-total"></span>
-          </div>
-          <div id="apartados-list" style="padding:0 var(--pad) 8px"></div>
-        </div>
-      </div>
-    </div>
-    </div>
+    <!-- ANVERSO -->
+    <div class="board-face anverso" id="board-anverso">
+      <div class="sections" id="mob-sections">
 
-    <!-- COL 2: Financiero -->
-    <div id="col-2">
-    <div class="section" id="sec-financiero">
-      <div class="sec-hdr" onclick="togSec(this)" id="sec-financiero-hdr">
-        <div class="sec-hdr-left">
-          <div class="sec-hdr-icon" style="background:rgba(74,222,128,.12);color:var(--ok)"><i class="fas fa-chart-line"></i></div>
-          <span class="sec-hdr-title">Financiero</span>
-          <!-- Encom clock (visible solo en modo encom) -->
-          <canvas id="enc-clock-fin" width="80" height="80"
-            style="display:none;opacity:.85;margin-left:10px;flex-shrink:0"></canvas>
-          <!-- Encom ticker -->
-          <div id="enc-ticker-fin"
-            style="display:none;flex-direction:column;align-items:flex-start;margin-left:10px;line-height:1.1">
-            <div class="enc-tick-lbl"
-              style="font-size:9px;color:rgba(0,238,238,.6);letter-spacing:.14em;text-transform:uppercase;font-family:Inconsolata,monospace">SYS</div>
-            <div class="enc-tick-val"
-              style="font-size:20px;font-weight:700;color:#00eeee;font-family:Inconsolata,monospace;letter-spacing:-.02em;line-height:1">+0.0</div>
+        <!-- COL 1: Bancos + Apartados -->
+        <div id="col-1">
+          <div class="section" id="sec-entes" style="display:none">
+            <div class="sec-hdr" id="sec-entes-hdr">
+              <div class="sec-hdr-left">
+                <div class="sec-hdr-icon amber"><i class="fas fa-building-columns"></i></div>
+                <span class="sec-hdr-title">Bancos</span>
+              </div>
+              <div class="sec-hdr-right">
+                <span class="sec-hdr-val" id="entes-total"></span>
+              </div>
+            </div>
+            <div class="sec-body" id="sec-entes-body">
+              <div id="entes-list"></div>
+              <div style="border-top:1px solid rgba(255,255,255,.06);margin:12px 0 0">
+                <div style="padding:10px var(--pad) 4px;display:flex;justify-content:space-between;align-items:center">
+                  <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Apartados</div>
+                  <span style="font-size:13px;font-weight:700;color:var(--warn)" id="apartados-total"></span>
+                </div>
+                <div id="apartados-list" style="padding:0 var(--pad) 8px"></div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="sec-hdr-right" onclick="event.stopPropagation()" style="gap:6px">
-          <select id="rev-sel-anio" onchange="onRevSelChange()" style="background:#1a1a1a !important;color:#fff !important;border:1px solid rgba(255,255,255,.15) !important;border-radius:var(--rad-pill);font-family:inherit;font-size:10px;padding:4px 20px 4px 8px;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none">
-            <option value="2026">2026</option>
-          </select>
-          <select id="rev-sel-mes" onchange="onRevSelChange()" style="background:#1a1a1a !important;color:#fff !important;border:1px solid rgba(255,255,255,.15) !important;border-radius:var(--rad-pill);font-family:inherit;font-size:10px;padding:4px 20px 4px 8px;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none">
-            <option value="">Mes</option>
-            <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
-            <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
-            <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
-            <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
-          </select>
-          <select id="rev-sel-sem" onchange="onRevSelChange()" style="background:#1a1a1a !important;color:#fff !important;border:1px solid rgba(255,255,255,.15) !important;border-radius:var(--rad-pill);font-family:inherit;font-size:10px;padding:4px 20px 4px 8px;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none">
-            <option value="">Semana</option>
-            <option value="1">Semana 1</option><option value="2">Semana 2</option>
-            <option value="3">Semana 3</option><option value="4">Semana 4</option><option value="5">Semana 5</option>
-          </select>
-          <i class="fas fa-chevron-down sec-chevron"></i>
+
+        <!-- COL 2: Financiero -->
+        <div id="col-2">
+          <div class="section" id="sec-financiero">
+            <div class="sec-hdr" onclick="togSec(this)" id="sec-financiero-hdr">
+              <div class="sec-hdr-left">
+                <div class="sec-hdr-icon" style="background:rgba(74,222,128,.12);color:var(--ok)"><i class="fas fa-chart-line"></i></div>
+                <span class="sec-hdr-title">Financiero</span>
+                <canvas id="enc-clock-fin" width="80" height="80" style="display:none;opacity:.85;margin-left:10px;flex-shrink:0"></canvas>
+                <div id="enc-ticker-fin" style="display:none;flex-direction:column;align-items:flex-start;margin-left:10px;line-height:1.1">
+                  <div class="enc-tick-lbl" style="font-size:9px;color:rgba(0,238,238,.6);letter-spacing:.14em;text-transform:uppercase;font-family:Inconsolata,monospace">SYS</div>
+                  <div class="enc-tick-val" style="font-size:20px;font-weight:700;color:#00eeee;font-family:Inconsolata,monospace;letter-spacing:-.02em;line-height:1">+0.0</div>
+                </div>
+              </div>
+              <div class="sec-hdr-right" onclick="event.stopPropagation()" style="gap:6px">
+                <select id="rev-sel-anio" onchange="onRevSelChange()">
+                  <option value="2026">2026</option>
+                </select>
+                <select id="rev-sel-mes" onchange="onRevSelChange()">
+                  <option value="">Mes</option>
+                  <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+                  <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+                  <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+                  <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                </select>
+                <select id="rev-sel-sem" onchange="onRevSelChange()">
+                  <option value="">Semana</option>
+                  <option value="1">Semana 1</option><option value="2">Semana 2</option>
+                  <option value="3">Semana 3</option><option value="4">Semana 4</option><option value="5">Semana 5</option>
+                </select>
+                <i class="fas fa-chevron-down sec-chevron"></i>
+              </div>
+            </div>
+            <div class="sec-body" id="sec-financiero-body">
+              <div id="fin-avanzado-body">
+                <div style="padding:24px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:var(--ok)"></i></div>
+              </div>
+              <div style="border-top:1px solid rgba(255,255,255,.06);margin-top:4px">
+                <div id="flujo-mensual-body" style="padding:8px 0"></div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- COL 3: Variables · Fijos -->
+        <div id="col-3">
+          <div class="section" id="sec-gastos">
+            <div class="sec-hdr" onclick="togSec(this)" id="sec-gastos-hdr">
+              <div class="sec-hdr-left">
+                <div class="sec-hdr-icon" style="background:rgba(99,102,241,.15);color:#A5B4FC"><i class="fas fa-calendar-days"></i></div>
+                <span class="sec-hdr-title">Variables</span>
+              </div>
+              <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+            </div>
+            <div class="sec-body" id="sec-gastos-body">
+              <div id="anualidad-body"></div>
+              <div class="sec-sub-hdr graf-toggle" onclick="togGraf('graf-variables-body')" id="graf-variables-hdr">
+                <div class="sec-sub-hdr-icon"><i class="fas fa-chart-line"></i></div>
+                <span>Variables</span>
+                <i class="fas fa-chevron-down" style="font-size:10px;color:var(--m);margin-left:auto;transition:transform .25s" id="graf-variables-chev"></i>
+              </div>
+              <div id="graf-variables-body" style="display:none;padding:8px var(--pad) 4px">
+                <div id="graf-loading" style="text-align:center;padding:24px;color:var(--m)">Cargando gráfica…</div>
+                <canvas id="graf-canvas" style="display:none;max-height:260px"></canvas>
+                <div id="graf-leyenda" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px var(--pad) 4px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="section" id="sec-anualidad">
+            <div class="sec-hdr" onclick="togSec(this)" id="sec-anualidad-hdr">
+              <div class="sec-hdr-left">
+                <div class="sec-hdr-icon" style="background:rgba(6,182,212,.15);color:#67E8F9"><i class="fas fa-thumbtack"></i></div>
+                <span class="sec-hdr-title">Fijos</span>
+              </div>
+              <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+            </div>
+            <div class="sec-body" id="sec-anualidad-body">
+              <div id="gastos-body"></div>
+              <div class="sec-sub-hdr graf-toggle" onclick="togGraf('graf-fijos-body')" id="graf-fijos-hdr">
+                <div class="sec-sub-hdr-icon"><i class="fas fa-chart-bar"></i></div>
+                <span>Fijos</span>
+                <i class="fas fa-chevron-down" style="font-size:10px;color:var(--m);margin-left:auto;transition:transform .25s" id="graf-fijos-chev"></i>
+              </div>
+              <div id="graf-fijos-body" style="display:none;padding:4px var(--pad) 8px">
+                <div id="graf-fijos-loading" style="text-align:center;padding:16px;color:var(--m)">Cargando gráfica…</div>
+                <canvas id="graf-fijos-canvas" style="display:none;max-height:240px"></canvas>
+                <div id="graf-fijos-leyenda" style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 0"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COL 4: Patrimonio + Necesidades -->
+        <div id="col-4">
+          <div class="section" id="sec-patrimonio">
+            <div class="sec-hdr" onclick="togSec(this)" id="sec-patrimonio-hdr">
+              <div class="sec-hdr-left">
+                <div class="sec-hdr-icon" style="background:rgba(139,92,246,.12);color:#C4B5FD"><i class="fas fa-landmark"></i></div>
+                <span class="sec-hdr-title">Patrimonio</span>
+              </div>
+              <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
+            </div>
+            <div class="sec-body" id="sec-patrimonio-body">
+              <div id="patrimonio-body" style="text-align:center;padding:20px;color:var(--m)">
+                <i class="fas fa-circle-notch fa-spin" style="color:#C4B5FD"></i>
+              </div>
+            </div>
+          </div>
+          <div class="section" id="sec-maslow-inline">
+            <div class="sec-hdr" onclick="togSec(this)" id="sec-maslow-inline-hdr">
+              <div class="sec-hdr-left">
+                <div class="sec-hdr-icon" style="background:rgba(139,92,246,.12);color:#C4B5FD"><i class="fas fa-layer-group"></i></div>
+                <span class="sec-hdr-title">Necesidades</span>
+              </div>
+              <div class="sec-hdr-right" onclick="event.stopPropagation()" style="gap:4px">
+                <select id="nec-inline-anio" onchange="actualizarNecInline(true)" style="background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:var(--rad-pill);font-family:inherit;font-size:10px;padding:3px 8px;outline:none;cursor:pointer">
+                  <option value="2026">2026</option>
+                  <option value="2025">2025</option>
+                </select>
+                <select id="nec-inline-mes" onchange="actualizarNecInline(true)" style="background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:var(--rad-pill);font-family:inherit;font-size:10px;padding:3px 8px;outline:none;cursor:pointer">
+                  <option value="">Hasta hoy</option>
+                  <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+                  <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+                  <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+                  <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                </select>
+                <button id="nec-btn-hoy" onclick="necVolverHoy()" style="padding:3px 10px;border-radius:var(--rad-pill);font-family:inherit;font-size:10px;font-weight:700;background:rgba(139,92,246,.3);border:1px solid rgba(139,92,246,.5);color:#C4B5FD;cursor:pointer">Hoy</button>
+                <i class="fas fa-chevron-down sec-chevron"></i>
+              </div>
+            </div>
+            <div class="sec-body" id="sec-maslow-inline-body">
+              <div id="nec-inline-radar-wrap" style="padding:8px 16px 4px"></div>
+              <div id="nec-inline-container" style="padding:0"></div>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <div class="sec-body" id="sec-financiero-body">
-        <div id="fin-avanzado-body">
-          <div style="padding:24px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="color:var(--ok)"></i></div>
-        </div>
-        <div style="border-top:1px solid rgba(255,255,255,.06);margin-top:4px">
-          <div id="flujo-mensual-body" style="padding:8px 0"></div>
-        </div>
-      </div>
-    </div>
     </div>
 
-    <!-- COL 3: Variables · Fijos -->
-    <div id="col-3">
-    <div class="section" id="sec-gastos">
-      <div class="sec-hdr" onclick="togSec(this)" id="sec-gastos-hdr">
-        <div class="sec-hdr-left">
-          <div class="sec-hdr-icon" style="background:rgba(99,102,241,.15);color:#A5B4FC"><i class="fas fa-calendar-days"></i></div>
-          <span class="sec-hdr-title">Variables</span>
+    <!-- PANEL LOGROS -->
+    <div class="board-face panel-logros" id="board-logros">
+      <div class="reverso-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(251,191,36,.05));border:1px solid rgba(251,191,36,.2);display:flex;align-items:center;justify-content:center;font-size:14px">🏆</div>
+          <div>
+            <div class="reverso-title">Logros</div>
+            <div style="font-size:10px;color:var(--m);font-weight:500" id="reverso-count"></div>
+          </div>
         </div>
-        <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
-      </div>
-      <div class="sec-body" id="sec-gastos-body">
-        <div id="anualidad-body"></div>
-        <div class="sec-sub-hdr graf-toggle" onclick="togGraf('graf-variables-body')" id="graf-variables-hdr">
-          <div class="sec-sub-hdr-icon"><i class="fas fa-chart-line"></i></div>
-          <span>Variables</span>
-          <i class="fas fa-chevron-down" style="font-size:10px;color:var(--m);margin-left:auto;transition:transform .25s" id="graf-variables-chev"></i>
-        </div>
-        <div id="graf-variables-body" style="display:none;padding:8px var(--pad) 4px">
-          <div id="graf-loading" style="text-align:center;padding:24px;color:var(--m)">Cargando gráfica…</div>
-          <canvas id="graf-canvas" style="display:none;max-height:260px"></canvas>
-          <div id="graf-leyenda" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px var(--pad) 4px"></div>
-        </div>
-      </div>
-    </div>
-    <div class="section" id="sec-anualidad">
-      <div class="sec-hdr" onclick="togSec(this)" id="sec-anualidad-hdr">
-        <div class="sec-hdr-left">
-          <div class="sec-hdr-icon" style="background:rgba(6,182,212,.15);color:#67E8F9"><i class="fas fa-thumbtack"></i></div>
-          <span class="sec-hdr-title">Fijos</span>
-        </div>
-        <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
-      </div>
-      <div class="sec-body" id="sec-anualidad-body">
-        <div id="gastos-body"></div>
-        <div class="sec-sub-hdr graf-toggle" onclick="togGraf('graf-fijos-body')" id="graf-fijos-hdr">
-          <div class="sec-sub-hdr-icon"><i class="fas fa-chart-bar"></i></div>
-          <span>Fijos</span>
-          <i class="fas fa-chevron-down" style="font-size:10px;color:var(--m);margin-left:auto;transition:transform .25s" id="graf-fijos-chev"></i>
-        </div>
-        <div id="graf-fijos-body" style="display:none;padding:4px var(--pad) 8px">
-          <div id="graf-fijos-loading" style="text-align:center;padding:16px;color:var(--m)">Cargando gráfica…</div>
-          <canvas id="graf-fijos-canvas" style="display:none;max-height:240px"></canvas>
-          <div id="graf-fijos-leyenda" style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 0"></div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <select id="reverso-fil-proyecto" onchange="pintarReverso()" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;color:var(--m);font-family:inherit;font-size:11px;padding:4px 10px;outline:none;cursor:pointer;max-width:110px"><option value="">Proyecto</option></select>
+          <select id="reverso-fil-grupo"    onchange="pintarReverso()" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;color:var(--m);font-family:inherit;font-size:11px;padding:4px 10px;outline:none;cursor:pointer;max-width:110px"><option value="">Contacto</option></select>
+          <div style="display:flex;gap:4px;background:rgba(255,255,255,.04);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,.06)">
+            <button onclick="setOrdenLogros('az')"          id="lord-az"   class="rev-pill on">A–Z</button>
+            <button onclick="setOrdenLogros('monto-desc')"  id="lord-desc" class="rev-pill">$ ↓</button>
+            <button onclick="setOrdenLogros('monto')"       id="lord-asc"  class="rev-pill">$ ↑</button>
+          </div>
+          <button id="reverso-tog-done" onclick="toggleReversoMostrarDone()" class="rev-pill"><i class="fas fa-eye-slash" style="font-size:10px"></i> Completados</button>
+          <button onclick="resetReverso()" class="rev-pill"><i class="fas fa-rotate-left" style="font-size:10px"></i></button>
+          <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
         </div>
       </div>
-    </div>
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start;padding:0 var(--pad,16px) 20px">
+        <div id="inv-grid-full" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px"></div>
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden;position:sticky;top:10px">
+          <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(74,222,128,.7)">✓ Completados</div>
+          <div id="logros-completados-tabla" style="max-height:calc(100vh - 160px);overflow-y:auto"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- COL 4: Patrimonio -->
-    <div id="col-4">
-    <div class="section" id="sec-patrimonio">
-      <div class="sec-hdr" onclick="togSec(this)" id="sec-patrimonio-hdr">
-        <div class="sec-hdr-left">
-          <div class="sec-hdr-icon" style="background:rgba(139,92,246,.12);color:#C4B5FD"><i class="fas fa-landmark"></i></div>
-          <span class="sec-hdr-title">Patrimonio</span>
+    <!-- PANEL BITÁCORA -->
+    <div class="board-face panel-bitacora" id="board-bitacora" style="overflow-y:auto;overflow-x:hidden">
+      <div class="reverso-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(139,92,246,.08));border:1px solid rgba(139,92,246,.3);display:flex;align-items:center;justify-content:center"><i class="fas fa-book-open" style="color:#C4B5FD;font-size:14px"></i></div>
+          <div>
+            <div class="reverso-title">Bitácora</div>
+            <div style="font-size:10px;color:var(--m)">Tu registro personal</div>
+          </div>
         </div>
-        <div class="sec-hdr-right"><i class="fas fa-chevron-down sec-chevron"></i></div>
-      </div>
-      <div class="sec-body" id="sec-patrimonio-body">
-        <div id="patrimonio-body" style="text-align:center;padding:20px;color:var(--m)">
-          <i class="fas fa-circle-notch fa-spin" style="color:#C4B5FD"></i>
-        </div>
-      </div>
-    </div>
-    <div class="section" id="sec-maslow-inline">
-      <div class="sec-hdr" onclick="togSec(this)" id="sec-maslow-inline-hdr">
-        <div class="sec-hdr-left">
-          <div class="sec-hdr-icon" style="background:rgba(139,92,246,.12);color:#C4B5FD"><i class="fas fa-layer-group"></i></div>
-          <span class="sec-hdr-title">Necesidades</span>
-        </div>
-        <div class="sec-hdr-right" onclick="event.stopPropagation()" style="gap:4px">
-          <select id="nec-inline-anio" onchange="actualizarNecInline(true)" style="background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:var(--rad-pill);font-family:inherit;font-size:10px;padding:3px 8px;outline:none;cursor:pointer">
-            <option value="2026">2026</option>
-            <option value="2025">2025</option>
-          </select>
-          <select id="nec-inline-mes" onchange="actualizarNecInline(true)" style="background:#1a1a1a;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:var(--rad-pill);font-family:inherit;font-size:10px;padding:3px 8px;outline:none;cursor:pointer">
-            <option value="">Hasta hoy</option>
-            <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
-            <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
-            <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
-            <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
-          </select>
-          <button id="nec-btn-hoy" onclick="necVolverHoy()" style="padding:3px 10px;border-radius:var(--rad-pill);font-family:inherit;font-size:10px;font-weight:700;background:rgba(139,92,246,.3);border:1px solid rgba(139,92,246,.5);color:#C4B5FD;cursor:pointer">Hoy</button>
-          <i class="fas fa-chevron-down sec-chevron"></i>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="display:flex;gap:3px;background:rgba(0,0,0,.4);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,.06)">
+            <button id="nec-btn-piramide" onclick="switchVistaNec('piramide')" style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:700;background:rgba(139,92,246,.25);border:1px solid rgba(139,92,246,.4);color:#C4B5FD;cursor:pointer;font-family:inherit">▲ Pirámide</button>
+            <button id="nec-btn-radar"    onclick="switchVistaNec('radar')"    style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:500;background:none;border:none;color:var(--m);cursor:pointer;font-family:inherit">◈ Radar</button>
+          </div>
+          <div id="nec-filtros-mes" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center"></div>
+          <button onclick="resetFiltrosMes()" class="rev-pill" style="font-size:9px">Todo</button>
+          <span id="nec-periodo" style="font-size:10px;color:var(--m);margin:0 4px"></span>
+          <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
         </div>
       </div>
-      <div class="sec-body" id="sec-maslow-inline-body">
-        <div id="nec-inline-radar-wrap" style="padding:8px 16px 4px"></div>
-        <div id="nec-inline-container" style="padding:0"></div>
+      <div class="maslow-cols" id="maslow-sections">
+        <div id="sims-needs-panel" style="grid-column:1/-1;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:var(--rad-lg);margin-bottom:8px"></div>
+        <div id="mcol-1">
+          <div class="section" id="sec-pensamientos">
+            <div class="sec-hdr" onclick="togSec(this)" id="sec-pensamientos-hdr">
+              <div class="sec-hdr-left"><div class="sec-hdr-icon" style="background:rgba(236,72,153,.1);color:#F9A8D4"><i class="fas fa-thought-bubble"></i></div><span class="sec-hdr-title">Pensamientos</span></div>
+              <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('pensamiento');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
+            </div>
+            <div class="sec-body" id="sec-pensamientos-body"><div id="pensamientos-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
+          </div>
+        </div>
+        <div id="mcol-2">
+          <div class="section" id="sec-relaciones">
+            <div class="sec-hdr" onclick="togSec(this)" id="sec-relaciones-hdr">
+              <div class="sec-hdr-left"><div class="sec-hdr-icon" style="background:rgba(59,130,246,.1);color:#93C5FD"><i class="fas fa-users"></i></div><span class="sec-hdr-title">Relaciones</span></div>
+              <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('persona');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
+            </div>
+            <div class="sec-body" id="sec-relaciones-body"><div id="relaciones-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
+          </div>
+        </div>
+        <div id="mcol-3">
+          <div class="section" id="sec-salud">
+            <div class="sec-hdr" onclick="togSec(this)" id="sec-salud-hdr">
+              <div class="sec-hdr-left"><div class="sec-hdr-icon" style="background:rgba(239,68,68,.1);color:#FCA5A5"><i class="fas fa-heart-pulse"></i></div><span class="sec-hdr-title">Salud</span></div>
+              <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('salud');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
+            </div>
+            <div class="sec-body" id="sec-salud-body"><div id="salud-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
+          </div>
+        </div>
+        <div id="mcol-4">
+          <div class="section" id="sec-nutricion">
+            <div class="sec-hdr" onclick="togSec(this)" id="sec-nutricion-hdr">
+              <div class="sec-hdr-left"><div class="sec-hdr-icon" style="background:rgba(0,196,132,.1);color:#4ADE80"><i class="fas fa-apple-whole"></i></div><span class="sec-hdr-title">Nutrición</span></div>
+              <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('nutricion');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
+            </div>
+            <div class="sec-body" id="sec-nutricion-body"><div id="nutricion-body" style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div></div>
+          </div>
+        </div>
+        <div id="mcol-5">
+          <div class="section" id="sec-entrenamiento">
+            <div class="sec-hdr" onclick="togSec(this)" id="sec-entrenamiento-hdr">
+              <div class="sec-hdr-left"><div class="sec-hdr-icon" style="background:rgba(239,68,68,.1);color:#FCA5A5"><i class="fas fa-dumbbell"></i></div><span class="sec-hdr-title">Entrenamiento</span></div>
+              <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('entrenamiento');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
+            </div>
+            <div class="sec-body" id="sec-entrenamiento-body"><div id="entrenamiento-body" style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div></div>
+          </div>
+        </div>
       </div>
-    </div>
     </div>
 
-  </div><!-- /sections -->
-  </div><!-- /board-anverso -->
-
-  <!-- PANEL LOGROS -->
-  <div class="board-face panel-logros" id="board-logros">
-    <div class="reverso-header">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(251,191,36,.05));border:1px solid rgba(251,191,36,.2);display:flex;align-items:center;justify-content:center;font-size:14px">🏆</div>
-        <div>
-          <div class="reverso-title">Logros</div>
-          <div style="font-size:10px;color:var(--m);font-weight:500" id="reverso-count"></div>
+    <!-- PANEL ACTIVITY -->
+    <div class="board-face panel-activity" id="board-activity" style="overflow-y:auto;overflow-x:hidden">
+      <div class="reverso-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:10px;background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.3);display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div>
+          <div>
+            <div class="reverso-title">Activity Check</div>
+            <div style="font-size:10px;color:var(--m)" id="act-semana-lbl"></div>
+          </div>
         </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <select id="reverso-fil-proyecto" onchange="pintarReverso()" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;color:var(--m);font-family:inherit;font-size:11px;padding:4px 10px;outline:none;cursor:pointer;max-width:110px"><option value="">Proyecto</option></select>
-        <select id="reverso-fil-grupo" onchange="pintarReverso()" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;color:var(--m);font-family:inherit;font-size:11px;padding:4px 10px;outline:none;cursor:pointer;max-width:110px"><option value="">Contacto</option></select>
-        <div style="display:flex;gap:4px;background:rgba(255,255,255,.04);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,.06)">
-          <button onclick="setOrdenLogros('az')" id="lord-az" class="rev-pill on">A–Z</button>
-          <button onclick="setOrdenLogros('monto-desc')" id="lord-desc" class="rev-pill">$ ↓</button>
-          <button onclick="setOrdenLogros('monto')" id="lord-asc" class="rev-pill">$ ↑</button>
-        </div>
-        <button id="reverso-tog-done" onclick="toggleReversoMostrarDone()" class="rev-pill"><i class="fas fa-eye-slash" style="font-size:10px"></i> Completados</button>
-        <button onclick="resetReverso()" class="rev-pill"><i class="fas fa-rotate-left" style="font-size:10px"></i></button>
         <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
       </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start;padding:0 var(--pad,16px) 20px">
-      <div id="inv-grid-full" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px"></div>
-      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden;position:sticky;top:10px">
-        <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(74,222,128,.7)">✓ Completados</div>
-        <div id="logros-completados-tabla" style="max-height:calc(100vh - 160px);overflow-y:auto"></div>
+      <div id="act-tabs" style="display:flex;gap:6px;padding:0 20px 12px;flex-wrap:wrap"></div>
+      <div id="enc-swirls-activity" style="display:none;height:120px;margin:0 20px 12px;border:1px solid rgba(0,238,238,.15);position:relative;overflow:hidden"></div>
+      <div id="act-container" style="padding:0 20px 24px">
+        <div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px;color:#3B82F6"></i></div>
       </div>
     </div>
-  </div>
 
-  <!-- PANEL MASLOW -->
-  <div class="board-face panel-bitacora" id="board-bitacora" style="overflow-y:auto;overflow-x:hidden;">
-    <div class="reverso-header">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(139,92,246,.08));border:1px solid rgba(139,92,246,.3);display:flex;align-items:center;justify-content:center;font-size:14px"><i class="fas fa-book-open" style="color:#C4B5FD;font-size:14px"></i></div>
-        <div>
-          <div class="reverso-title">Bitácora</div>
-          <div style="font-size:10px;color:var(--m)">Tu registro personal</div>
+    <!-- PANEL SHEETS -->
+    <div class="board-face panel-sheets" id="board-sheets">
+      <div class="reverso-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(34,197,94,.2),rgba(34,197,94,.05));border:1px solid rgba(34,197,94,.2);display:flex;align-items:center;justify-content:center;font-size:14px">📄</div>
+          <div>
+            <div class="reverso-title" id="sheets-panel-label">RAW</div>
+            <div style="font-size:10px;color:var(--m)">Google Sheets</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <a id="sheets-open-btn" href="https://docs.google.com/spreadsheets/d/15T14Hb7tvmv24ZAaC3su1NRtDwVS6-dWbJGxQYUGP1o/edit#gid=0" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#4ADE80;text-decoration:none">
+            <i class="fas fa-arrow-up-right-from-square" style="font-size:10px"></i> Abrir
+          </a>
+          <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <div style="display:flex;gap:3px;background:rgba(0,0,0,.4);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,.06)">
-          <button id="nec-btn-piramide" onclick="switchVistaNec('piramide')" style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:700;background:rgba(139,92,246,.25);border:1px solid rgba(139,92,246,.4);color:#C4B5FD;cursor:pointer;font-family:inherit">▲ Pirámide</button>
-          <button id="nec-btn-radar" onclick="switchVistaNec('radar')" style="padding:4px 14px;border-radius:16px;font-size:11px;font-weight:500;background:none;border:none;color:var(--m);cursor:pointer;font-family:inherit">◈ Radar</button>
+      <div id="sheets-iframe-cont" style="flex:1;overflow:hidden;min-height:0">
+        <div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--m);font-size:13px">
+          <i class="fas fa-circle-notch fa-spin" style="margin-right:8px"></i> Cargando…
         </div>
-        <div id="nec-filtros-mes" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center"></div>
-        <button onclick="resetFiltrosMes()" class="rev-pill" style="font-size:9px">Todo</button>
-        <span id="nec-periodo" style="font-size:10px;color:var(--m);margin:0 4px"></span>
-        <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
       </div>
     </div>
-    <div class="maslow-cols" id="maslow-sections">
-      <!-- SIMS NEEDS PANEL -->
-      <div id="sims-needs-panel" style="grid-column:1/-1;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:var(--rad-lg);margin-bottom:8px"></div>
-      <div id="mcol-2">
-      <div class="section" id="sec-pensamientos">
-        <div class="sec-hdr" onclick="togSec(this)" id="sec-pensamientos-hdr">
-          <div class="sec-hdr-left">
-            <div class="sec-hdr-icon" style="background:rgba(236,72,153,.1);color:#F9A8D4"><i class="fas fa-thought-bubble"></i></div>
-            <span class="sec-hdr-title">Pensamientos</span>
-          </div>
-          <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('pensamiento');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
-        </div>
-        <div class="sec-body" id="sec-pensamientos-body"><div id="pensamientos-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
-      </div>
-      </div>
-      <div id="mcol-2">
-      <div class="section" id="sec-relaciones">
-        <div class="sec-hdr" onclick="togSec(this)" id="sec-relaciones-hdr">
-          <div class="sec-hdr-left">
-            <div class="sec-hdr-icon" style="background:rgba(59,130,246,.1);color:#93C5FD"><i class="fas fa-users"></i></div>
-            <span class="sec-hdr-title">Relaciones</span>
-          </div>
-          <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('persona');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
-        </div>
-        <div class="sec-body" id="sec-relaciones-body"><div id="relaciones-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
-      </div>
-      </div>
-      <div id="mcol-3">
-      <div class="section" id="sec-salud">
-        <div class="sec-hdr" onclick="togSec(this)" id="sec-salud-hdr">
-          <div class="sec-hdr-left">
-            <div class="sec-hdr-icon" style="background:rgba(239,68,68,.1);color:#FCA5A5"><i class="fas fa-heart-pulse"></i></div>
-            <span class="sec-hdr-title">Salud</span>
-          </div>
-          <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('salud');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
-        </div>
-        <div class="sec-body" id="sec-salud-body"><div id="salud-body" style="padding:16px;color:var(--m);text-align:center"><i class="fas fa-circle-notch fa-spin"></i></div></div>
-      </div>
-      </div>
-      <div id="mcol-4">
-      <div class="section" id="sec-nutricion">
-        <div class="sec-hdr" onclick="togSec(this)" id="sec-nutricion-hdr">
-          <div class="sec-hdr-left">
-            <div class="sec-hdr-icon" style="background:rgba(0,196,132,.1);color:#4ADE80"><i class="fas fa-apple-whole"></i></div>
-            <span class="sec-hdr-title">Nutrición</span>
-          </div>
-          <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('nutricion');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
-        </div>
-        <div class="sec-body" id="sec-nutricion-body"><div id="nutricion-body" style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div></div>
-      </div>
-      </div>
-      <div id="mcol-5">
-      <div class="section" id="sec-entrenamiento">
-        <div class="sec-hdr" onclick="togSec(this)" id="sec-entrenamiento-hdr">
-          <div class="sec-hdr-left">
-            <div class="sec-hdr-icon" style="background:rgba(239,68,68,.1);color:#FCA5A5"><i class="fas fa-dumbbell"></i></div>
-            <span class="sec-hdr-title">Entrenamiento</span>
-          </div>
-          <div class="sec-hdr-right"><button onclick="event.stopPropagation();setModoEntrada('entrenamiento');volverAlAnverso()" class="sec-add-btn">＋</button><i class="fas fa-chevron-down sec-chevron"></i></div>
-        </div>
-        <div class="sec-body" id="sec-entrenamiento-body"><div id="entrenamiento-body" style="padding:16px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin"></i></div></div>
-      </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- PANEL ACTIVITY -->
-  <div class="board-face panel-activity" id="board-activity" style="overflow-y:auto;overflow-x:hidden;">
-    <div class="reverso-header">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:32px;height:32px;border-radius:10px;background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.3);display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div>
-        <div>
-          <div class="reverso-title">Activity Check</div>
-          <div style="font-size:10px;color:var(--m)" id="act-semana-lbl"></div>
+    <!-- PANEL NUTRICIÓN -->
+    <div class="board-face panel-nutricion" id="board-nutricion" style="overflow-y:auto;overflow-x:hidden">
+      <div class="reverso-header" style="flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:10px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.25);display:flex;align-items:center;justify-content:center;font-size:16px">🥗</div>
+          <div>
+            <div class="reverso-title">Nutrición</div>
+            <div style="font-size:10px;color:var(--m)" id="nut-fecha-lbl"></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button onclick="setModoEntrada('nutricion');volverAlAnverso()" style="padding:5px 12px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);color:#4ADE80;cursor:pointer;font-family:inherit">
+            <i class="fas fa-plus" style="font-size:9px"></i> Agregar
+          </button>
+          <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
         </div>
       </div>
-      <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
-    </div>
-    <div id="act-tabs" style="display:flex;gap:6px;padding:0 20px 12px;flex-wrap:wrap"></div>
-    <!-- Encom swirls decorativo en Activity (solo modo encom) -->
-    <div id="enc-swirls-activity"
-      style="display:none;height:120px;margin:0 20px 12px;border:1px solid rgba(0,238,238,.15);position:relative;overflow:hidden"></div>
-    <div id="act-container" style="padding:0 20px 24px">
-      <div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px;color:#3B82F6"></i></div>
-    </div>
-  </div>
-
-  <!-- PANEL SHEETS/RAW -->
-  <div class="board-face panel-sheets" id="board-sheets">
-    <div class="reverso-header">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(34,197,94,.2),rgba(34,197,94,.05));border:1px solid rgba(34,197,94,.2);display:flex;align-items:center;justify-content:center;font-size:14px">📄</div>
-        <div>
-          <div class="reverso-title" id="sheets-panel-label">RAW</div>
-          <div style="font-size:10px;color:var(--m)">Google Sheets</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <a id="sheets-open-btn" href="https://docs.google.com/spreadsheets/d/15T14Hb7tvmv24ZAaC3su1NRtDwVS6-dWbJGxQYUGP1o/edit#gid=0" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#4ADE80;text-decoration:none">
-          <i class="fas fa-arrow-up-right-from-square" style="font-size:10px"></i> Abrir
-        </a>
-        <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
+      <div id="nut-panel-body" style="padding-bottom:20px">
+        <div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px;color:#4ADE80"></i></div>
       </div>
     </div>
-    <div id="sheets-iframe-cont" style="flex:1;overflow:hidden;min-height:0">
-      <div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--m);font-size:13px">
-        <i class="fas fa-circle-notch fa-spin" style="margin-right:8px"></i> Cargando…
-      </div>
-    </div>
-  </div>
-
-  <!-- PANEL NUTRICIÓN -->
-  <div class="board-face panel-nutricion" id="board-nutricion" style="overflow-y:auto;overflow-x:hidden;">
-    <div class="reverso-header" style="flex-shrink:0">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:32px;height:32px;border-radius:10px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.25);display:flex;align-items:center;justify-content:center;font-size:16px">🥗</div>
-        <div>
-          <div class="reverso-title">Nutrición</div>
-          <div style="font-size:10px;color:var(--m)" id="nut-fecha-lbl"></div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <button onclick="setModoEntrada('nutricion');volverAlAnverso()" style="padding:5px 12px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);color:#4ADE80;cursor:pointer;font-family:inherit">
-          <i class="fas fa-plus" style="font-size:9px"></i> Agregar
-        </button>
-        <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
-      </div>
-    </div>
-    <div id="nut-panel-body" style="padding-bottom:20px">
-      <div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px;color:#4ADE80"></i></div>
-    </div>
-  </div>
 
   </div><!-- /board-wrap -->
 </div><!-- /app -->
 
+<!-- TOAST -->
 <div id="gtip" class="gtip"></div>
 <div id="toast" class="toast"><i></i><span id="toast-msg"></span></div>
 
@@ -423,12 +398,13 @@
   </div>
 </div>
 
+<!-- TAB BAR MÓVIL -->
 <div class="mob-tabbar">
   <button class="mob-tab active" data-tab="entrada" onclick="_syncMobTab('entrada');volverAlAnverso()">
     <div class="mob-tab-icon"><i class="fas fa-pen-to-square"></i></div>
     <div class="mob-tab-label">Entrada</div>
   </button>
-  <button class="mob-tab" data-tab="logros" onclick="irALogros()">
+  <button class="mob-tab" data-tab="logros"   onclick="irALogros()">
     <div class="mob-tab-icon"><i class="fas fa-trophy"></i></div>
     <div class="mob-tab-label">Logros</div>
   </button>
@@ -458,82 +434,13 @@
   </div>
 </div>
 
-<!-- THUMBPRINT decorativo (Encom mode) -->
-<div id="encom-thumbprint"></div>
-
-<script src="raw-drag.js"></script>
-<script src="raw-core.js"></script>
-<script src="raw-dashboard.js"></script>
-<script src="raw-logros.js"></script>
-<script src="encom-components.js"></script>
+<!-- FORMULARIO ENTRADA (paso 2 — generado por raw-core.js, solo el contenedor) -->
 <div id="entrada-dropdown" class="entrada-dropdown" style="display:none">
   <div class="entrada-dropdown-inner" id="sec-entrada" onclick="event.stopPropagation()">
-
-    <!-- PASO 1: Selector de tipo -->
-    <div id="entrada-paso1">
-      <div class="entrada-selector-hdr">
-        <span>¿Qué quieres registrar?</span>
-        <button onclick="cerrarEntrada()" class="popup-close">✕</button>
-      </div>
-      <div class="entrada-selector-grid">
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('apartado')" style="--tipo-color:#4ADE80;--tipo-bg:rgba(74,222,128,.12)">
-          <i class="fas fa-piggy-bank entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Apartado</div>
-          <div class="entrada-tipo-sub">Meta de ahorro</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('bancos')" style="--tipo-color:#F59E0B;--tipo-bg:rgba(245,158,11,.12)">
-          <i class="fas fa-building-columns entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Bancos</div>
-          <div class="entrada-tipo-sub">Registrar saldo</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('editar')" style="--tipo-color:#94A3B8;--tipo-bg:rgba(148,163,184,.12)">
-          <i class="fas fa-pen entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Editar</div>
-          <div class="entrada-tipo-sub">Modificar RAW</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('entrenamiento')" style="--tipo-color:#FB923C;--tipo-bg:rgba(251,146,60,.1)">
-          <i class="fas fa-dumbbell entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Entrenamiento</div>
-          <div class="entrada-tipo-sub">Ejercicio · Sesión</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('nutricion')" style="--tipo-color:#4ADE80;--tipo-bg:rgba(0,196,132,.1)">
-          <i class="fas fa-apple-whole entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Nutrición</div>
-          <div class="entrada-tipo-sub">Alimento · Agua</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('patrimonio')" style="--tipo-color:#C4B5FD;--tipo-bg:rgba(139,92,246,.12)">
-          <i class="fas fa-landmark entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Patrimonio</div>
-          <div class="entrada-tipo-sub">Banco · Efectivo · Inversión</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('pensamiento')" style="--tipo-color:#F9A8D4;--tipo-bg:rgba(236,72,153,.1)">
-          <i class="fas fa-brain entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Pensamiento</div>
-          <div class="entrada-tipo-sub">Idea · Reflexión</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('persona')" style="--tipo-color:#93C5FD;--tipo-bg:rgba(59,130,246,.12)">
-          <i class="fas fa-user-group entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Persona</div>
-          <div class="entrada-tipo-sub">Interacción social</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('nueva')" style="--tipo-color:#6366F1;--tipo-bg:rgba(99,102,241,.15)">
-          <i class="fas fa-arrow-right-arrow-left entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">RAW</div>
-          <div class="entrada-tipo-sub">Ingreso · Egreso</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('salud')" style="--tipo-color:#FCA5A5;--tipo-bg:rgba(239,68,68,.1)">
-          <i class="fas fa-heart-pulse entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Salud</div>
-          <div class="entrada-tipo-sub">Cita · Síntoma</div>
-        </button>
-      </div>
-    </div>
-
-    <!-- PASO 2: Formulario -->
     <div id="entrada-paso2" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 0">
         <button onclick="volverAPaso1()" style="background:none;border:none;color:var(--m);cursor:pointer;font-family:inherit;font-size:12px;display:flex;align-items:center;gap:4px;padding:4px 0">
-          <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
+          <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver al dial
         </button>
         <span id="entrada-paso2-titulo" style="font-size:12px;font-weight:600;color:var(--m)"></span>
         <button onclick="cerrarEntrada()" class="popup-close" style="width:24px;height:24px;font-size:13px">✕</button>
@@ -587,30 +494,36 @@
             <div class="spin-sm" id="spin" style="display:none"></div>
             <i class="fas fa-floppy-disk" id="bico"></i> Guardar
           </button>
-          <button class="btn-sm sec" onclick="limpiar()" title="Limpiar"><i class="fas fa-rotate-left"></i></button>
-          <button class="btn-sm sec" onclick="irASheet()" title="Ver Sheet"><i class="fas fa-table-cells"></i></button>
-          <button class="btn-sm sec" onclick="oPanel()" title="Gestionar Lista"><i class="fas fa-list"></i></button>
+          <button class="btn-sm sec" onclick="limpiar()"    title="Limpiar"><i class="fas fa-rotate-left"></i></button>
+          <button class="btn-sm sec" onclick="irASheet()"   title="Ver Sheet"><i class="fas fa-table-cells"></i></button>
+          <button class="btn-sm sec" onclick="oPanel()"     title="Gestionar Lista"><i class="fas fa-list"></i></button>
         </div>
-        <div id="save-res" class="save-res">
-          <span id="res-ico"></span> <span id="res-msg"></span>
-        </div>
-        <!-- Wraps para tabs del dial -->
-        <div id="pensamiento-wrap" style="display:none"></div>
-        <div id="persona-wrap"     style="display:none"></div>
-        <div id="salud-wrap"       style="display:none"></div>
-        <div id="apartado-wrap"    style="display:none"></div>
-        <div id="patrimonio-wrap"  style="display:none"></div>
-        <div id="bancos-wrap"      style="display:none"></div>
-        <div id="nutricion-wrap"   style="display:none"></div>
-        <div id="entrenamiento-wrap" style="display:none"></div>
-        <div id="libro-wrap"       style="display:none"></div>
-        <div id="movie-wrap"       style="display:none"></div>
-        <div id="norut-wrap"       style="display:none"></div>
-        <div id="editar-id-wrap"   style="display:none"></div>
+        <div id="save-res" class="save-res"><span id="res-ico"></span> <span id="res-msg"></span></div>
+        <div id="pensamiento-wrap"    style="display:none"></div>
+        <div id="persona-wrap"        style="display:none"></div>
+        <div id="salud-wrap"          style="display:none"></div>
+        <div id="apartado-wrap"       style="display:none"></div>
+        <div id="patrimonio-wrap"     style="display:none"></div>
+        <div id="bancos-wrap"         style="display:none"></div>
+        <div id="nutricion-wrap"      style="display:none"></div>
+        <div id="entrenamiento-wrap"  style="display:none"></div>
+        <div id="libro-wrap"          style="display:none"></div>
+        <div id="movie-wrap"          style="display:none"></div>
+        <div id="norut-wrap"          style="display:none"></div>
+        <div id="editar-id-wrap"      style="display:none"></div>
+        <div id="activity-wrap"       style="display:none"></div>
       </div>
     </div>
-
   </div>
 </div>
+
+<!-- Decorativo Encom -->
+<div id="encom-thumbprint"></div>
+
+<script src="raw-drag.js"></script>
+<script src="raw-core.js"></script>
+<script src="raw-dashboard.js"></script>
+<script src="raw-logros.js"></script>
+<script src="encom-components.js"></script>
 </body>
 </html>
