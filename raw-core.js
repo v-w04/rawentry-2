@@ -592,22 +592,9 @@ function _posicionarRadial(){
 
 
 function abrirEntrada(){
+  // Guardar URL actual y navegar al dial
   sessionStorage.removeItem('dial_modo');
-  const paso1 = document.getElementById('entrada-paso1');
-  const paso2 = document.getElementById('entrada-paso2');
-  if(paso1) paso1.style.display = 'block';
-  if(paso2) paso2.style.display = 'none';
-  const dd = document.getElementById('entrada-dropdown');
-  const btn = document.getElementById('btn-nueva-entrada');
-  if(dd){
-    dd.classList.add('show');
-    dd.style.display = 'flex';
-  }
-  if(btn) btn.classList.add('active');
-  if(typeof _inyectarToggleModo === 'function') _inyectarToggleModo();
-  setTimeout(_posicionarRadial, 10);
-  const fechaEl = document.getElementById('fecha');
-  if(fechaEl && !fechaEl.value) fechaEl.value = fmtD(new Date());
+  location.href = 'dial.html';
 }
 function _abrirEntradaLegacy(){
   const paso1 = document.getElementById('entrada-paso1');
@@ -743,7 +730,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         setTimeout(function(){ if(typeof actualizarNecInline==='function') actualizarNecInline(); }, 50);
       }
       if(typeof renderFlujoMensual==='function') renderFlujoMensual(d.flujoPorMes);
-      if(d.activityCheck){ _actData=d.activityCheck; }
+      if(d.activityCheck){ _actData=d.activityCheck; _actChecks={}; if(typeof renderActivity==='function') renderActivity(); }
       if(typeof renderFinancieroAvanzado==='function' && d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
       api.getPensamientos().then(r=>{ if(typeof renderPensamientos==='function') renderPensamientos(r); }).catch(()=>{});
       api.getRelaciones().then(r=>{ if(typeof renderRelaciones==='function') renderRelaciones(r); }).catch(()=>{});
@@ -945,7 +932,7 @@ function onCats(d){
         if(typeof renderNecesidades==='function') renderNecesidades(d.necesidades);
         if(typeof renderNecesidadesInline==='function'){ renderNecesidadesInline(d.necesidades); setTimeout(function(){ if(typeof actualizarNecInline==='function') actualizarNecInline(); },50); }
         if(typeof renderFlujoMensual==='function') renderFlujoMensual(d.flujoPorMes);
-        if(d.activityCheck){ _actData=d.activityCheck; if(typeof renderActivity==='function' && _pantalla==='activity') renderActivity(); }
+        if(d.activityCheck){ _actData=d.activityCheck; _actChecks={}; if(typeof renderActivity==='function') renderActivity(); }
         if(typeof renderFinancieroAvanzado==='function' && d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
         setChip('ok','Listo ↺');
         showToast('✓ Datos actualizados');
