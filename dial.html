@@ -6,7 +6,6 @@
 <title>Nueva entrada</title>
 <style>
 html, body { background: #09090f !important; color: #e0e0e0; }
-svg { background: #09090f !important; }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;background:#09090f !important;overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 body{display:flex;align-items:center;justify-content:center}
@@ -29,7 +28,7 @@ if(isEncom){
 var SECTOR_FILL  = isEncom ? '#000f14'              : '#1e2026';
 var SECTOR_HOVER = isEncom ? '#002830'              : '#373c46';
 var STROKE       = isEncom ? 'rgba(0,238,238,0.2)'  : 'rgba(255,255,255,0.06)';
-var BG_CIRCLE    = isEncom ? '#000000'              : '#09090f';
+var BG_CIRCLE    = isEncom ? '#00050a'              : '#0a0c12';
 var TEXT_COLOR   = isEncom ? 'rgba(0,238,238,0.85)' : 'rgba(255,255,255,0.85)';
 var RAW_FILL     = isEncom ? '#002830'              : '#1e2060';
 var RAW_STROKE   = isEncom ? '#00eeee'              : 'rgba(99,102,241,0.55)';
@@ -95,16 +94,9 @@ function cp(r,i){var a=ma(i);return {x:CX+r*Math.cos(a),y:CY+r*Math.sin(a)};}
 var wrap=document.getElementById('dial-wrap');
 var svg=document.createElementNS(NS,'svg');
 svg.setAttribute('viewBox','0 0 1000 1000');
-svg.style.background = isEncom ? '#000000' : '#09090f';
-svg.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible';
+svg.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible;background:'+(isEncom?'#000000':'#09090f');
 wrap.appendChild(svg);
 
-// Rect de fondo opaco cubre todo
-var bgRect=document.createElementNS(NS,'rect');
-bgRect.setAttribute('x','-9999');bgRect.setAttribute('y','-9999');
-bgRect.setAttribute('width','19999');bgRect.setAttribute('height','19999');
-bgRect.setAttribute('fill',isEncom?'#000000':'#09090f');
-svg.appendChild(bgRect);
 var bg=document.createElementNS(NS,'circle');
 bg.setAttribute('cx',CX);bg.setAttribute('cy',CY);bg.setAttribute('r',R_OUT+8);
 bg.setAttribute('fill',BG_CIRCLE);svg.appendChild(bg);
