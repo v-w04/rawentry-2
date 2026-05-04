@@ -690,14 +690,13 @@ function _htmlHabitosCol(habitos, semana, dias, hoyIso, color, colId){
     var checks = dias.map(function(d){
       var key  = hab.nombre+'_'+semana+'_'+d.date;
       var done = !!_actChecks[key];
-      var past = d.isPast;
       if(done) pct++;
       return '<button data-idx="'+habIdx+'" data-src="'+(colId||'pers')+'" data-sem="'+semana+'" data-dat="'+d.date+'" onclick="_toggleHabitoKey(this)" '+
         'style="width:'+(window.innerWidth<700?'28':'22')+'px;height:'+(window.innerWidth<700?'28':'22')+'px;border-radius:5px;border:1px solid '+(done?color+'88':'rgba(255,255,255,.12)')+';'+
-        'background:'+(done?color+'33':'rgba(255,255,255,.03)')+';cursor:'+(past?'pointer':'default')+';'+
+        'background:'+(done?color+'33':'rgba(255,255,255,.03)')+';cursor:pointer;'+
         'display:flex;align-items:center;justify-content:center;font-size:11px;'+
-        'transition:all .2s;opacity:'+(past?1:.2)+';color:'+color+';flex-shrink:0;font-family:inherit"'+
-        (past?'':' disabled')+'>'+(done?'✓':'')+'</button>';
+        'transition:all .2s;opacity:1;color:'+color+';flex-shrink:0;font-family:inherit"'+
+        '>'+(done?'✓':'')+'</button>';
     }).join('');
 
     var pctNum = Math.round(pct/dias.length*100);
