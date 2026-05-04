@@ -390,321 +390,392 @@ document.addEventListener('keydown', function(e){
 
 // ── Nueva Entrada — form en col1, sin popup ──
 function _posicionarRadial(){
-  var grid = document.querySelector('.entrada-selector-grid');
-  if(!grid) return;
-
-  // Ocultar todos los botones originales
+  var grid=document.querySelector('.entrada-selector-grid');
+  if(!grid)return;
+  // Ocultar botones originales
   Array.from(grid.querySelectorAll('.entrada-tipo-btn')).forEach(function(b){
     b.style.cssText='position:absolute;opacity:0;width:0;height:0;overflow:hidden;pointer-events:none';
   });
-
-  grid.style.width='400px'; grid.style.height='400px';
-  grid.style.position='relative'; grid.style.margin='0 auto';
-
-  var existing = grid.querySelector('.radial-svg-dial');
-  if(existing) existing.remove();
-
-  var svgNS='http://www.w3.org/2000/svg';
-  var svg=document.createElementNS(svgNS,'svg');
-  svg.setAttribute('viewBox','0 0 400 400');
-  svg.setAttribute('class','radial-svg-dial');
+  grid.style.cssText='position:relative;width:420px;height:420px;margin:0 auto;overflow:visible';
+  var old=grid.querySelector('.rdial');if(old)old.remove();
+  var NS='http://www.w3.org/2000/svg';
+  var svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('viewBox','0 0 420 420');
+  svg.setAttribute('class','rdial');
   svg.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible';
   grid.appendChild(svg);
-
-  // Tooltip
   var tip=document.getElementById('radial-tip');
   if(!tip){tip=document.createElement('div');tip.id='radial-tip';
     tip.style.cssText='position:fixed;background:#111;border:1px solid rgba(255,255,255,.15);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;pointer-events:none;z-index:9999;opacity:0;transition:opacity .12s;white-space:nowrap;font-family:inherit';
     document.body.appendChild(tip);}
-  function showT(e,t){tip.textContent=t;tip.style.opacity='1';moveT(e);}
-  function moveT(e){tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-28)+'px';}
-  function hideT(){tip.style.opacity='0';}
+  function sT(e,t){tip.textContent=t;tip.style.opacity='1';mT(e);}
+  function mT(e){tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-30)+'px';}
+  function hT(){tip.style.opacity='0';}
+  var actSub=false,subG=null;
 
-  var actSubVisible=false;
-  var subGroup=null;
-
-  function makeSector(pathD,fillColor,strokeColor,action,label,isAct){
-    var g=document.createElementNS(svgNS,'g');
-    g.style.cursor='pointer';
-    var path=document.createElementNS(svgNS,'path');
-    path.setAttribute('d',pathD);
-    path.setAttribute('fill',fillColor);
-    path.setAttribute('stroke',strokeColor);
-    path.setAttribute('stroke-width','0.5');
-    path.style.transition='fill .15s';
-    g.appendChild(path);
-    g.addEventListener('mouseover',function(e){path.setAttribute('fill',isAct?'rgba(34,211,238,0.2)':'rgba(255,255,255,0.1)');showT(e,label);});
-    g.addEventListener('mousemove',moveT);
-    g.addEventListener('mouseout',function(){path.setAttribute('fill',fillColor);hideT();});
+  (function(){
+    var g=document.createElementNS(NS,'g');g.style.cursor='pointer';
+    var p=document.createElementNS(NS,'path');
+    p.setAttribute('d',"M211.85,25.01 A185,185,0,0,1,317.24,59.25 L251.74,151.33 A72,72,0,0,0,210.72,138.00Z");p.setAttribute('fill',"rgba(255,255,255,0.04)");
+    p.setAttribute('stroke',"rgba(255,255,255,0.09)");p.setAttribute('stroke-width','0.8');
+    p.style.transition='fill .15s';g.appendChild(p);
+    // Ícono FA (grande)
+    var ic=document.createElementNS(NS,'text');
+    ic.setAttribute('x','247.2');ic.setAttribute('y','102.4');
+    ic.setAttribute('text-anchor','middle');ic.setAttribute('font-size','20');
+    ic.setAttribute('font-family','Font Awesome 6 Free');ic.setAttribute('font-weight','900');
+    ic.setAttribute('fill','#4ADE80');ic.style.pointerEvents='none';
+    // Label (pequeño, debajo)
+    var lb=document.createElementNS(NS,'text');
+    lb.setAttribute('x','255.9');lb.setAttribute('y','72.8');
+    lb.setAttribute('text-anchor','middle');lb.setAttribute('font-size','9');
+    lb.setAttribute('font-weight','600');lb.setAttribute('fill','rgba(255,255,255,0.65)');
+    lb.setAttribute('font-family','system-ui');lb.style.pointerEvents='none';
+    lb.textContent='Apartado';
+    g.appendChild(ic);g.appendChild(lb);
+    g.addEventListener('mouseover',function(e){p.setAttribute('fill',"rgba(255,255,255,0.12)");sT(e,'Apartado');});
+    g.addEventListener('mousemove',mT);
+    g.addEventListener('mouseout',function(){p.setAttribute('fill',"rgba(255,255,255,0.04)");hT();});
     g.addEventListener('click',function(){
-      if(isAct){
-        actSubVisible=!actSubVisible;
-        if(subGroup) subGroup.style.opacity=actSubVisible?'1':'0';
-        if(subGroup) subGroup.style.pointerEvents=actSubVisible?'all':'none';
-      } else {
-        setModoEntrada(action);
-      }
+      setModoEntrada('apartado');
     });
-    return {g:g, path:path};
-  }
-
-
-  var s0=makeSector("M202.77,15.02 A185,185,0,0,1,306.48,48.72 L241.44,141.12 A72,72,0,0,0,201.08,128.01Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","apartado","Apartado",false);
-  // Ícono FA
-  var ico0=document.createElementNS(svgNS,'text');
-  ico0.setAttribute('x','236.6');ico0.setAttribute('y','93.3');
-  ico0.setAttribute('text-anchor','middle');ico0.setAttribute('font-size','15');
-  ico0.setAttribute('font-family','Font Awesome 6 Free');ico0.setAttribute('font-weight','900');
-  ico0.setAttribute('fill','#4ADE80');ico0.style.pointerEvents='none';
-  var t0=document.createElementNS(svgNS,'text');
-  t0.setAttribute('x','246.5');t0.setAttribute('y','60.9');
-  t0.setAttribute('text-anchor','middle');t0.setAttribute('font-size','8.5');
-  t0.setAttribute('font-weight','700');t0.setAttribute('fill','rgba(255,255,255,0.7)');
-  t0.setAttribute('font-family','system-ui');t0.style.pointerEvents='none';
-  t0.textContent='Apartado';
-  s0.g.appendChild(ico0);s0.g.appendChild(t0);
-  svg.appendChild(s0.g);
-
-  var s1=makeSector("M310.97,51.98 A185,185,0,0,1,375.07,140.20 L268.13,176.73 A72,72,0,0,0,243.19,142.39Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","bancos","Bancos",false);
-  // Ícono FA
-  var ico1=document.createElementNS(svgNS,'text');
-  ico1.setAttribute('x','295.9');ico1.setAttribute('y','136.3');
-  ico1.setAttribute('text-anchor','middle');ico1.setAttribute('font-size','15');
-  ico1.setAttribute('font-family','Font Awesome 6 Free');ico1.setAttribute('font-weight','900');
-  ico1.setAttribute('fill','#F59E0B');ico1.style.pointerEvents='none';
-  var t1=document.createElementNS(svgNS,'text');
-  t1.setAttribute('x','321.8');t1.setAttribute('y','115.5');
-  t1.setAttribute('text-anchor','middle');t1.setAttribute('font-size','8.5');
-  t1.setAttribute('font-weight','700');t1.setAttribute('fill','rgba(255,255,255,0.7)');
-  t1.setAttribute('font-family','system-ui');t1.style.pointerEvents='none';
-  t1.textContent='Bancos';
-  s1.g.appendChild(ico1);s1.g.appendChild(t1);
-  svg.appendChild(s1.g);
-
-  var s2=makeSector("M376.78,145.48 A185,185,0,0,1,376.78,254.52 L268.80,221.22 A72,72,0,0,0,268.80,178.78Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","entrenamiento","Entrena",false);
-  // Ícono FA
-  var ico2=document.createElementNS(svgNS,'text');
-  ico2.setAttribute('x','318.5');ico2.setAttribute('y','206.0');
-  ico2.setAttribute('text-anchor','middle');ico2.setAttribute('font-size','15');
-  ico2.setAttribute('font-family','Font Awesome 6 Free');ico2.setAttribute('font-weight','900');
-  ico2.setAttribute('fill','#FB923C');ico2.style.pointerEvents='none';
-  var t2=document.createElementNS(svgNS,'text');
-  t2.setAttribute('x','350.5');t2.setAttribute('y','204.0');
-  t2.setAttribute('text-anchor','middle');t2.setAttribute('font-size','8.5');
-  t2.setAttribute('font-weight','700');t2.setAttribute('fill','rgba(255,255,255,0.7)');
-  t2.setAttribute('font-family','system-ui');t2.style.pointerEvents='none';
-  t2.textContent='Entrena';
-  s2.g.appendChild(ico2);s2.g.appendChild(t2);
-  svg.appendChild(s2.g);
-
-  var s3=makeSector("M375.07,259.80 A185,185,0,0,1,310.97,348.02 L243.19,257.61 A72,72,0,0,0,268.13,223.27Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","nutricion","Nutrición",false);
-  // Ícono FA
-  var ico3=document.createElementNS(svgNS,'text');
-  ico3.setAttribute('x','295.9');ico3.setAttribute('y','275.7');
-  ico3.setAttribute('text-anchor','middle');ico3.setAttribute('font-size','15');
-  ico3.setAttribute('font-family','Font Awesome 6 Free');ico3.setAttribute('font-weight','900');
-  ico3.setAttribute('fill','#4ADE80');ico3.style.pointerEvents='none';
-  var t3=document.createElementNS(svgNS,'text');
-  t3.setAttribute('x','321.8');t3.setAttribute('y','292.5');
-  t3.setAttribute('text-anchor','middle');t3.setAttribute('font-size','8.5');
-  t3.setAttribute('font-weight','700');t3.setAttribute('fill','rgba(255,255,255,0.7)');
-  t3.setAttribute('font-family','system-ui');t3.style.pointerEvents='none';
-  t3.textContent='Nutrición';
-  s3.g.appendChild(ico3);s3.g.appendChild(t3);
-  svg.appendChild(s3.g);
-
-  var s4=makeSector("M306.48,351.28 A185,185,0,0,1,202.77,384.98 L201.08,271.99 A72,72,0,0,0,241.44,258.88Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","patrimonio","Patrimonio",false);
-  // Ícono FA
-  var ico4=document.createElementNS(svgNS,'text');
-  ico4.setAttribute('x','236.6');ico4.setAttribute('y','318.7');
-  ico4.setAttribute('text-anchor','middle');ico4.setAttribute('font-size','15');
-  ico4.setAttribute('font-family','Font Awesome 6 Free');ico4.setAttribute('font-weight','900');
-  ico4.setAttribute('fill','#C4B5FD');ico4.style.pointerEvents='none';
-  var t4=document.createElementNS(svgNS,'text');
-  t4.setAttribute('x','246.5');t4.setAttribute('y','347.1');
-  t4.setAttribute('text-anchor','middle');t4.setAttribute('font-size','8.5');
-  t4.setAttribute('font-weight','700');t4.setAttribute('fill','rgba(255,255,255,0.7)');
-  t4.setAttribute('font-family','system-ui');t4.style.pointerEvents='none';
-  t4.textContent='Patrimonio';
-  s4.g.appendChild(ico4);s4.g.appendChild(t4);
-  svg.appendChild(s4.g);
-
-  var s5=makeSector("M197.23,384.98 A185,185,0,0,1,93.52,351.28 L158.56,258.88 A72,72,0,0,0,198.92,271.99Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","pensamiento","Pensa",false);
-  // Ícono FA
-  var ico5=document.createElementNS(svgNS,'text');
-  ico5.setAttribute('x','163.4');ico5.setAttribute('y','318.7');
-  ico5.setAttribute('text-anchor','middle');ico5.setAttribute('font-size','15');
-  ico5.setAttribute('font-family','Font Awesome 6 Free');ico5.setAttribute('font-weight','900');
-  ico5.setAttribute('fill','#F9A8D4');ico5.style.pointerEvents='none';
-  var t5=document.createElementNS(svgNS,'text');
-  t5.setAttribute('x','153.5');t5.setAttribute('y','347.1');
-  t5.setAttribute('text-anchor','middle');t5.setAttribute('font-size','8.5');
-  t5.setAttribute('font-weight','700');t5.setAttribute('fill','rgba(255,255,255,0.7)');
-  t5.setAttribute('font-family','system-ui');t5.style.pointerEvents='none';
-  t5.textContent='Pensa';
-  s5.g.appendChild(ico5);s5.g.appendChild(t5);
-  svg.appendChild(s5.g);
-
-  var s6=makeSector("M89.03,348.02 A185,185,0,0,1,24.93,259.80 L131.87,223.27 A72,72,0,0,0,156.81,257.61Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","persona","Persona",false);
-  // Ícono FA
-  var ico6=document.createElementNS(svgNS,'text');
-  ico6.setAttribute('x','104.1');ico6.setAttribute('y','275.7');
-  ico6.setAttribute('text-anchor','middle');ico6.setAttribute('font-size','15');
-  ico6.setAttribute('font-family','Font Awesome 6 Free');ico6.setAttribute('font-weight','900');
-  ico6.setAttribute('fill','#93C5FD');ico6.style.pointerEvents='none';
-  var t6=document.createElementNS(svgNS,'text');
-  t6.setAttribute('x','78.2');t6.setAttribute('y','292.5');
-  t6.setAttribute('text-anchor','middle');t6.setAttribute('font-size','8.5');
-  t6.setAttribute('font-weight','700');t6.setAttribute('fill','rgba(255,255,255,0.7)');
-  t6.setAttribute('font-family','system-ui');t6.style.pointerEvents='none';
-  t6.textContent='Persona';
-  s6.g.appendChild(ico6);s6.g.appendChild(t6);
-  svg.appendChild(s6.g);
-
-  var s7=makeSector("M23.22,254.52 A185,185,0,0,1,23.22,145.48 L131.20,178.78 A72,72,0,0,0,131.20,221.22Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","editar","Editar",false);
-  // Ícono FA
-  var ico7=document.createElementNS(svgNS,'text');
-  ico7.setAttribute('x','81.5');ico7.setAttribute('y','206.0');
-  ico7.setAttribute('text-anchor','middle');ico7.setAttribute('font-size','15');
-  ico7.setAttribute('font-family','Font Awesome 6 Free');ico7.setAttribute('font-weight','900');
-  ico7.setAttribute('fill','#94A3B8');ico7.style.pointerEvents='none';
-  var t7=document.createElementNS(svgNS,'text');
-  t7.setAttribute('x','49.5');t7.setAttribute('y','204.0');
-  t7.setAttribute('text-anchor','middle');t7.setAttribute('font-size','8.5');
-  t7.setAttribute('font-weight','700');t7.setAttribute('fill','rgba(255,255,255,0.7)');
-  t7.setAttribute('font-family','system-ui');t7.style.pointerEvents='none';
-  t7.textContent='Editar';
-  s7.g.appendChild(ico7);s7.g.appendChild(t7);
-  svg.appendChild(s7.g);
-
-  var s8=makeSector("M24.93,140.20 A185,185,0,0,1,89.03,51.98 L156.81,142.39 A72,72,0,0,0,131.87,176.73Z","rgba(255,255,255,0.04)","rgba(255,255,255,0.1)","salud","Salud",false);
-  // Ícono FA
-  var ico8=document.createElementNS(svgNS,'text');
-  ico8.setAttribute('x','104.1');ico8.setAttribute('y','136.3');
-  ico8.setAttribute('text-anchor','middle');ico8.setAttribute('font-size','15');
-  ico8.setAttribute('font-family','Font Awesome 6 Free');ico8.setAttribute('font-weight','900');
-  ico8.setAttribute('fill','#FCA5A5');ico8.style.pointerEvents='none';
-  var t8=document.createElementNS(svgNS,'text');
-  t8.setAttribute('x','78.2');t8.setAttribute('y','115.5');
-  t8.setAttribute('text-anchor','middle');t8.setAttribute('font-size','8.5');
-  t8.setAttribute('font-weight','700');t8.setAttribute('fill','rgba(255,255,255,0.7)');
-  t8.setAttribute('font-family','system-ui');t8.style.pointerEvents='none';
-  t8.textContent='Salud';
-  s8.g.appendChild(ico8);s8.g.appendChild(t8);
-  svg.appendChild(s8.g);
-
-  var s9=makeSector("M93.52,48.72 A185,185,0,0,1,197.23,15.02 L198.92,128.01 A72,72,0,0,0,158.56,141.12Z","rgba(34,211,238,0.1)","#22D3EE","activity","Activity",true);
-  // Ícono FA
-  var ico9=document.createElementNS(svgNS,'text');
-  ico9.setAttribute('x','163.4');ico9.setAttribute('y','93.3');
-  ico9.setAttribute('text-anchor','middle');ico9.setAttribute('font-size','15');
-  ico9.setAttribute('font-family','Font Awesome 6 Free');ico9.setAttribute('font-weight','900');
-  ico9.setAttribute('fill','#22D3EE');ico9.style.pointerEvents='none';
-  var t9=document.createElementNS(svgNS,'text');
-  t9.setAttribute('x','153.5');t9.setAttribute('y','60.9');
-  t9.setAttribute('text-anchor','middle');t9.setAttribute('font-size','8.5');
-  t9.setAttribute('font-weight','700');t9.setAttribute('fill','rgba(255,255,255,0.7)');
-  t9.setAttribute('font-family','system-ui');t9.style.pointerEvents='none';
-  t9.textContent='Activity';
-  s9.g.appendChild(ico9);s9.g.appendChild(t9);
-  svg.appendChild(s9.g);
-
-  // Segundo anillo Activity
-  subGroup=document.createElementNS(svgNS,'g');
-  subGroup.style.opacity='0';subGroup.style.pointerEvents='none';subGroup.style.transition='opacity .2s';
-
-  var sg0=document.createElementNS(svgNS,'g'); sg0.style.cursor='pointer';
-  var sp0=document.createElementNS(svgNS,'path');
-  sp0.setAttribute('d',"M-62.54,136.97 A270,270,0,0,1,35.63,-14.21 L84.34,49.26 A190,190,0,0,0,15.25,155.65Z");
-  sp0.setAttribute('fill','rgba(34,211,238,0.08)');
-  sp0.setAttribute('stroke','rgba(34,211,238,0.35)');sp0.setAttribute('stroke-width','0.5');
-  sp0.style.transition='fill .15s';
-  sg0.appendChild(sp0);
-  var se0=document.createElementNS(svgNS,'text');
-  se0.setAttribute('x','7.1');se0.setAttribute('y','74.7');
-  se0.setAttribute('text-anchor','middle');se0.setAttribute('dominant-baseline','middle');
-  se0.setAttribute('font-size','14');se0.style.pointerEvents='none';se0.textContent='📚';
-  var sl0=document.createElementNS(svgNS,'text');
-  sl0.setAttribute('x','7.1');sl0.setAttribute('y','90.7');
-  sl0.setAttribute('text-anchor','middle');sl0.setAttribute('font-size','8');
-  sl0.setAttribute('font-weight','700');sl0.setAttribute('fill','rgba(34,211,238,0.9)');
-  sl0.setAttribute('font-family','system-ui');sl0.style.pointerEvents='none';sl0.textContent='Libros';
-  sg0.appendChild(se0);sg0.appendChild(sl0);
-  sg0.addEventListener('mouseover',function(){sp0.setAttribute('fill','rgba(34,211,238,0.2)');});
-  sg0.addEventListener('mouseout', function(){sp0.setAttribute('fill','rgba(34,211,238,0.08)');});
-  sg0.addEventListener('click',function(){setModoEntrada('libro');});
-  subGroup.appendChild(sg0);
-
-  var sg1=document.createElementNS(svgNS,'g'); sg1.style.cursor='pointer';
-  var sp1=document.createElementNS(svgNS,'path');
-  sp1.setAttribute('d',"M35.63,-14.21 A270,270,0,0,1,207.07,-69.91 L204.97,10.07 A190,190,0,0,0,84.34,49.26Z");
-  sp1.setAttribute('fill','rgba(34,211,238,0.08)');
-  sp1.setAttribute('stroke','rgba(34,211,238,0.35)');sp1.setAttribute('stroke-width','0.5');
-  sp1.style.transition='fill .15s';
-  sg1.appendChild(sp1);
-  var se1=document.createElementNS(svgNS,'text');
-  se1.setAttribute('x','128.9');se1.setAttribute('y','-18.7');
-  se1.setAttribute('text-anchor','middle');se1.setAttribute('dominant-baseline','middle');
-  se1.setAttribute('font-size','14');se1.style.pointerEvents='none';se1.textContent='🎬';
-  var sl1=document.createElementNS(svgNS,'text');
-  sl1.setAttribute('x','128.9');sl1.setAttribute('y','-2.7');
-  sl1.setAttribute('text-anchor','middle');sl1.setAttribute('font-size','8');
-  sl1.setAttribute('font-weight','700');sl1.setAttribute('fill','rgba(34,211,238,0.9)');
-  sl1.setAttribute('font-family','system-ui');sl1.style.pointerEvents='none';sl1.textContent='Movies';
-  sg1.appendChild(se1);sg1.appendChild(sl1);
-  sg1.addEventListener('mouseover',function(){sp1.setAttribute('fill','rgba(34,211,238,0.2)');});
-  sg1.addEventListener('mouseout', function(){sp1.setAttribute('fill','rgba(34,211,238,0.08)');});
-  sg1.addEventListener('click',function(){setModoEntrada('movie');});
-  subGroup.appendChild(sg1);
-
-  var sg2=document.createElementNS(svgNS,'g'); sg2.style.cursor='pointer';
-  var sp2=document.createElementNS(svgNS,'path');
-  sp2.setAttribute('d',"M207.07,-69.91 A270,270,0,0,1,375.35,-5.31 L323.40,55.52 A190,190,0,0,0,204.97,10.07Z");
-  sp2.setAttribute('fill','rgba(34,211,238,0.08)');
-  sp2.setAttribute('stroke','rgba(34,211,238,0.35)');sp2.setAttribute('stroke-width','0.5');
-  sp2.style.transition='fill .15s';
-  sg2.appendChild(sp2);
-  var se2=document.createElementNS(svgNS,'text');
-  se2.setAttribute('x','282.4');se2.setAttribute('y','-14.7');
-  se2.setAttribute('text-anchor','middle');se2.setAttribute('dominant-baseline','middle');
-  se2.setAttribute('font-size','14');se2.style.pointerEvents='none';se2.textContent='📌';
-  var sl2=document.createElementNS(svgNS,'text');
-  sl2.setAttribute('x','282.4');sl2.setAttribute('y','1.3');
-  sl2.setAttribute('text-anchor','middle');sl2.setAttribute('font-size','8');
-  sl2.setAttribute('font-weight','700');sl2.setAttribute('fill','rgba(34,211,238,0.9)');
-  sl2.setAttribute('font-family','system-ui');sl2.style.pointerEvents='none';sl2.textContent='Pendientes';
-  sg2.appendChild(se2);sg2.appendChild(sl2);
-  sg2.addEventListener('mouseover',function(){sp2.setAttribute('fill','rgba(34,211,238,0.2)');});
-  sg2.addEventListener('mouseout', function(){sp2.setAttribute('fill','rgba(34,211,238,0.08)');});
-  sg2.addEventListener('click',function(){setModoEntrada('norut');});
-  subGroup.appendChild(sg2);
-
-  svg.appendChild(subGroup);
-
+    svg.appendChild(g);
+  })();
+  (function(){
+    var g=document.createElementNS(NS,'g');g.style.cursor='pointer';
+    var p=document.createElementNS(NS,'path');
+    p.setAttribute('d',"M320.23,61.43 A185,185,0,0,1,385.36,151.08 L278.25,187.07 A72,72,0,0,0,252.90,152.18Z");p.setAttribute('fill',"rgba(255,255,255,0.04)");
+    p.setAttribute('stroke',"rgba(255,255,255,0.09)");p.setAttribute('stroke-width','0.8');
+    p.style.transition='fill .15s';g.appendChild(p);
+    // Ícono FA (grande)
+    var ic=document.createElementNS(NS,'text');
+    ic.setAttribute('x','307.5');ic.setAttribute('y','146.2');
+    ic.setAttribute('text-anchor','middle');ic.setAttribute('font-size','20');
+    ic.setAttribute('font-family','Font Awesome 6 Free');ic.setAttribute('font-weight','900');
+    ic.setAttribute('fill','#F59E0B');ic.style.pointerEvents='none';
+    // Label (pequeño, debajo)
+    var lb=document.createElementNS(NS,'text');
+    lb.setAttribute('x','330.1');lb.setAttribute('y','126.7');
+    lb.setAttribute('text-anchor','middle');lb.setAttribute('font-size','9');
+    lb.setAttribute('font-weight','600');lb.setAttribute('fill','rgba(255,255,255,0.65)');
+    lb.setAttribute('font-family','system-ui');lb.style.pointerEvents='none';
+    lb.textContent='Bancos';
+    g.appendChild(ic);g.appendChild(lb);
+    g.addEventListener('mouseover',function(e){p.setAttribute('fill',"rgba(255,255,255,0.12)");sT(e,'Bancos');});
+    g.addEventListener('mousemove',mT);
+    g.addEventListener('mouseout',function(){p.setAttribute('fill',"rgba(255,255,255,0.04)");hT();});
+    g.addEventListener('click',function(){
+      setModoEntrada('bancos');
+    });
+    svg.appendChild(g);
+  })();
+  (function(){
+    var g=document.createElementNS(NS,'g');g.style.cursor='pointer';
+    var p=document.createElementNS(NS,'path');
+    p.setAttribute('d',"M386.51,154.59 A185,185,0,0,1,386.51,265.41 L278.70,231.56 A72,72,0,0,0,278.70,188.44Z");p.setAttribute('fill',"rgba(255,255,255,0.04)");
+    p.setAttribute('stroke',"rgba(255,255,255,0.09)");p.setAttribute('stroke-width','0.8');
+    p.style.transition='fill .15s';g.appendChild(p);
+    // Ícono FA (grande)
+    var ic=document.createElementNS(NS,'text');
+    ic.setAttribute('x','330.5');ic.setAttribute('y','217.0');
+    ic.setAttribute('text-anchor','middle');ic.setAttribute('font-size','20');
+    ic.setAttribute('font-family','Font Awesome 6 Free');ic.setAttribute('font-weight','900');
+    ic.setAttribute('fill','#FB923C');ic.style.pointerEvents='none';
+    // Label (pequeño, debajo)
+    var lb=document.createElementNS(NS,'text');
+    lb.setAttribute('x','358.5');lb.setAttribute('y','214.0');
+    lb.setAttribute('text-anchor','middle');lb.setAttribute('font-size','9');
+    lb.setAttribute('font-weight','600');lb.setAttribute('fill','rgba(255,255,255,0.65)');
+    lb.setAttribute('font-family','system-ui');lb.style.pointerEvents='none';
+    lb.textContent='Entrena';
+    g.appendChild(ic);g.appendChild(lb);
+    g.addEventListener('mouseover',function(e){p.setAttribute('fill',"rgba(255,255,255,0.12)");sT(e,'Entrena');});
+    g.addEventListener('mousemove',mT);
+    g.addEventListener('mouseout',function(){p.setAttribute('fill',"rgba(255,255,255,0.04)");hT();});
+    g.addEventListener('click',function(){
+      setModoEntrada('entrenamiento');
+    });
+    svg.appendChild(g);
+  })();
+  (function(){
+    var g=document.createElementNS(NS,'g');g.style.cursor='pointer';
+    var p=document.createElementNS(NS,'path');
+    p.setAttribute('d',"M385.36,268.92 A185,185,0,0,1,320.23,358.57 L252.90,267.82 A72,72,0,0,0,278.25,232.93Z");p.setAttribute('fill',"rgba(255,255,255,0.04)");
+    p.setAttribute('stroke',"rgba(255,255,255,0.09)");p.setAttribute('stroke-width','0.8');
+    p.style.transition='fill .15s';g.appendChild(p);
+    // Ícono FA (grande)
+    var ic=document.createElementNS(NS,'text');
+    ic.setAttribute('x','307.5');ic.setAttribute('y','287.8');
+    ic.setAttribute('text-anchor','middle');ic.setAttribute('font-size','20');
+    ic.setAttribute('font-family','Font Awesome 6 Free');ic.setAttribute('font-weight','900');
+    ic.setAttribute('fill','#4ADE80');ic.style.pointerEvents='none';
+    // Label (pequeño, debajo)
+    var lb=document.createElementNS(NS,'text');
+    lb.setAttribute('x','330.1');lb.setAttribute('y','301.3');
+    lb.setAttribute('text-anchor','middle');lb.setAttribute('font-size','9');
+    lb.setAttribute('font-weight','600');lb.setAttribute('fill','rgba(255,255,255,0.65)');
+    lb.setAttribute('font-family','system-ui');lb.style.pointerEvents='none';
+    lb.textContent='Nutrición';
+    g.appendChild(ic);g.appendChild(lb);
+    g.addEventListener('mouseover',function(e){p.setAttribute('fill',"rgba(255,255,255,0.12)");sT(e,'Nutrición');});
+    g.addEventListener('mousemove',mT);
+    g.addEventListener('mouseout',function(){p.setAttribute('fill',"rgba(255,255,255,0.04)");hT();});
+    g.addEventListener('click',function(){
+      setModoEntrada('nutricion');
+    });
+    svg.appendChild(g);
+  })();
+  (function(){
+    var g=document.createElementNS(NS,'g');g.style.cursor='pointer';
+    var p=document.createElementNS(NS,'path');
+    p.setAttribute('d',"M317.24,360.75 A185,185,0,0,1,211.85,394.99 L210.72,282.00 A72,72,0,0,0,251.74,268.67Z");p.setAttribute('fill',"rgba(255,255,255,0.04)");
+    p.setAttribute('stroke',"rgba(255,255,255,0.09)");p.setAttribute('stroke-width','0.8');
+    p.style.transition='fill .15s';g.appendChild(p);
+    // Ícono FA (grande)
+    var ic=document.createElementNS(NS,'text');
+    ic.setAttribute('x','247.2');ic.setAttribute('y','331.6');
+    ic.setAttribute('text-anchor','middle');ic.setAttribute('font-size','20');
+    ic.setAttribute('font-family','Font Awesome 6 Free');ic.setAttribute('font-weight','900');
+    ic.setAttribute('fill','#C4B5FD');ic.style.pointerEvents='none';
+    // Label (pequeño, debajo)
+    var lb=document.createElementNS(NS,'text');
+    lb.setAttribute('x','255.9');lb.setAttribute('y','355.2');
+    lb.setAttribute('text-anchor','middle');lb.setAttribute('font-size','9');
+    lb.setAttribute('font-weight','600');lb.setAttribute('fill','rgba(255,255,255,0.65)');
+    lb.setAttribute('font-family','system-ui');lb.style.pointerEvents='none';
+    lb.textContent='Patrimonio';
+    g.appendChild(ic);g.appendChild(lb);
+    g.addEventListener('mouseover',function(e){p.setAttribute('fill',"rgba(255,255,255,0.12)");sT(e,'Patrimonio');});
+    g.addEventListener('mousemove',mT);
+    g.addEventListener('mouseout',function(){p.setAttribute('fill',"rgba(255,255,255,0.04)");hT();});
+    g.addEventListener('click',function(){
+      setModoEntrada('patrimonio');
+    });
+    svg.appendChild(g);
+  })();
+  (function(){
+    var g=document.createElementNS(NS,'g');g.style.cursor='pointer';
+    var p=document.createElementNS(NS,'path');
+    p.setAttribute('d',"M208.15,394.99 A185,185,0,0,1,102.76,360.75 L168.26,268.67 A72,72,0,0,0,209.28,282.00Z");p.setAttribute('fill',"rgba(255,255,255,0.04)");
+    p.setAttribute('stroke',"rgba(255,255,255,0.09)");p.setAttribute('stroke-width','0.8');
+    p.style.transition='fill .15s';g.appendChild(p);
+    // Ícono FA (grande)
+    var ic=document.createElementNS(NS,'text');
+    ic.setAttribute('x','172.8');ic.setAttribute('y','331.6');
+    ic.setAttribute('text-anchor','middle');ic.setAttribute('font-size','20');
+    ic.setAttribute('font-family','Font Awesome 6 Free');ic.setAttribute('font-weight','900');
+    ic.setAttribute('fill','#F9A8D4');ic.style.pointerEvents='none';
+    // Label (pequeño, debajo)
+    var lb=document.createElementNS(NS,'text');
+    lb.setAttribute('x','164.1');lb.setAttribute('y','355.2');
+    lb.setAttribute('text-anchor','middle');lb.setAttribute('font-size','9');
+    lb.setAttribute('font-weight','600');lb.setAttribute('fill','rgba(255,255,255,0.65)');
+    lb.setAttribute('font-family','system-ui');lb.style.pointerEvents='none';
+    lb.textContent='Pensa';
+    g.appendChild(ic);g.appendChild(lb);
+    g.addEventListener('mouseover',function(e){p.setAttribute('fill',"rgba(255,255,255,0.12)");sT(e,'Pensa');});
+    g.addEventListener('mousemove',mT);
+    g.addEventListener('mouseout',function(){p.setAttribute('fill',"rgba(255,255,255,0.04)");hT();});
+    g.addEventListener('click',function(){
+      setModoEntrada('pensamiento');
+    });
+    svg.appendChild(g);
+  })();
+  (function(){
+    var g=document.createElementNS(NS,'g');g.style.cursor='pointer';
+    var p=document.createElementNS(NS,'path');
+    p.setAttribute('d',"M99.77,358.57 A185,185,0,0,1,34.64,268.92 L141.75,232.93 A72,72,0,0,0,167.10,267.82Z");p.setAttribute('fill',"rgba(255,255,255,0.04)");
+    p.setAttribute('stroke',"rgba(255,255,255,0.09)");p.setAttribute('stroke-width','0.8');
+    p.style.transition='fill .15s';g.appendChild(p);
+    // Ícono FA (grande)
+    var ic=document.createElementNS(NS,'text');
+    ic.setAttribute('x','112.5');ic.setAttribute('y','287.8');
+    ic.setAttribute('text-anchor','middle');ic.setAttribute('font-size','20');
+    ic.setAttribute('font-family','Font Awesome 6 Free');ic.setAttribute('font-weight','900');
+    ic.setAttribute('fill','#93C5FD');ic.style.pointerEvents='none';
+    // Label (pequeño, debajo)
+    var lb=document.createElementNS(NS,'text');
+    lb.setAttribute('x','89.9');lb.setAttribute('y','301.3');
+    lb.setAttribute('text-anchor','middle');lb.setAttribute('font-size','9');
+    lb.setAttribute('font-weight','600');lb.setAttribute('fill','rgba(255,255,255,0.65)');
+    lb.setAttribute('font-family','system-ui');lb.style.pointerEvents='none';
+    lb.textContent='Persona';
+    g.appendChild(ic);g.appendChild(lb);
+    g.addEventListener('mouseover',function(e){p.setAttribute('fill',"rgba(255,255,255,0.12)");sT(e,'Persona');});
+    g.addEventListener('mousemove',mT);
+    g.addEventListener('mouseout',function(){p.setAttribute('fill',"rgba(255,255,255,0.04)");hT();});
+    g.addEventListener('click',function(){
+      setModoEntrada('persona');
+    });
+    svg.appendChild(g);
+  })();
+  (function(){
+    var g=document.createElementNS(NS,'g');g.style.cursor='pointer';
+    var p=document.createElementNS(NS,'path');
+    p.setAttribute('d',"M33.49,265.41 A185,185,0,0,1,33.49,154.59 L141.30,188.44 A72,72,0,0,0,141.30,231.56Z");p.setAttribute('fill',"rgba(255,255,255,0.04)");
+    p.setAttribute('stroke',"rgba(255,255,255,0.09)");p.setAttribute('stroke-width','0.8');
+    p.style.transition='fill .15s';g.appendChild(p);
+    // Ícono FA (grande)
+    var ic=document.createElementNS(NS,'text');
+    ic.setAttribute('x','89.5');ic.setAttribute('y','217.0');
+    ic.setAttribute('text-anchor','middle');ic.setAttribute('font-size','20');
+    ic.setAttribute('font-family','Font Awesome 6 Free');ic.setAttribute('font-weight','900');
+    ic.setAttribute('fill','#94A3B8');ic.style.pointerEvents='none';
+    // Label (pequeño, debajo)
+    var lb=document.createElementNS(NS,'text');
+    lb.setAttribute('x','61.5');lb.setAttribute('y','214.0');
+    lb.setAttribute('text-anchor','middle');lb.setAttribute('font-size','9');
+    lb.setAttribute('font-weight','600');lb.setAttribute('fill','rgba(255,255,255,0.65)');
+    lb.setAttribute('font-family','system-ui');lb.style.pointerEvents='none';
+    lb.textContent='Editar';
+    g.appendChild(ic);g.appendChild(lb);
+    g.addEventListener('mouseover',function(e){p.setAttribute('fill',"rgba(255,255,255,0.12)");sT(e,'Editar');});
+    g.addEventListener('mousemove',mT);
+    g.addEventListener('mouseout',function(){p.setAttribute('fill',"rgba(255,255,255,0.04)");hT();});
+    g.addEventListener('click',function(){
+      setModoEntrada('editar');
+    });
+    svg.appendChild(g);
+  })();
+  (function(){
+    var g=document.createElementNS(NS,'g');g.style.cursor='pointer';
+    var p=document.createElementNS(NS,'path');
+    p.setAttribute('d',"M34.64,151.08 A185,185,0,0,1,99.77,61.43 L167.10,152.18 A72,72,0,0,0,141.75,187.07Z");p.setAttribute('fill',"rgba(255,255,255,0.04)");
+    p.setAttribute('stroke',"rgba(255,255,255,0.09)");p.setAttribute('stroke-width','0.8');
+    p.style.transition='fill .15s';g.appendChild(p);
+    // Ícono FA (grande)
+    var ic=document.createElementNS(NS,'text');
+    ic.setAttribute('x','112.5');ic.setAttribute('y','146.2');
+    ic.setAttribute('text-anchor','middle');ic.setAttribute('font-size','20');
+    ic.setAttribute('font-family','Font Awesome 6 Free');ic.setAttribute('font-weight','900');
+    ic.setAttribute('fill','#FCA5A5');ic.style.pointerEvents='none';
+    // Label (pequeño, debajo)
+    var lb=document.createElementNS(NS,'text');
+    lb.setAttribute('x','89.9');lb.setAttribute('y','126.7');
+    lb.setAttribute('text-anchor','middle');lb.setAttribute('font-size','9');
+    lb.setAttribute('font-weight','600');lb.setAttribute('fill','rgba(255,255,255,0.65)');
+    lb.setAttribute('font-family','system-ui');lb.style.pointerEvents='none';
+    lb.textContent='Salud';
+    g.appendChild(ic);g.appendChild(lb);
+    g.addEventListener('mouseover',function(e){p.setAttribute('fill',"rgba(255,255,255,0.12)");sT(e,'Salud');});
+    g.addEventListener('mousemove',mT);
+    g.addEventListener('mouseout',function(){p.setAttribute('fill',"rgba(255,255,255,0.04)");hT();});
+    g.addEventListener('click',function(){
+      setModoEntrada('salud');
+    });
+    svg.appendChild(g);
+  })();
+  (function(){
+    var g=document.createElementNS(NS,'g');g.style.cursor='pointer';
+    var p=document.createElementNS(NS,'path');
+    p.setAttribute('d',"M102.76,59.25 A185,185,0,0,1,208.15,25.01 L209.28,138.00 A72,72,0,0,0,168.26,151.33Z");p.setAttribute('fill',"rgba(34,211,238,0.1)");
+    p.setAttribute('stroke',"rgba(34,211,238,0.5)");p.setAttribute('stroke-width','0.8');
+    p.style.transition='fill .15s';g.appendChild(p);
+    // Ícono FA (grande)
+    var ic=document.createElementNS(NS,'text');
+    ic.setAttribute('x','172.8');ic.setAttribute('y','102.4');
+    ic.setAttribute('text-anchor','middle');ic.setAttribute('font-size','20');
+    ic.setAttribute('font-family','Font Awesome 6 Free');ic.setAttribute('font-weight','900');
+    ic.setAttribute('fill','#22D3EE');ic.style.pointerEvents='none';
+    // Label (pequeño, debajo)
+    var lb=document.createElementNS(NS,'text');
+    lb.setAttribute('x','164.1');lb.setAttribute('y','72.8');
+    lb.setAttribute('text-anchor','middle');lb.setAttribute('font-size','9');
+    lb.setAttribute('font-weight','600');lb.setAttribute('fill','rgba(255,255,255,0.65)');
+    lb.setAttribute('font-family','system-ui');lb.style.pointerEvents='none';
+    lb.textContent='Activity';
+    g.appendChild(ic);g.appendChild(lb);
+    g.addEventListener('mouseover',function(e){p.setAttribute('fill',"rgba(34,211,238,0.22)");sT(e,'Activity');});
+    g.addEventListener('mousemove',mT);
+    g.addEventListener('mouseout',function(){p.setAttribute('fill',"rgba(34,211,238,0.1)");hT();});
+    g.addEventListener('click',function(){
+      actSub=!actSub;if(subG){subG.style.opacity=actSub?"1":"0";subG.style.pointerEvents=actSub?"all":"none";}
+    });
+    svg.appendChild(g);
+  })();
+  subG=document.createElementNS(NS,'g');subG.style.opacity='0';subG.style.pointerEvents='none';subG.style.transition='opacity .2s';
+  (function(){
+    var sg=document.createElementNS(NS,'g');sg.style.cursor='pointer';
+    var sp2=document.createElementNS(NS,'path');
+    sp2.setAttribute('d',"M-44.88,127.18 A268,268,0,0,1,52.47,-6.82 L98.32,56.29 A190,190,0,0,0,29.30,151.29Z");sp2.setAttribute('fill','rgba(34,211,238,0.08)');
+    sp2.setAttribute('stroke','rgba(34,211,238,0.4)');sp2.setAttribute('stroke-width','0.8');
+    sp2.style.transition='fill .15s';sg.appendChild(sp2);
+    var se=document.createElementNS(NS,'text');
+    se.setAttribute('x','24.7');se.setAttribute('y','71.4');
+    se.setAttribute('text-anchor','middle');se.setAttribute('font-size','18');
+    se.style.pointerEvents='none';se.textContent='📚';
+    var sl=document.createElementNS(NS,'text');
+    sl.setAttribute('x','24.7');sl.setAttribute('y','89.4');
+    sl.setAttribute('text-anchor','middle');sl.setAttribute('font-size','9');
+    sl.setAttribute('font-weight','700');sl.setAttribute('fill','rgba(34,211,238,0.9)');
+    sl.setAttribute('font-family','system-ui');sl.style.pointerEvents='none';sl.textContent='Libros';
+    sg.appendChild(se);sg.appendChild(sl);
+    sg.addEventListener('mouseover',function(){sp2.setAttribute('fill','rgba(34,211,238,0.2)');});
+    sg.addEventListener('mouseout', function(){sp2.setAttribute('fill','rgba(34,211,238,0.08)');});
+    sg.addEventListener('click',function(){setModoEntrada('libro');});
+    subG.appendChild(sg);
+  })();
+  (function(){
+    var sg=document.createElementNS(NS,'g');sg.style.cursor='pointer';
+    var sp2=document.createElementNS(NS,'path');
+    sp2.setAttribute('d',"M52.47,-6.82 A268,268,0,0,1,210.00,-58.00 L210.00,20.00 A190,190,0,0,0,98.32,56.29Z");sp2.setAttribute('fill','rgba(34,211,238,0.08)');
+    sp2.setAttribute('stroke','rgba(34,211,238,0.4)');sp2.setAttribute('stroke-width','0.8');
+    sp2.style.transition='fill .15s';sg.appendChild(sp2);
+    var se=document.createElementNS(NS,'text');
+    se.setAttribute('x','139.2');se.setAttribute('y','-11.8');
+    se.setAttribute('text-anchor','middle');se.setAttribute('font-size','18');
+    se.style.pointerEvents='none';se.textContent='🎬';
+    var sl=document.createElementNS(NS,'text');
+    sl.setAttribute('x','139.2');sl.setAttribute('y','6.2');
+    sl.setAttribute('text-anchor','middle');sl.setAttribute('font-size','9');
+    sl.setAttribute('font-weight','700');sl.setAttribute('fill','rgba(34,211,238,0.9)');
+    sl.setAttribute('font-family','system-ui');sl.style.pointerEvents='none';sl.textContent='Movies';
+    sg.appendChild(se);sg.appendChild(sl);
+    sg.addEventListener('mouseover',function(){sp2.setAttribute('fill','rgba(34,211,238,0.2)');});
+    sg.addEventListener('mouseout', function(){sp2.setAttribute('fill','rgba(34,211,238,0.08)');});
+    sg.addEventListener('click',function(){setModoEntrada('movie');});
+    subG.appendChild(sg);
+  })();
+  (function(){
+    var sg=document.createElementNS(NS,'g');sg.style.cursor='pointer';
+    var sp2=document.createElementNS(NS,'path');
+    sp2.setAttribute('d',"M210.00,-58.00 A268,268,0,0,1,367.53,-6.82 L321.68,56.29 A190,190,0,0,0,210.00,20.00Z");sp2.setAttribute('fill','rgba(34,211,238,0.08)');
+    sp2.setAttribute('stroke','rgba(34,211,238,0.4)');sp2.setAttribute('stroke-width','0.8');
+    sp2.style.transition='fill .15s';sg.appendChild(sp2);
+    var se=document.createElementNS(NS,'text');
+    se.setAttribute('x','280.8');se.setAttribute('y','-11.8');
+    se.setAttribute('text-anchor','middle');se.setAttribute('font-size','18');
+    se.style.pointerEvents='none';se.textContent='📌';
+    var sl=document.createElementNS(NS,'text');
+    sl.setAttribute('x','280.8');sl.setAttribute('y','6.2');
+    sl.setAttribute('text-anchor','middle');sl.setAttribute('font-size','9');
+    sl.setAttribute('font-weight','700');sl.setAttribute('fill','rgba(34,211,238,0.9)');
+    sl.setAttribute('font-family','system-ui');sl.style.pointerEvents='none';sl.textContent='Pendientes';
+    sg.appendChild(se);sg.appendChild(sl);
+    sg.addEventListener('mouseover',function(){sp2.setAttribute('fill','rgba(34,211,238,0.2)');});
+    sg.addEventListener('mouseout', function(){sp2.setAttribute('fill','rgba(34,211,238,0.08)');});
+    sg.addEventListener('click',function(){setModoEntrada('norut');});
+    subG.appendChild(sg);
+  })();
+  svg.appendChild(subG);
   // Centro RAW
-  var cOuter=document.createElementNS(svgNS,'circle');
-  cOuter.setAttribute('cx','200');cOuter.setAttribute('cy','200');cOuter.setAttribute('r','62');
-  cOuter.setAttribute('fill','rgba(99,102,241,0.15)');cOuter.setAttribute('stroke','rgba(99,102,241,0.45)');cOuter.setAttribute('stroke-width','1.5');
-  cOuter.style.cursor='pointer';cOuter.addEventListener('click',function(){setModoEntrada('nueva');});
-  svg.appendChild(cOuter);
-
-  var cInner=document.createElementNS(svgNS,'circle');
-  cInner.setAttribute('cx','200');cInner.setAttribute('cy','200');cInner.setAttribute('r','48');
-  cInner.setAttribute('fill','rgba(99,102,241,0.08)');cInner.setAttribute('stroke','rgba(99,102,241,0.2)');cInner.setAttribute('stroke-width','0.5');
-  svg.appendChild(cInner);
-
-  var cIco=document.createElementNS(svgNS,'text');
-  cIco.setAttribute('x','200');cIco.setAttribute('y','197');cIco.setAttribute('text-anchor','middle');
-  cIco.setAttribute('font-size','22');cIco.setAttribute('fill','#A5B4FC');cIco.style.cursor='pointer';
-  cIco.textContent='⇄';cIco.addEventListener('click',function(){setModoEntrada('nueva');});
-  svg.appendChild(cIco);
-
-  var cLbl=document.createElementNS(svgNS,'text');
-  cLbl.setAttribute('x','200');cLbl.setAttribute('y','214');cLbl.setAttribute('text-anchor','middle');
-  cLbl.setAttribute('font-size','11');cLbl.setAttribute('font-weight','700');cLbl.setAttribute('fill','#A5B4FC');
-  cLbl.setAttribute('font-family','system-ui');cLbl.style.cursor='pointer';
-  cLbl.textContent='RAW';cLbl.addEventListener('click',function(){setModoEntrada('nueva');});
-  svg.appendChild(cLbl);
+  var cO=document.createElementNS(NS,'circle');
+  cO.setAttribute('cx','210');cO.setAttribute('cy','210');cO.setAttribute('r','64');
+  cO.setAttribute('fill','rgba(99,102,241,0.18)');cO.setAttribute('stroke','rgba(99,102,241,0.5)');cO.setAttribute('stroke-width','1.5');
+  cO.style.cursor='pointer';cO.addEventListener('click',function(){setModoEntrada('nueva');});svg.appendChild(cO);
+  var cI=document.createElementNS(NS,'circle');
+  cI.setAttribute('cx','210');cI.setAttribute('cy','210');cI.setAttribute('r','50');
+  cI.setAttribute('fill','rgba(99,102,241,0.06)');cI.setAttribute('stroke','rgba(99,102,241,0.2)');cI.setAttribute('stroke-width','0.5');
+  svg.appendChild(cI);
+  var cTx=document.createElementNS(NS,'text');
+  cTx.setAttribute('x','210');cTx.setAttribute('y','206');cTx.setAttribute('text-anchor','middle');
+  cTx.setAttribute('font-size','24');cTx.setAttribute('fill','#A5B4FC');cTx.style.cursor='pointer';
+  cTx.textContent='⇄';cTx.addEventListener('click',function(){setModoEntrada('nueva');});svg.appendChild(cTx);
+  var cLb=document.createElementNS(NS,'text');
+  cLb.setAttribute('x','210');cLb.setAttribute('y','222');cLb.setAttribute('text-anchor','middle');
+  cLb.setAttribute('font-size','11');cLb.setAttribute('font-weight','700');cLb.setAttribute('fill','#A5B4FC');
+  cLb.setAttribute('font-family','system-ui');cLb.style.cursor='pointer';
+  cLb.textContent='RAW';cLb.addEventListener('click',function(){setModoEntrada('nueva');});svg.appendChild(cLb);
 }
 
 
@@ -986,6 +1057,34 @@ function onCats(d){
     buildOptsNecesidad('sw-necesidad', d.necesidades, v=>{necesidadSel=v;setFieldVal('necesidad',v.slice(0,30)+'…');marcarDone('necesidad');avanzarA('necesidad');});
   }
   setChip('ok','Listo');
+  // Click en chip "Listo" → actualizar todo incluyendo Activity Check
+  var chipEl = document.getElementById('chip');
+  if(chipEl && !chipEl._refreshBound){
+    chipEl._refreshBound = true;
+    chipEl.style.cursor = 'pointer';
+    chipEl.title = 'Click para actualizar';
+    chipEl.addEventListener('click', function(){
+      _actData = null; // forzar recarga de Activity
+      setChip('load','Cargando');
+      api.getAll().then(function(d){
+        if(!d.ok && !d.catalogos){ setChip('err','Error'); return; }
+        sheetUrl = d.sheetUrl || '';
+        onCats(d.catalogos);
+        if(typeof renderApartados==='function') renderApartados(d.apartados||{items:[],totalApartado:0});
+        if(typeof renderEntes==='function') renderEntes(d.fijos);
+        if(typeof onDatosMes==='function') onDatosMes(d.datosMes);
+        if(typeof renderAnualidad==='function') renderAnualidad(d.gastos);
+        if(typeof renderLogros==='function') renderLogros(d.logros);
+        if(typeof renderNecesidades==='function') renderNecesidades(d.necesidades);
+        if(typeof renderNecesidadesInline==='function'){ renderNecesidadesInline(d.necesidades); setTimeout(function(){ if(typeof actualizarNecInline==='function') actualizarNecInline(); },50); }
+        if(typeof renderFlujoMensual==='function') renderFlujoMensual(d.flujoPorMes);
+        if(d.activityCheck){ _actData=d.activityCheck; if(typeof renderActivity==='function' && _pantalla==='activity') renderActivity(); }
+        if(typeof renderFinancieroAvanzado==='function' && d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
+        setChip('ok','Listo ↺');
+        showToast('✓ Datos actualizados');
+      }).catch(function(){ setChip('err','Error'); });
+    });
+  }
 }
 
 function buildOptsNecesidad(id,items,cb){
