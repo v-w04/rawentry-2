@@ -901,7 +901,7 @@ html.mob .hero-right{display:none !important}
   border:1px solid rgba(255,255,255,.1);
   border-radius:var(--rad-lg);
   width:100%;
-  max-width:480px;
+  max-width:500px;
   max-height:92vh;
   overflow-y:auto;
   box-shadow:0 20px 60px rgba(0,0,0,.8);
@@ -1065,8 +1065,8 @@ html.mob .hero-right{display:none !important}
 }
 .entrada-selector-grid{
   position:relative;
-  width:400px;
-  height:400px;
+  width:420px;
+  height:420px;
   margin:0 auto;
   flex-shrink:0;
   overflow:visible;
