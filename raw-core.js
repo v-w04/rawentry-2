@@ -736,7 +736,10 @@ function abrirEntrada(){
   if(paso2) paso2.style.display = 'none';
   // Paso1 = dial: quitar TODO fondo — dropdown, inner, overlay
   var ddEl=document.querySelector('.entrada-dropdown');
-  if(ddEl){ ddEl.classList.add('dial-mode'); ddEl.style.cssText=''; }
+  if(ddEl){
+    ddEl.classList.add('dial-mode');
+    ddEl.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)';
+  }
   var innerEl=document.querySelector('.entrada-dropdown-inner');
   if(innerEl) innerEl.removeAttribute('style');
   var hdrEl=document.querySelector('.entrada-selector-hdr');
@@ -746,8 +749,7 @@ function abrirEntrada(){
 }
 
 function cerrarEntrada(){
-  var blurOv=document.getElementById('dial-blur-overlay');
-  if(blurOv) blurOv.style.display='none';
+
   const dd = document.getElementById('entrada-dropdown');
   const btn = document.getElementById('btn-nueva-entrada');
   if(dd){ dd.classList.remove('show'); dd.style.display='none'; }
@@ -1323,8 +1325,7 @@ function setModoEntrada(modo){
   if(paso1) paso1.style.display = 'none';
   if(paso2) paso2.style.display = 'block';
   // Restaurar inner y dropdown al estilo normal centrado
-  var blurOv2=document.getElementById('dial-blur-overlay');
-  if(blurOv2) blurOv2.style.display='none';
+
   var dd2=document.querySelector('.entrada-dropdown');
   if(dd2) dd2.classList.remove('dial-mode');
   var inner2=document.querySelector('.entrada-dropdown-inner');
