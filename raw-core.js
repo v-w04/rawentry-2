@@ -596,28 +596,34 @@ function abrirEntrada(){
   const paso2 = document.getElementById('entrada-paso2');
   if(paso1) paso1.style.display = 'block';
   if(paso2) paso2.style.display = 'none';
-  // Paso1 = dial: quitar TODO fondo — dropdown, inner, overlay
-  // Capturar screenshot del body y aplicar blur como fondo
-  var ddEl=document.querySelector('.entrada-dropdown');
+
+  // Pantalla de blur — div simple sobre todo
+  var ov = document.getElementById('dial-screen-overlay');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'dial-screen-overlay';
+    document.body.appendChild(ov);
+  }
+  ov.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:8000;background:rgba(0,0,0,0.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);pointer-events:none';
+
+  // Dropdown encima del overlay
+  var ddEl = document.querySelector('.entrada-dropdown');
   if(ddEl){
     ddEl.classList.add('dial-mode');
-    ddEl.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9000;display:flex;align-items:center;justify-content:center;background:none';
+    ddEl.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9000;display:flex;align-items:center;justify-content:center;background:none;pointer-events:all';
   }
-  // Blur en .app — cubre todo el contenido sin afectar el dial
-  var appEl=document.querySelector('.app, #app, [class*="app"]');
-  if(appEl){ appEl.style.filter='blur(8px) brightness(0.5)'; appEl.style.transition='filter 0.2s'; appEl.style.pointerEvents='none'; }
-
-  var innerEl=document.querySelector('.entrada-dropdown-inner');
+  var innerEl = document.querySelector('.entrada-dropdown-inner');
   if(innerEl) innerEl.removeAttribute('style');
-  var hdrEl=document.querySelector('.entrada-selector-hdr');
-  if(hdrEl) hdrEl.style.display='none';
+  var hdrEl = document.querySelector('.entrada-selector-hdr');
+  if(hdrEl) hdrEl.style.display = 'none';
+
   toggleEntradaDropdown();
   setTimeout(_posicionarRadial, 10);
 }
 
 function cerrarEntrada(){
-  var appEl=document.querySelector('.app, #app');
-  if(appEl){ appEl.style.filter=''; appEl.style.pointerEvents=''; }
+  var ov=document.getElementById('dial-screen-overlay');
+  if(ov) ov.style.display='none';
   const dd = document.getElementById('entrada-dropdown');
   const btn = document.getElementById('btn-nueva-entrada');
   if(dd){ dd.classList.remove('show'); dd.style.display='none'; }
@@ -1194,8 +1200,8 @@ function setModoEntrada(modo){
   if(paso2) paso2.style.display = 'block';
   // Restaurar inner y dropdown al estilo normal centrado
 
-  var appEl=document.querySelector('.app, #app');
-  if(appEl){ appEl.style.filter=''; appEl.style.pointerEvents=''; }
+  var ov=document.getElementById('dial-screen-overlay');
+  if(ov) ov.style.display='none';
   var dd2=document.querySelector('.entrada-dropdown');
   if(dd2) dd2.classList.remove('dial-mode');
   var inner2=document.querySelector('.entrada-dropdown-inner');
