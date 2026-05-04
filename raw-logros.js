@@ -87,18 +87,11 @@ function irAActivity(){
   var grid = document.getElementById('act-container');
   if(grid) grid.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px"></i></div>';
   var semana = _getSemanaKey();
-  var p1 = _actData ? Promise.resolve(_actData) : api.getActivityCheck().then(function(d){ _actData=d; return d; });
-  p1.then(function(d){
-    api.cargarActivityChecks(semana).then(function(r){
-      _actChecks = {};
-      if(r && r.ok && r.checks && r.checks.length){
-        r.checks.forEach(function(c){
-          _actChecks[c.nombre+'_'+semana+'_'+c.fecha] = true;
-        });
-      }
-      renderActivity();
-      if(typeof renderSimsNeeds==='function') renderSimsNeeds();
-    }).catch(function(){ renderActivity(); });
+  // Los checks vienen directamente del sheet via getActivityCheck
+  api.getActivityCheck().then(function(d){
+    _actData = d;
+    renderActivity();
+    if(typeof renderSimsNeeds==='function') renderSimsNeeds();
   }).catch(function(){ renderActivity(); });
 }
 function irAScore(){ if(_pantalla==='score'){ volverAlAnverso(); return; } _setPantalla('score'); cargarScore(); }
@@ -581,7 +574,7 @@ function renderActivity(){
   var libros  = _actData.libros  || [];
   var movies  = _actData.movies  || [];
   var noRut   = _actData.noRutinarias || [];
-  var haySetimo = _hayAlgunSetimo(habPers, semana, dias) || _hayAlgunSetimo(habElec, semana, dias);
+  var haySetimo = _hayAlgunSetimo(habPers, semana, dias, 'pers') || _hayAlgunSetimo(habElec, semana, dias, 'elec');
   var btnMasivo = haySetimo
     ? '<button onclick="_limpiarTodosSetimo()" style="padding:5px 14px;border-radius:var(--rad-pill);background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#FCA5A5;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px"><i class="fas fa-broom"></i> Limpiar todos los 7°</button>'
     : '';
@@ -605,10 +598,14 @@ function renderActivity(){
     '</div>';
 }
 
-function _hayAlgunSetimo(habitos, semana, dias){
+function _hayAlgunSetimo(habitos, semana, dias, colId){
+  var diasVisibles = (colId==='elec')
+    ? dias.filter(function(d){ return ['Lu','Ma','W','Ju','Vi'].indexOf(d.label) >= 0; })
+    : dias;
+  var ultimoDia = diasVisibles[diasVisibles.length-1];
+  var ultimaKey = _diaKey(ultimoDia.label);
   return habitos.some(function(hab){
-    var key7 = hab.nombre+'_'+semana+'_'+dias[6].date;
-    return !!_actChecks[key7];
+    return !!(hab.checks && hab.checks[ultimaKey]);
   });
 }
 
@@ -647,75 +644,90 @@ function _htmlDiasHeader(dias, hoyIso, color){
 function _htmlHabitosCol(habitos, semana, dias, hoyIso, color, colId){
   if(!habitos || !habitos.length)
     return '<div style="padding:12px;font-size:11px;color:var(--m);text-align:center">Sin hábitos</div>';
-  // iniciales van dentro de cada fila
+
+  // Para electronics solo Lu-Vi (5 días)
+  var diasVisibles = (colId==='elec')
+    ? dias.filter(function(d){ return ['Lu','Ma','W','Ju','Vi'].indexOf(d.label) >= 0; })
+    : dias;
+
   var pendientes = [], completados = [];
-  habitos.forEach(function(hab){
-    var key7 = hab.nombre+'_'+semana+'_'+dias[6].date;
-    var setimo = !!_actChecks[key7];
-    var ultimaFecha = '';
-    for(var di=6;di>=0;di--){
-      if(_actChecks[hab.nombre+'_'+semana+'_'+dias[di].date]){ ultimaFecha=dias[di].date; break; }
-    }
-    var obj = {hab:hab,setimo:setimo,ultimaFecha:ultimaFecha};
+  habitos.forEach(function(hab, idx){
+    // 7° = último día visible
+    var ultimoDia = diasVisibles[diasVisibles.length-1];
+    var ultimaKey = _diaKey(ultimoDia.label);
+    var setimo = !!(hab.checks && hab.checks[ultimaKey]);
+    var obj = {hab:hab, idx:idx, setimo:setimo};
     if(setimo) completados.push(obj); else pendientes.push(obj);
   });
-  function renderHabRow(obj){
-    var hab=obj.hab, setimo=obj.setimo, pct=0;
-    var habIdx = habitos.indexOf(hab);
-    var checks=dias.map(function(d){
-      var key=hab.nombre+'_'+semana+'_'+d.date;
-      var done=!!_actChecks[key], past=d.isPast;
-      if(done) pct++;
 
-      return '<button data-idx="'+habIdx+'" data-src="'+(colId||'pers')+'" data-sem="'+semana+'" data-dat="'+d.date+'" onclick="_toggleHabitoKey(this)" '+
+  function renderHabRow(obj){
+    var hab = obj.hab, setimo = obj.setimo;
+    var marcados = 0;
+    var checksBtns = diasVisibles.map(function(d){
+      var dkey = _diaKey(d.label);
+      var done = !!(hab.checks && hab.checks[dkey]);
+      if(done) marcados++;
+      var esHoy = d.date === hoyIso;
+      return '<button data-idx="'+obj.idx+'" data-src="'+(colId||'pers')+'" data-dia="'+dkey+'" onclick="_toggleHabitoKey(this)" '+
         'style="width:20px;height:20px;border-radius:5px;border:1px solid '+(done?color+'88':'rgba(255,255,255,.1)')+';'+
-        'background:'+(done?color+'33':'rgba(255,255,255,.03)')+';cursor:'+(past?'pointer':'default')+';'+
+        'background:'+(done?color+'33':'rgba(255,255,255,.03)')+';cursor:pointer;'+
         'display:flex;align-items:center;justify-content:center;font-size:10px;'+
-        'transition:all .2s;opacity:'+(past?1:.25)+';color:'+color+';flex-shrink:0;font-family:inherit"'+
-        (past?'':' disabled')+'>'+(done?'✓':'')+'</button>';
+        'transition:all .2s;color:'+color+';flex-shrink:0;font-family:inherit">'+(done?'✓':'')+'</button>';
     }).join('');
-    var pctNum=Math.round(pct/7*100);
-    return '<div style="padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);background:'+(setimo?'rgba(74,222,128,.04)':'transparent')+';transition:background .3s">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">' +
+    var pctNum = Math.round(marcados/diasVisibles.length*100);
+    var diasHeader = '<div style="display:flex;gap:3px;flex-wrap:nowrap;margin-bottom:2px">' +
+      diasVisibles.map(function(d){
+        var esHoy = d.date === hoyIso;
+        return '<div style="width:20px;text-align:center;font-size:8px;font-weight:'+(esHoy?'800':'400')+';'+
+          'color:'+(esHoy?color:'rgba(255,255,255,.2)')+';line-height:14px">'+d.label+'</div>';
+      }).join('')+'</div>';
+    return '<div style="padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);background:'+(setimo?'rgba(74,222,128,.04)':'transparent')+'">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
         '<div style="font-size:11px;font-weight:600;color:'+(setimo?'rgba(255,255,255,.4)':'rgba(255,255,255,.85)')+';'+
           'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70%;text-decoration:'+(setimo?'line-through':'none')+'" title="'+hab.nombre+'">'+hab.nombre+'</div>' +
-        (setimo?'<span style="font-size:9px;color:var(--ok);font-weight:600">✓ '+obj.ultimaFecha.slice(5)+'</span>':
+        (setimo?'<span style="font-size:9px;color:var(--ok);font-weight:600">✓</span>':
                 '<span style="font-size:9px;color:var(--m)">'+pctNum+'%</span>') +
       '</div>' +
-      '<div style="display:flex;gap:3px;flex-wrap:nowrap;margin-bottom:2px">' +
-        dias.map(function(d){
-          var esHoy = d.date === hoyIso;
-          return '<div style="width:20px;text-align:center;font-size:8px;font-weight:'+(esHoy?'800':'400')+';'+
-            'color:'+(esHoy?color:'rgba(255,255,255,.2)')+';line-height:14px">'+ d.label+'</div>';
-        }).join('') +
-      '</div>' +
-      '<div style="display:flex;gap:3px;flex-wrap:nowrap;margin-bottom:5px">'+checks+'</div>' +
+      diasHeader +
+      '<div style="display:flex;gap:3px;flex-wrap:nowrap;margin-bottom:4px">'+checksBtns+'</div>' +
       '<div style="height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden">' +
         '<div style="height:100%;width:'+pctNum+'%;background:'+color+';border-radius:1px;opacity:'+(setimo?.3:.7)+';transition:width .3s"></div>' +
       '</div>' +
     '</div>';
   }
-  var html='';
+
+  var html = '';
   pendientes.forEach(function(obj){ html+=renderHabRow(obj); });
   if(completados.length){
-    html+='<div style="padding:5px 10px 3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(74,222,128,.5);border-top:1px solid rgba(74,222,128,.1);margin-top:4px">Completados esta semana</div>';
+    html+='<div style="padding:5px 10px 3px;font-size:9px;font-weight:700;text-transform:uppercase;'+
+      'letter-spacing:.08em;color:rgba(74,222,128,.5);border-top:1px solid rgba(74,222,128,.1);margin-top:4px">Completados esta semana</div>';
     completados.forEach(function(obj){ html+=renderHabRow(obj); });
   }
   return html;
 }
 
+function _diaKey(label){
+  var map = {Lu:'L',Ma:'M',W:'W',Ju:'J',Vi:'V',Sa:'S',Do:'D'};
+  return map[label] || label;
+}
+
+
 function _toggleHabitoKey(btn){
   var idx = parseInt(btn.getAttribute('data-idx'));
   var src = btn.getAttribute('data-src');
-  var sem = btn.getAttribute('data-sem');
-  var dat = btn.getAttribute('data-dat');
+  var diaLabel = btn.getAttribute('data-dia'); // Lu,Ma,W,Ju,Vi,Sa,Do
   var lista = (src==='elec') ? (_actData&&_actData.habitosElectronics||[]) : (_actData&&_actData.habitosPersonal||[]);
   var hab = lista[idx];
   if(!hab) return;
-  var key = hab.nombre+'_'+sem+'_'+dat;
-  _actChecks[key] = !_actChecks[key];
+  var tipo = (src==='elec') ? 'electronics' : 'personal';
+  var nuevoValor = !hab.checks[diaLabel];
+  hab.checks[diaLabel] = nuevoValor;
   renderActivity();
-  _autoGuardarChecks();
+  api.setActivityCheck(tipo, hab.fila, diaLabel, nuevoValor).catch(function(){
+    // revertir si falla
+    hab.checks[diaLabel] = !nuevoValor;
+    renderActivity();
+  });
 }
 
 function _autoGuardarChecks(){
@@ -740,11 +752,23 @@ function _toggleHabitoInline(nombre, semana, fecha){
 }
 
 function _limpiarSetimoCol(colId){
-  var semana=_getSemanaKey(), dias=_getDiasEstaSemanaMX();
-  var habitos=colId==='pers'?(_actData&&_actData.habitosPersonal||[]):(_actData&&_actData.habitosElectronics||[]);
+  var dias = _getDiasEstaSemanaMX();
+  var diasVisibles = (colId==='elec')
+    ? dias.filter(function(d){ return ['Lu','Ma','W','Ju','Vi'].indexOf(d.label) >= 0; })
+    : dias;
+  var ultimaKey = _diaKey(diasVisibles[diasVisibles.length-1].label);
+  var tipo = (colId==='elec') ? 'electronics' : 'personal';
+  var habitos = colId==='pers' ? (_actData&&_actData.habitosPersonal||[]) : (_actData&&_actData.habitosElectronics||[]);
   habitos.forEach(function(hab){
-    var key7=hab.nombre+'_'+semana+'_'+dias[6].date;
-    if(_actChecks[key7]) dias.forEach(function(d){ delete _actChecks[hab.nombre+'_'+semana+'_'+d.date]; });
+    if(hab.checks && hab.checks[ultimaKey]){
+      diasVisibles.forEach(function(d){
+        var dk = _diaKey(d.label);
+        if(hab.checks[dk]){
+          hab.checks[dk] = false;
+          api.setActivityCheck(tipo, hab.fila, dk, false).catch(function(){});
+        }
+      });
+    }
   });
   renderActivity();
   showToast('Séptimo día limpiado en '+(colId==='pers'?'Personal':'Trabajo'));
