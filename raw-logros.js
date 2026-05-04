@@ -609,7 +609,7 @@ function renderActivity(){
       '<div style="font-size:11px;color:var(--m)">Marca tu 7° día para ver opciones de limpieza</div>' +
       btnMasivo +
     '</div>' +
-    '<div style="display:grid;grid-template-columns:1.3fr 1.1fr 1fr 1fr 1fr;gap:12px;align-items:start">' +
+    '<div style="display:grid;grid-template-columns:0.65fr 0.55fr 1fr 1fr 1fr;gap:12px;align-items:start">' +
       _colActividad('Personal',   '#4ADE80', 'pers', _htmlHabitosCol(habPers, semana, dias,     hoyIso, '#4ADE80', 'pers')) +
       _colActividad('Trabajo',    '#22D3EE', 'elec', _htmlHabitosCol(habElec, semana, diasElec, hoyIso, '#22D3EE', 'elec')) +
       _colActividad('Libros',     '#EC4899', null, _htmlMediaCol(libros, 'libro', '#EC4899'),
