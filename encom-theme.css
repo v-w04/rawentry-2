@@ -886,3 +886,74 @@ html.encom #enc-swirls-activity {
 html.encom .enc-hdr-line {
   display: block;
 }
+
+/* ════════════════════════
+   DIAL — Nueva Entrada
+════════════════════════ */
+html.encom .entrada-dropdown.show {
+  background: rgba(0,0,0,0.88) !important;
+  backdrop-filter: none !important;
+}
+html.encom .entrada-dropdown-inner {
+  background: #000 !important;
+  border: 1px solid rgba(0,238,238,.3) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 30px rgba(0,238,238,.12), inset 0 0 40px rgba(0,5,5,.9) !important;
+}
+html.encom .entrada-selector-hdr {
+  border-bottom: 1px solid rgba(0,238,238,.2) !important;
+  color: #00eeee !important;
+  letter-spacing: .1em !important;
+}
+
+/* Dial SVG en ENCOM — sectores cyan */
+html.encom .rdial path[fill*="30,32,38"] {
+  fill: rgba(0,15,20,0.95) !important;
+}
+
+/* dial.html en modo ENCOM — no aplica class pero sí podemos estilizar vía JS */
+
+/* ════════════════════════
+   ACTIVITY CHECK
+════════════════════════ */
+html.encom #act-container > div {
+  background: rgba(0,10,15,0.9) !important;
+  border-color: rgba(0,238,238,.2) !important;
+}
+html.encom #act-container [style*="border-radius:10px"] {
+  background: rgba(0,10,15,0.9) !important;
+  border: 1px solid rgba(0,238,238,.15) !important;
+}
+/* Header columnas */
+html.encom [id^="actcol-"] > div:first-child {
+  border-bottom: 1px solid rgba(0,238,238,.15) !important;
+}
+/* Checkboxes */
+html.encom [onclick*="_toggleHabitoKey"] {
+  border-radius: 0 !important;
+}
+/* Barra de progreso */
+html.encom [style*="height:2px"] > div {
+  box-shadow: 0 0 6px currentColor !important;
+}
+/* Texto hábito */
+html.encom [style*="font-size:13px;font-weight:600"] {
+  font-family: 'Inconsolata', monospace !important;
+  letter-spacing: .04em !important;
+}
+/* Columnas Libros/Movies/Pendientes */
+html.encom [onclick*="_toggleActivityItem"] {
+  border-radius: 0 !important;
+}
+/* Botón limpiar */
+html.encom [id^="act-limpiar-"] {
+  border-radius: 0 !important;
+  font-family: 'Inconsolata', monospace !important;
+}
+/* Header Activity Check */
+html.encom #act-semana-lbl {
+  color: #00eeee !important;
+  text-shadow: 0 0 8px rgba(0,238,238,.4) !important;
+  font-family: 'terminator', 'Inconsolata', monospace !important;
+  letter-spacing: .1em !important;
+}
