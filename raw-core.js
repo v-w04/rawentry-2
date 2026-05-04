@@ -135,40 +135,107 @@ function _initMobTablero(){
 // ══════════════════════════════════════════
 
 // Definición de sectores con iconos Lucide-style dibujados en canvas
+// ══════════════════════════════════════════
+//  DIAL — Canvas 2D v2
+//  - Overlay glassmorphism (no biselado oscuro)
+//  - Sectores monocromáticos, solo acento en ícono+label
+//  - Segundo anillo para ítems con subopciones
+// ══════════════════════════════════════════
+
+// Color base único para todos los sectores
+var _DIAL_SECTOR_BASE  = 'rgba(15,15,20,0.82)';
+var _DIAL_SECTOR_HOVER = 'rgba(28,28,38,0.95)';
+var _DIAL_SECTOR_SUB   = 'rgba(10,10,16,0.88)';
+var _DIAL_SECTOR_SUB_H = 'rgba(22,22,32,0.98)';
+
+// Íconos de sub-ítems: draw functions estilo Lucide
+function _icoLibro(ctx,x,y,s,c){ var k=s/22;
+  ctx.beginPath();ctx.rect(x-8*k,y-10*k,16*k,20*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x-8*k,y-3*k);ctx.lineTo(x-1*k,y-10*k);ctx.lineTo(x-1*k,y+3*k);ctx.closePath();ctx.strokeStyle=c;ctx.stroke();
+}
+function _icoMovie(ctx,x,y,s,c){ var k=s/22;
+  ctx.beginPath();ctx.rect(x-10*k,y-7*k,20*k,14*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
+  ctx.beginPath();[-8,-4,0,4,8].forEach(function(dx){ ctx.moveTo(x+dx*k,y-7*k);ctx.lineTo(x+dx*k,y+7*k); });
+  ctx.strokeStyle=c;ctx.lineWidth=1.2;ctx.stroke();
+}
+function _icoPendiente(ctx,x,y,s,c){ var k=s/22;
+  ctx.beginPath();ctx.arc(x,y,9*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();
+  ctx.beginPath();ctx.arc(x-3*k,y-2*k,2*k,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();
+  ctx.beginPath();ctx.arc(x+3*k,y+2*k,2*k,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();
+}
+function _icoAhorro(ctx,x,y,s,c){ var k=s/22;
+  ctx.beginPath();ctx.arc(x,y,8*k,Math.PI*.1,Math.PI*2.9);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x+8*k,y-1*k);ctx.lineTo(x+11*k,y-4*k);ctx.lineTo(x+11*k,y+2*k);ctx.fillStyle=c;ctx.fill();
+}
+function _icoBancoCuenta(ctx,x,y,s,c){ var k=s/22;
+  ctx.beginPath();ctx.rect(x-9*k,y-6*k,18*k,12*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x-5*k,y);ctx.lineTo(x+5*k,y);ctx.strokeStyle=c;ctx.lineWidth=2.5;ctx.lineCap='round';ctx.stroke();
+}
+function _icoInversion(ctx,x,y,s,c){ var k=s/22;
+  ctx.beginPath();ctx.moveTo(x-9*k,y+6*k);ctx.lineTo(x-4*k,y);ctx.lineTo(x+1*k,y+4*k);ctx.lineTo(x+9*k,y-7*k);
+  ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();
+}
+function _icoEfectivo(ctx,x,y,s,c){ var k=s/22;
+  ctx.beginPath();ctx.rect(x-10*k,y-5*k,20*k,10*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();
+  ctx.beginPath();ctx.arc(x,y,3*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=1.8;ctx.stroke();
+}
+
 var _DIAL_ITEMS = [
-  { id:'activity',      label:'Activity',   color:'#0d2e26', accent:'#22d3c8',
-    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.moveTo(x-8*k,y+4*k);ctx.lineTo(x-2*k,y-2*k);ctx.lineTo(x+3*k,y+3*k);ctx.lineTo(x+9*k,y-7*k);ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke(); } },
-  { id:'apartado',      label:'Apartado',   color:'#0a2210', accent:'#4ade80',
-    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.arc(x,y-2*k,5.5*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.moveTo(x-8*k,y+5*k);ctx.lineTo(x+8*k,y+5*k);ctx.lineTo(x+6*k,y+10*k);ctx.lineTo(x-6*k,y+10*k);ctx.closePath();ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke(); } },
-  { id:'bancos',        label:'Bancos',     color:'#261600', accent:'#f59e0b',
-    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.moveTo(x-10*k,y+8*k);ctx.lineTo(x+10*k,y+8*k);ctx.moveTo(x-7*k,y-2*k);ctx.lineTo(x-7*k,y+8*k);ctx.moveTo(x,y-2*k);ctx.lineTo(x,y+8*k);ctx.moveTo(x+7*k,y-2*k);ctx.lineTo(x+7*k,y+8*k);ctx.moveTo(x-10*k,y-2*k);ctx.lineTo(x+10*k,y-2*k);ctx.moveTo(x-11*k,y-7*k);ctx.lineTo(x,y-13*k);ctx.lineTo(x+11*k,y-7*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke(); } },
-  { id:'entrenamiento', label:'Entrena',    color:'#261000', accent:'#fb923c',
-    draw:function(ctx,x,y,s,c){ var k=s/22; [[-10,0,3.5],[10,0,3.5]].forEach(function(p){ ctx.beginPath();ctx.arc(x+p[0]*k,y+p[1]*k,p[2]*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.stroke(); });ctx.beginPath();ctx.moveTo(x-6*k,y);ctx.lineTo(x+6*k,y);ctx.strokeStyle=c;ctx.lineWidth=3;ctx.lineCap='round';ctx.stroke(); } },
-  { id:'nutricion',     label:'Nutrición',  color:'#071a0c', accent:'#86efac',
-    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.arc(x,y+2*k,8*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.moveTo(x,y-6*k);ctx.bezierCurveTo(x,y-13*k,x+8*k,y-12*k,x+7*k,y-6*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke(); } },
-  { id:'patrimonio',    label:'Patrimonio', color:'#130c28', accent:'#c4b5fd',
-    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.moveTo(x-11*k,y+8*k);ctx.lineTo(x+11*k,y+8*k);ctx.moveTo(x-7*k,y-1*k);ctx.lineTo(x-7*k,y+8*k);ctx.moveTo(x,y-1*k);ctx.lineTo(x,y+8*k);ctx.moveTo(x+7*k,y-1*k);ctx.lineTo(x+7*k,y+8*k);ctx.moveTo(x-11*k,y-1*k);ctx.lineTo(x+11*k,y-1*k);ctx.moveTo(x-13*k,y-7*k);ctx.lineTo(x,y-14*k);ctx.lineTo(x+13*k,y-7*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke(); } },
-  { id:'pensamiento',   label:'Pensa',      color:'#1c0824', accent:'#f0abfc',
-    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.arc(x-1*k,y-2*k,8*k,Math.PI*0.3,Math.PI*2.2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(x+5*k,y+8*k,2.5*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(x+9*k,y+13*k,1.5*k,0,Math.PI*2);ctx.fillStyle=c;ctx.fill(); } },
-  { id:'persona',       label:'Persona',    color:'#081422', accent:'#93c5fd',
-    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.arc(x-3*k,y-5*k,4.5*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(x+5*k,y-7*k,3.5*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=1.8;ctx.stroke();ctx.beginPath();ctx.moveTo(x-13*k,y+10*k);ctx.quadraticCurveTo(x-3*k,y+2*k,x+5*k,y+10*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();ctx.beginPath();ctx.moveTo(x+3*k,y+4*k);ctx.quadraticCurveTo(x+11*k,y,x+14*k,y+10*k);ctx.strokeStyle=c;ctx.lineWidth=1.8;ctx.lineCap='round';ctx.stroke(); } },
-  { id:'editar',        label:'Editar',     color:'#101018', accent:'#a5b4fc',
-    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.save();ctx.translate(x,y);ctx.rotate(-Math.PI/4);ctx.beginPath();ctx.rect(-2.5*k,-9*k,5*k,17*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();ctx.beginPath();ctx.moveTo(-2.5*k,8*k);ctx.lineTo(0,13*k);ctx.lineTo(2.5*k,8*k);ctx.fillStyle=c;ctx.fill();ctx.restore(); } },
-  { id:'salud',         label:'Salud',      color:'#20080e', accent:'#fca5a5',
-    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.moveTo(x,y+9*k);ctx.bezierCurveTo(x-13*k,y,x-13*k,y-10*k,x,y-4*k);ctx.bezierCurveTo(x+13*k,y-10*k,x+13*k,y,x,y+9*k);ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.stroke(); } },
+  { id:'activity',      label:'Activity',   accent:'#22d3c8',
+    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.moveTo(x-8*k,y+4*k);ctx.lineTo(x-2*k,y-2*k);ctx.lineTo(x+3*k,y+3*k);ctx.lineTo(x+9*k,y-7*k);ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke(); },
+    subs:[
+      { id:'libro',        label:'Libros',     accent:'#ec4899', draw:_icoLibro },
+      { id:'movie',        label:'Movies',     accent:'#f59e0b', draw:_icoMovie },
+      { id:'norut',        label:'Pendientes', accent:'#8b5cf6', draw:_icoPendiente },
+    ]
+  },
+  { id:'apartado',      label:'Apartado',   accent:'#4ade80',
+    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.arc(x,y-2*k,5.5*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.moveTo(x-8*k,y+5*k);ctx.lineTo(x+8*k,y+5*k);ctx.lineTo(x+6*k,y+10*k);ctx.lineTo(x-6*k,y+10*k);ctx.closePath();ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke(); }
+  },
+  { id:'bancos',        label:'Bancos',     accent:'#f59e0b',
+    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.moveTo(x-10*k,y+8*k);ctx.lineTo(x+10*k,y+8*k);ctx.moveTo(x-7*k,y-2*k);ctx.lineTo(x-7*k,y+8*k);ctx.moveTo(x,y-2*k);ctx.lineTo(x,y+8*k);ctx.moveTo(x+7*k,y-2*k);ctx.lineTo(x+7*k,y+8*k);ctx.moveTo(x-10*k,y-2*k);ctx.lineTo(x+10*k,y-2*k);ctx.moveTo(x-11*k,y-7*k);ctx.lineTo(x,y-13*k);ctx.lineTo(x+11*k,y-7*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke(); }
+  },
+  { id:'entrenamiento', label:'Entrena',    accent:'#fb923c',
+    draw:function(ctx,x,y,s,c){ var k=s/22; [[-10,0,3.5],[10,0,3.5]].forEach(function(p){ ctx.beginPath();ctx.arc(x+p[0]*k,y+p[1]*k,p[2]*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.stroke(); });ctx.beginPath();ctx.moveTo(x-6*k,y);ctx.lineTo(x+6*k,y);ctx.strokeStyle=c;ctx.lineWidth=3;ctx.lineCap='round';ctx.stroke(); }
+  },
+  { id:'nutricion',     label:'Nutrición',  accent:'#86efac',
+    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.arc(x,y+2*k,8*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.moveTo(x,y-6*k);ctx.bezierCurveTo(x,y-13*k,x+8*k,y-12*k,x+7*k,y-6*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke(); }
+  },
+  { id:'patrimonio',    label:'Patrimonio', accent:'#c4b5fd',
+    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.moveTo(x-11*k,y+8*k);ctx.lineTo(x+11*k,y+8*k);ctx.moveTo(x-7*k,y-1*k);ctx.lineTo(x-7*k,y+8*k);ctx.moveTo(x,y-1*k);ctx.lineTo(x,y+8*k);ctx.moveTo(x+7*k,y-1*k);ctx.lineTo(x+7*k,y+8*k);ctx.moveTo(x-11*k,y-1*k);ctx.lineTo(x+11*k,y-1*k);ctx.moveTo(x-13*k,y-7*k);ctx.lineTo(x,y-14*k);ctx.lineTo(x+13*k,y-7*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke(); },
+    subs:[
+      { id:'ahorro',     label:'Banco',     accent:'#4ade80', draw:_icoAhorro },
+      { id:'efectivo',   label:'Efectivo',  accent:'#fbbf24', draw:_icoEfectivo },
+      { id:'inversion',  label:'Inversión', accent:'#c4b5fd', draw:_icoInversion },
+    ]
+  },
+  { id:'pensamiento',   label:'Pensa',      accent:'#f0abfc',
+    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.arc(x-1*k,y-2*k,8*k,Math.PI*0.3,Math.PI*2.2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(x+5*k,y+8*k,2.5*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(x+9*k,y+13*k,1.5*k,0,Math.PI*2);ctx.fillStyle=c;ctx.fill(); }
+  },
+  { id:'persona',       label:'Persona',    accent:'#93c5fd',
+    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.arc(x-3*k,y-5*k,4.5*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(x+5*k,y-7*k,3.5*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=1.8;ctx.stroke();ctx.beginPath();ctx.moveTo(x-13*k,y+10*k);ctx.quadraticCurveTo(x-3*k,y+2*k,x+5*k,y+10*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();ctx.beginPath();ctx.moveTo(x+3*k,y+4*k);ctx.quadraticCurveTo(x+11*k,y,x+14*k,y+10*k);ctx.strokeStyle=c;ctx.lineWidth=1.8;ctx.lineCap='round';ctx.stroke(); }
+  },
+  { id:'editar',        label:'Editar',     accent:'#a5b4fc',
+    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.save();ctx.translate(x,y);ctx.rotate(-Math.PI/4);ctx.beginPath();ctx.rect(-2.5*k,-9*k,5*k,17*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();ctx.beginPath();ctx.moveTo(-2.5*k,8*k);ctx.lineTo(0,13*k);ctx.lineTo(2.5*k,8*k);ctx.fillStyle=c;ctx.fill();ctx.restore(); }
+  },
+  { id:'salud',         label:'Salud',      accent:'#fca5a5',
+    draw:function(ctx,x,y,s,c){ var k=s/22; ctx.beginPath();ctx.moveTo(x,y+9*k);ctx.bezierCurveTo(x-13*k,y,x-13*k,y-10*k,x,y-4*k);ctx.bezierCurveTo(x+13*k,y-10*k,x+13*k,y,x,y+9*k);ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.stroke(); }
+  },
 ];
 
-// El overlay y canvas se crean una sola vez y se reusan
-var _dialOverlay  = null;
-var _dialCanvas   = null;
-var _dialCtx      = null;
-var _dialHovered  = -1;
-var _dialVisible  = false;
+// Estado del dial
+var _dialOverlay   = null;
+var _dialCanvas    = null;
+var _dialCtx       = null;
+var _dialHovered   = -1;   // índice sector principal hover
+var _dialSubHov    = -1;   // índice subitem hover
+var _dialActiveSub = -1;   // índice sector con subanillo visible (-1 = ninguno)
+var _dialVisible   = false;
 
 function _crearDialOverlay(){
   if(_dialOverlay) return;
 
-  // Overlay: solo blur, sin color de fondo sólido, sin caja
+  // Overlay glassmorphism — sin bisel, fondo semitransparente suave
   _dialOverlay = document.createElement('div');
   _dialOverlay.id = 'dial-overlay';
   _dialOverlay.style.cssText = [
@@ -178,61 +245,77 @@ function _crearDialOverlay(){
     'display:none',
     'align-items:center',
     'justify-content:center',
-    'background:rgba(0,0,0,0.55)',
-    'backdrop-filter:blur(18px)',
-    '-webkit-backdrop-filter:blur(18px)',
+    'background:rgba(8,8,16,0.45)',
+    'backdrop-filter:blur(20px) saturate(160%)',
+    '-webkit-backdrop-filter:blur(20px) saturate(160%)',
   ].join(';');
 
-  // Canvas — sin bordes, sin fondo, flota libre sobre el blur
+  // Canvas — sin fondo propio, flota sobre el blur
   _dialCanvas = document.createElement('canvas');
-  _dialCanvas.width  = 500;
-  _dialCanvas.height = 500;
-  _dialCanvas.style.cssText = 'display:block;cursor:pointer;width:480px;height:480px;max-width:90vw;max-height:90vw';
+  _dialCanvas.width  = 560;
+  _dialCanvas.height = 560;
+  _dialCanvas.style.cssText = 'display:block;cursor:pointer;width:520px;height:520px;max-width:92vw;max-height:92vw';
   _dialCtx = _dialCanvas.getContext('2d');
 
   _dialOverlay.appendChild(_dialCanvas);
   document.body.appendChild(_dialOverlay);
 
-  // Cerrar al click fuera del canvas
+  // Cerrar al click fuera
   _dialOverlay.addEventListener('click', function(e){
     if(e.target === _dialOverlay) cerrarDial();
   });
-
-  // Cerrar con Escape
   document.addEventListener('keydown', function(e){
     if(e.key === 'Escape' && _dialVisible) cerrarDial();
   });
 
   // Hover
   _dialCanvas.addEventListener('mousemove', function(e){
-    var r = _dialCanvas.getBoundingClientRect();
-    var mx = (e.clientX - r.left) * (500 / r.width);
-    var my = (e.clientY - r.top)  * (500 / r.height);
-    var h  = _dialHitTest(mx, my);
-    if(h !== _dialHovered){ _dialHovered = h; _dialDraw(); }
-    _dialCanvas.style.cursor = h >= 0 ? 'pointer' : 'default';
+    var r  = _dialCanvas.getBoundingClientRect();
+    var mx = (e.clientX - r.left) * (560 / r.width);
+    var my = (e.clientY - r.top)  * (560 / r.height);
+    var h  = _dialHitTest(mx, my, false);
+    var hs = _dialActiveSub >= 0 ? _dialHitTest(mx, my, true) : -1;
+    if(h !== _dialHovered || hs !== _dialSubHov){
+      _dialHovered = h; _dialSubHov = hs; _dialDraw();
+    }
+    _dialCanvas.style.cursor = (h >= 0 || hs >= 0) ? 'pointer' : 'default';
   });
   _dialCanvas.addEventListener('mouseleave', function(){
-    _dialHovered = -1; _dialDraw();
+    _dialHovered = -1; _dialSubHov = -1; _dialDraw();
   });
 
-  // Click en sector
+  // Click
   _dialCanvas.addEventListener('click', function(e){
     var r  = _dialCanvas.getBoundingClientRect();
-    var mx = (e.clientX - r.left) * (500 / r.width);
-    var my = (e.clientY - r.top)  * (500 / r.height);
-    var h  = _dialHitTest(mx, my);
+    var mx = (e.clientX - r.left) * (560 / r.width);
+    var my = (e.clientY - r.top)  * (560 / r.height);
+
+    // ¿Click en subanillo?
+    if(_dialActiveSub >= 0){
+      var hs = _dialHitTest(mx, my, true);
+      if(hs >= 0){
+        var sub = _DIAL_ITEMS[_dialActiveSub].subs[hs];
+        cerrarDial();
+        abrirFormulario(sub.id);
+        return;
+      }
+    }
+
+    var h = _dialHitTest(mx, my, false);
     if(h >= 0){
-      cerrarDial();
       var item = _DIAL_ITEMS[h];
-      var modo = item.id;
-      // Mapeos especiales
-      if(modo === 'entrenamiento') modo = 'entrenamiento';
-      if(modo === 'editar')        modo = 'editar';
-      abrirFormulario(modo);
+      if(item.subs && item.subs.length){
+        // Toggle subanillo
+        _dialActiveSub = (_dialActiveSub === h) ? -1 : h;
+        _dialSubHov    = -1;
+        _dialDraw();
+      } else {
+        cerrarDial();
+        abrirFormulario(item.id);
+      }
     } else {
       // Click en centro → RAW
-      var CX=250,CY=250,R_IN=62;
+      var CX=280,CY=280,R_IN=65;
       var dx=mx-CX,dy=my-CY;
       if(Math.sqrt(dx*dx+dy*dy) < R_IN){
         cerrarDial();
@@ -242,103 +325,193 @@ function _crearDialOverlay(){
   });
 }
 
-function _dialHitTest(mx,my){
-  var CX=250,CY=250,R_OUT=232,R_IN=62;
+// Hit test — ring:false = anillo principal, ring:true = subanillo
+function _dialHitTest(mx, my, ring){
+  var CX=280,CY=280;
   var N=_DIAL_ITEMS.length;
   var slice=(Math.PI*2)/N;
   var dx=mx-CX,dy=my-CY;
   var dist=Math.sqrt(dx*dx+dy*dy);
-  if(dist < R_IN || dist > R_OUT+14) return -1;
   var angle=Math.atan2(dy,dx)+Math.PI/2;
   if(angle<0) angle+=Math.PI*2;
-  var idx=Math.floor(angle/slice);
-  return idx < N ? idx : -1;
-}
 
-function _dialLighten(hex,amt){
-  var r=parseInt(hex.slice(1,3),16);
-  var g=parseInt(hex.slice(3,5),16);
-  var b=parseInt(hex.slice(5,7),16);
-  r=Math.min(255,r+amt); g=Math.min(255,g+amt); b=Math.min(255,b+amt);
-  return '#'+[r,g,b].map(function(v){return('0'+v.toString(16)).slice(-2);}).join('');
+  if(!ring){
+    var R_OUT=238, R_IN=65;
+    if(dist < R_IN || dist > R_OUT+14) return -1;
+    return Math.min(Math.floor(angle/slice), N-1);
+  } else {
+    // Subanillo — solo activo para el sector _dialActiveSub
+    if(_dialActiveSub < 0) return -1;
+    var item = _DIAL_ITEMS[_dialActiveSub];
+    if(!item.subs) return -1;
+    var R_SO=330, R_SI=244;
+    if(dist < R_SI || dist > R_SO+12) return -1;
+    // Ángulo del sector padre
+    var midA = (_dialActiveSub + 0.5) / N * Math.PI * 2 - Math.PI/2;
+    var spread = Math.PI * 0.55;
+    var nSub = item.subs.length;
+    var subSlice = spread / nSub;
+    var startA = midA - spread/2;
+    // Normalizar ángulo a [-PI, PI] relativo al inicio del fan
+    var relA = Math.atan2(dy,dx);
+    // ángulo absoluto 0..2PI
+    var absA = relA < 0 ? relA + Math.PI*2 : relA;
+    // ajustar startA a 0..2PI
+    var sA = startA < 0 ? startA + Math.PI*2 : startA;
+    var diff = absA - sA;
+    if(diff < 0) diff += Math.PI*2;
+    if(diff < 0 || diff > spread) return -1;
+    return Math.min(Math.floor(diff / subSlice), nSub-1);
+  }
 }
 
 function _dialDraw(){
-  var ctx=_dialCtx;
-  var W=500,H=500,CX=250,CY=250;
-  var R_OUT=232,R_IN=62;
-  var GAP=0.018;
-  var N=_DIAL_ITEMS.length;
-  var slice=(Math.PI*2)/N;
+  var ctx = _dialCtx;
+  var W=560,H=560,CX=280,CY=280;
+  var R_OUT=238, R_IN=65, GAP=0.016;
+  var N = _DIAL_ITEMS.length;
+  var slice = (Math.PI*2)/N;
 
   ctx.clearRect(0,0,W,H);
 
-  for(var i=0;i<N;i++){
+  // Anillo principal
+  for(var i=0; i<N; i++){
     var item   = _DIAL_ITEMS[i];
     var startA = -Math.PI/2 + i*slice + GAP/2;
     var endA   = -Math.PI/2 + (i+1)*slice - GAP/2;
     var midA   = (startA+endA)/2;
     var isHov  = (i===_dialHovered);
-    var rOut   = isHov ? R_OUT+12 : R_OUT;
+    var isAct  = (i===_dialActiveSub);
+    var rOut   = (isHov || isAct) ? R_OUT+10 : R_OUT;
 
-    // Sector
+    // Sector — monocromático
     ctx.beginPath();
     ctx.moveTo(CX+R_IN*Math.cos(startA), CY+R_IN*Math.sin(startA));
     ctx.arc(CX,CY,rOut,startA,endA);
     ctx.lineTo(CX+R_IN*Math.cos(endA), CY+R_IN*Math.sin(endA));
     ctx.arc(CX,CY,R_IN,endA,startA,true);
     ctx.closePath();
-    ctx.fillStyle   = isHov ? _dialLighten(item.color,32) : item.color;
+
+    var fillColor = isHov || isAct ? _DIAL_SECTOR_HOVER : _DIAL_SECTOR_BASE;
+    ctx.fillStyle   = fillColor;
     ctx.fill();
-    ctx.strokeStyle = isHov ? item.accent+'66' : 'rgba(255,255,255,0.07)';
-    ctx.lineWidth   = isHov ? 1.5 : 0.8;
+    // Borde sutil — ligeramente coloreado solo si hover/activo
+    ctx.strokeStyle = (isHov || isAct)
+      ? item.accent + '55'
+      : 'rgba(255,255,255,0.05)';
+    ctx.lineWidth   = (isHov || isAct) ? 1.5 : 0.7;
     ctx.stroke();
 
-    // Icono Lucide-style (Canvas 2D)
-    var icoR  = R_IN + (rOut-R_IN)*0.42;
-    var lblR  = R_IN + (rOut-R_IN)*0.76;
+    // Ícono Lucide
+    var icoR = R_IN + (rOut - R_IN)*0.42;
+    var lblR = R_IN + (rOut - R_IN)*0.76;
     var ix = CX + icoR*Math.cos(midA);
     var iy = CY + icoR*Math.sin(midA);
     var lx = CX + lblR*Math.cos(midA);
     var ly = CY + lblR*Math.sin(midA);
 
     ctx.save();
-    item.draw(ctx, ix, iy, isHov?32:27, isHov ? item.accent : item.accent+'cc');
+    item.draw(ctx, ix, iy, isHov||isAct ? 30 : 26, item.accent);
     ctx.restore();
 
     // Label
-    ctx.font      = (isHov?'700':'600')+' '+(isHov?11.5:10.5)+'px -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif';
-    ctx.fillStyle = isHov ? '#ffffff' : 'rgba(255,255,255,0.72)';
+    ctx.font      = (isHov||isAct?'700':'600') + ' ' + (isHov||isAct?11:10)+'px -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif';
+    ctx.fillStyle = isHov||isAct ? '#ffffff' : item.accent+'cc';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(item.label, lx, ly);
+
+    // Indicador "tiene sub" — pequeño chevron arc
+    if(item.subs){
+      var chevR = R_OUT - 8;
+      var chevMid = midA;
+      var chevAcc = isAct ? item.accent : 'rgba(255,255,255,0.25)';
+      ctx.beginPath();
+      ctx.arc(CX,CY, chevR, chevMid-0.08, chevMid+0.08);
+      ctx.strokeStyle = chevAcc;
+      ctx.lineWidth   = isAct ? 3 : 1.5;
+      ctx.stroke();
+    }
+  }
+
+  // Subanillo
+  if(_dialActiveSub >= 0){
+    var parent = _DIAL_ITEMS[_dialActiveSub];
+    if(parent.subs){
+      var R_SO   = 330, R_SI = 248;
+      var subGap = 0.02;
+      var pmidA  = (-Math.PI/2) + (_dialActiveSub + 0.5)*slice;
+      var spread = Math.PI * 0.55;
+      var nSub   = parent.subs.length;
+      var subSlice = spread / nSub;
+      var subStart = pmidA - spread/2;
+
+      for(var j=0; j<nSub; j++){
+        var sub   = parent.subs[j];
+        var sA    = subStart + j*subSlice + subGap/2;
+        var eA    = subStart + (j+1)*subSlice - subGap/2;
+        var smA   = (sA+eA)/2;
+        var isShov = (j===_dialSubHov);
+        var rso    = isShov ? R_SO+10 : R_SO;
+
+        ctx.beginPath();
+        ctx.moveTo(CX+R_SI*Math.cos(sA), CY+R_SI*Math.sin(sA));
+        ctx.arc(CX,CY,rso,sA,eA);
+        ctx.lineTo(CX+R_SI*Math.cos(eA), CY+R_SI*Math.sin(eA));
+        ctx.arc(CX,CY,R_SI,eA,sA,true);
+        ctx.closePath();
+
+        ctx.fillStyle   = isShov ? _DIAL_SECTOR_SUB_H : _DIAL_SECTOR_SUB;
+        ctx.fill();
+        ctx.strokeStyle = isShov ? sub.accent+'66' : 'rgba(255,255,255,0.06)';
+        ctx.lineWidth   = isShov ? 1.5 : 0.7;
+        ctx.stroke();
+
+        // Ícono sub
+        var sicoR = R_SI + (rso-R_SI)*0.38;
+        var slblR = R_SI + (rso-R_SI)*0.73;
+        var six = CX + sicoR*Math.cos(smA);
+        var siy = CY + sicoR*Math.sin(smA);
+        var slx = CX + slblR*Math.cos(smA);
+        var sly = CY + slblR*Math.sin(smA);
+
+        ctx.save();
+        sub.draw(ctx, six, siy, isShov ? 28 : 24, sub.accent);
+        ctx.restore();
+
+        ctx.font      = (isShov?'700':'600') + ' ' + (isShov?11:10)+'px -apple-system,BlinkMacSystemFont,sans-serif';
+        ctx.fillStyle = isShov ? '#fff' : sub.accent+'cc';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(sub.label, slx, sly);
+      }
+    }
   }
 
   // Centro
   ctx.beginPath();
   ctx.arc(CX,CY,R_IN-1,0,Math.PI*2);
-  ctx.fillStyle='#16163a';
+  ctx.fillStyle='rgba(12,12,22,0.9)';
   ctx.fill();
   ctx.beginPath();
   ctx.arc(CX,CY,R_IN-1,0,Math.PI*2);
-  ctx.strokeStyle='rgba(99,102,241,0.55)';
+  ctx.strokeStyle='rgba(99,102,241,0.5)';
   ctx.lineWidth=1.5;
   ctx.stroke();
   ctx.beginPath();
   ctx.arc(CX,CY,R_IN-9,0,Math.PI*2);
-  ctx.strokeStyle='rgba(99,102,241,0.2)';
+  ctx.strokeStyle='rgba(99,102,241,0.18)';
   ctx.lineWidth=1;
   ctx.stroke();
 
-  // Ícono ⇄ y texto RAW en el centro
-  ctx.font='700 13px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillStyle='#a5b4fc';
+  ctx.font='500 22px -apple-system,sans-serif';
+  ctx.fillStyle='rgba(140,140,200,0.7)';
   ctx.textAlign='center';
   ctx.textBaseline='middle';
-  ctx.fillText('RAW',CX,CY+11);
-  ctx.font='500 22px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillStyle='#7c7ccc';
   ctx.fillText('⇄',CX,CY-10);
+  ctx.font='700 13px -apple-system,sans-serif';
+  ctx.fillStyle='#a5b4fc';
+  ctx.fillText('RAW',CX,CY+11);
 }
 
 function toggleEntradaDropdown(){
@@ -348,7 +521,9 @@ function toggleEntradaDropdown(){
 
 function abrirDial(){
   _crearDialOverlay();
-  _dialHovered=-1;
+  _dialHovered   = -1;
+  _dialSubHov    = -1;
+  _dialActiveSub = -1;
   _dialDraw();
   _dialOverlay.style.display='flex';
   _dialVisible=true;
@@ -359,11 +534,11 @@ function abrirDial(){
 function cerrarDial(){
   if(_dialOverlay) _dialOverlay.style.display='none';
   _dialVisible=false;
+  _dialActiveSub=-1;
   var btn=document.getElementById('btn-nueva-entrada');
   if(btn) btn.classList.remove('active');
 }
 
-// Abre el formulario interno (paso 2) sin el dial
 function abrirFormulario(modo){
   var dd=document.getElementById('entrada-dropdown');
   if(dd){ dd.style.display='flex'; dd.classList.add('show'); }
@@ -387,16 +562,11 @@ function cerrarEntrada(){
   if(paso2) paso2.style.display='none';
 }
 
-// Mantener compatibilidad con botón "Volver" del paso 2
-function volverAPaso1(){
-  cerrarEntrada();
-  abrirDial();
-}
-
-// Stub — ya no existe dial.html
+function volverAPaso1(){ cerrarEntrada(); abrirDial(); }
 function abrirEntrada(){ abrirDial(); }
 function _abrirEntradaLegacy(){ abrirDial(); }
-function _posicionarRadial(){} // No-op, ya no se usa SVG inline
+function _posicionarRadial(){}
+
 
 // ══════════════════════════════════════════
 //  GUARDAR BANCO
