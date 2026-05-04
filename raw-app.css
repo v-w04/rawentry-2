@@ -1272,14 +1272,14 @@ html.mob .act-grid-5col{
   }
 }
 
-/* Columna vacía — siempre visible para drop */
-#col-1.col-empty, #col-2.col-empty, #col-3.col-empty, #col-4.col-empty {
+/* Columna vacía — visible siempre */
+#col-1:not(:has(.section)), #col-2:not(:has(.section)), #col-3:not(:has(.section)), #col-4:not(:has(.section)) {
   min-height: 120px;
   border: 1px dashed rgba(255,255,255,0.12);
   border-radius: 10px;
   position: relative;
 }
-#col-1.col-empty::before, #col-2.col-empty::before, #col-3.col-empty::before, #col-4.col-empty::before {
+#col-1:not(:has(.section))::before, #col-2:not(:has(.section))::before, #col-3:not(:has(.section))::before, #col-4:not(:has(.section))::before {
   content: 'Suelta aquí';
   position: absolute;
   top: 50%; left: 50%;
