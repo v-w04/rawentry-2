@@ -6,39 +6,35 @@
 <title>Nueva entrada</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html{background:#09090f}
-body{width:100%;height:100%;min-height:100vh;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;background:#09090f}
-#dial-wrap{position:relative;width:min(1000px,95vmin);height:min(1000px,95vmin);flex-shrink:0}
+html,body{width:100%;height:100%;background:#09090f;overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
+body{display:flex;align-items:center;justify-content:center;background:#09090f}
+#dial-wrap{position:relative;width:min(1000px,95vmin);height:min(1000px,95vmin)}
 svg{position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible}
 </style>
 </head>
-<body bgcolor="#09090f" style="background:#09090f">
+<body>
 <div id="dial-wrap"></div>
 <script>
 var isEncom = localStorage.getItem('lifeos_theme') === 'encom';
-if(isEncom){
-  document.body.style.background = '#000000';
-  var lnk=document.createElement('link');lnk.rel='stylesheet';
-  lnk.href='https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;600;700&display=swap';
-  document.head.appendChild(lnk);
-}
+if(isEncom){ document.body.style.background='#000000'; }
 
-// Colores — valores base primero, luego override si ENCOM
-var SECTOR_FILL  = isEncom ? '#000f14'              : '#1e2026';
-var SECTOR_HOVER = isEncom ? '#002830'              : '#373c46';
-var STROKE       = isEncom ? 'rgba(0,238,238,0.2)'  : 'rgba(255,255,255,0.06)';
-var BG_CIRCLE    = isEncom ? '#00050a'              : '#0a0c12';
-var TEXT_COLOR   = isEncom ? 'rgba(0,238,238,0.85)' : 'rgba(255,255,255,0.85)';
-var RAW_FILL     = isEncom ? '#002830'              : '#1e2060';
-var RAW_STROKE   = isEncom ? '#00eeee'              : 'rgba(99,102,241,0.55)';
-var RAW_TEXT     = isEncom ? '#00eeee'              : '#A5B4FC';
-var ACT_FILL     = isEncom ? 'rgba(0,40,50,0.5)'    : 'rgba(34,211,238,0.12)';
-var ACT_HOVER    = isEncom ? '#003840'              : 'rgba(34,211,238,0.28)';
+var SF  = isEncom ? '#000f14' : '#1e2026';
+var SH  = isEncom ? '#002830' : '#373c46';
+var STR = isEncom ? 'rgba(0,238,238,0.2)' : 'rgba(255,255,255,0.06)';
+var BGC = isEncom ? '#00050a' : '#0a0c12';
+var TXT = isEncom ? 'rgba(0,238,238,0.85)' : 'rgba(255,255,255,0.85)';
+var RF  = isEncom ? '#002830' : '#1e2060';
+var RS  = isEncom ? '#00eeee' : 'rgba(99,102,241,0.55)';
+var RT  = isEncom ? '#00eeee' : '#A5B4FC';
+var AF  = isEncom ? 'rgba(0,40,50,0.5)' : 'rgba(34,211,238,0.12)';
+var AH  = isEncom ? '#003840' : 'rgba(34,211,238,0.28)';
 
 var NS='http://www.w3.org/2000/svg';
-var n=10,CX=500,CY=500,SIZE=1000;
-var R_OUT=364,R_IN=136,R_CENT=2/3*(Math.pow(R_OUT,3)-Math.pow(R_IN,3))/(Math.pow(R_OUT,2)-Math.pow(R_IN,2));
-var R2_OUT=500,R2_IN=400,R2_CENT=2/3*(Math.pow(R2_OUT,3)-Math.pow(R2_IN,3))/(Math.pow(R2_OUT,2)-Math.pow(R2_IN,2));
+var n=10,CX=500,CY=500;
+var R_OUT=364,R_IN=136;
+var R_CENT=2/3*(Math.pow(R_OUT,3)-Math.pow(R_IN,3))/(Math.pow(R_OUT,2)-Math.pow(R_IN,2));
+var R2_OUT=500,R2_IN=400;
+var R2_CENT=2/3*(Math.pow(R2_OUT,3)-Math.pow(R2_IN,3))/(Math.pow(R2_OUT,2)-Math.pow(R2_IN,2));
 var RAW_R=128;
 
 var ICONS={
@@ -58,76 +54,80 @@ var ICONS={
 };
 
 var items=[
-  {key:'apartado', ico:'apartado', color:'#4ADE80', label:'Apartado'},
-  {key:'bancos', ico:'bancos', color:'#F59E0B', label:'Bancos'},
-  {key:'entrenamiento', ico:'entrenamiento', color:'#FB923C', label:'Entrena'},
-  {key:'nutricion', ico:'nutricion', color:'#4ADE80', label:'Nutrición'},
-  {key:'patrimonio', ico:'patrimonio', color:'#C4B5FD', label:'Patrimonio'},
-  {key:'pensamiento', ico:'pensamiento', color:'#F9A8D4', label:'Pensa'},
-  {key:'persona', ico:'persona', color:'#93C5FD', label:'Persona'},
-  {key:'editar', ico:'editar', color:'#94A3B8', label:'Editar'},
-  {key:'salud', ico:'salud', color:'#FCA5A5', label:'Salud'},
-  {key:'activity', ico:'activity', color:'#22D3EE', label:'Activity'},
+  {key:'apartado',color:'#4ADE80',label:'Apartado'},
+  {key:'bancos',color:'#F59E0B',label:'Bancos'},
+  {key:'entrenamiento',color:'#FB923C',label:'Entrena'},
+  {key:'nutricion',color:'#4ADE80',label:'Nutrición'},
+  {key:'patrimonio',color:'#C4B5FD',label:'Patrimonio'},
+  {key:'pensamiento',color:'#F9A8D4',label:'Pensa'},
+  {key:'persona',color:'#93C5FD',label:'Persona'},
+  {key:'editar',color:'#94A3B8',label:'Editar'},
+  {key:'salud',color:'#FCA5A5',label:'Salud'},
+  {key:'activity',color:'#22D3EE',label:'Activity'}
 ];
 var subItems=[
-  {key:'libro', ico:'libro', color:'#EC4899', label:'Libros'},
-  {key:'movie', ico:'movie', color:'#F59E0B', label:'Movies'},
-  {key:'norut', ico:'norut', color:'#8B5CF6', label:'Pendientes'},
+  {key:'libro',color:'#EC4899',label:'Libros'},
+  {key:'movie',color:'#F59E0B',label:'Movies'},
+  {key:'norut',color:'#8B5CF6',label:'Pendientes'}
 ];
 
-function elegir(modo){
-  sessionStorage.setItem('dial_modo', modo);
-  history.back();
-}
-function sp(i,ro,ri){
-  var a1=i/n*2*Math.PI-Math.PI/2, a2=(i+1)/n*2*Math.PI-Math.PI/2;
+function elegir(modo){sessionStorage.setItem('dial_modo',modo);history.back();}
+
+function arc(i,ro,ri){
+  var a1=i/n*2*Math.PI-Math.PI/2,a2=(i+1)/n*2*Math.PI-Math.PI/2;
   var x1=CX+ro*Math.cos(a1),y1=CY+ro*Math.sin(a1);
   var x2=CX+ro*Math.cos(a2),y2=CY+ro*Math.sin(a2);
   var x3=CX+ri*Math.cos(a2),y3=CY+ri*Math.sin(a2);
   var x4=CX+ri*Math.cos(a1),y4=CY+ri*Math.sin(a1);
   return 'M'+x1.toFixed(2)+','+y1.toFixed(2)+' A'+ro+','+ro+',0,0,1,'+x2.toFixed(2)+','+y2.toFixed(2)+' L'+x3.toFixed(2)+','+y3.toFixed(2)+' A'+ri+','+ri+',0,0,0,'+x4.toFixed(2)+','+y4.toFixed(2)+'Z';
 }
-function ma(i){return (i+0.5)/n*2*Math.PI-Math.PI/2;}
-function cp(r,i){var a=ma(i);return {x:CX+r*Math.cos(a),y:CY+r*Math.sin(a)};}
+function mid(i){var a=(i+0.5)/n*2*Math.PI-Math.PI/2;return {x:CX+R_CENT*Math.cos(a),y:CY+R_CENT*Math.sin(a)};}
 
 var wrap=document.getElementById('dial-wrap');
 var svg=document.createElementNS(NS,'svg');
 svg.setAttribute('viewBox','0 0 1000 1000');
-svg.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible';
+svg.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%';
 wrap.appendChild(svg);
 
-var bg=document.createElementNS(NS,'circle');
-bg.setAttribute('cx',CX);bg.setAttribute('cy',CY);bg.setAttribute('r',R_OUT+8);
-bg.setAttribute('fill',BG_CIRCLE);svg.appendChild(bg);
+// Fondo negro detrás de todo
+var bgR=document.createElementNS(NS,'rect');
+bgR.setAttribute('x','0');bgR.setAttribute('y','0');bgR.setAttribute('width','1000');bgR.setAttribute('height','1000');
+bgR.setAttribute('fill', isEncom ? '#000000' : '#09090f');svg.appendChild(bgR);
 
-function mkIco(p,x,y,s,c){
+// Círculo de fondo del dial
+var bgC=document.createElementNS(NS,'circle');
+bgC.setAttribute('cx',CX);bgC.setAttribute('cy',CY);bgC.setAttribute('r',R_OUT+8);
+bgC.setAttribute('fill',BGC);svg.appendChild(bgC);
+
+function mkIco(key,x,y,s,c){
   var fo=document.createElementNS(NS,'svg');
   fo.setAttribute('x',(x-s/2).toFixed(1));fo.setAttribute('y',(y-s/2).toFixed(1));
   fo.setAttribute('width',s);fo.setAttribute('height',s);fo.setAttribute('viewBox','0 0 24 24');
-  fo.style.pointerEvents='none';fo.style.overflow='visible';
-  fo.setAttribute('fill',c);fo.setAttribute('color',c);fo.innerHTML=p;return fo;
+  fo.style.pointerEvents='none';fo.setAttribute('fill',c);fo.setAttribute('color',c);
+  fo.innerHTML=ICONS[key];return fo;
+}
+function mkTxt(txt,x,y,c){
+  var t=document.createElementNS(NS,'text');
+  t.setAttribute('x',x.toFixed(1));t.setAttribute('y',y.toFixed(1));
+  t.setAttribute('text-anchor','middle');t.setAttribute('font-size','17');
+  t.setAttribute('font-weight','600');t.setAttribute('fill',c);
+  t.setAttribute('font-family','system-ui,-apple-system,sans-serif');
+  t.style.pointerEvents='none';t.textContent=txt;return t;
 }
 
 var actSub=false,subG=null;
 
 items.forEach(function(item,i){
-  var pd=sp(i,R_OUT,R_IN);
-  var c=cp(R_CENT,i);
   var isAct=item.key==='activity';
-  var fb=isAct?ACT_FILL:SECTOR_FILL;
-  var fh=isAct?ACT_HOVER:SECTOR_HOVER;
+  var fb=isAct?AF:SF; var fh=isAct?AH:SH;
   var g=document.createElementNS(NS,'g');g.style.cursor='pointer';
   var p=document.createElementNS(NS,'path');
-  p.setAttribute('d',pd);p.setAttribute('fill',fb);
-  p.setAttribute('stroke',STROKE);p.setAttribute('stroke-width','2');
+  p.setAttribute('d',arc(i,R_OUT,R_IN));p.setAttribute('fill',fb);
+  p.setAttribute('stroke',STR);p.setAttribute('stroke-width','2');
   p.style.transition='fill .15s';g.appendChild(p);
-  g.appendChild(mkIco(ICONS[item.ico],c.x,c.y-20,52,item.color));
-  var lb=document.createElementNS(NS,'text');
-  lb.setAttribute('x',c.x.toFixed(1));lb.setAttribute('y',(c.y+34).toFixed(1));
-  lb.setAttribute('text-anchor','middle');lb.setAttribute('font-size','17');
-  lb.setAttribute('font-weight','600');lb.setAttribute('fill',TEXT_COLOR);
-  lb.setAttribute('font-family','system-ui,-apple-system,sans-serif');
-  lb.style.pointerEvents='none';lb.textContent=item.label;g.appendChild(lb);
+  var m=mid(i);
+  g.appendChild(mkIco(item.key,m.x,m.y-20,52,item.color));
+  g.appendChild(mkTxt(item.label,m.x,m.y+34,TXT));
   g.addEventListener('mouseover',function(){p.setAttribute('fill',fh);});
   g.addEventListener('mouseout',function(){p.setAttribute('fill',fb);});
   g.addEventListener('click',function(){
@@ -137,39 +137,36 @@ items.forEach(function(item,i){
   svg.appendChild(g);
 });
 
-var actA=ma(9),subSpan=Math.PI*0.55;
+// Segundo anillo Activity
+var actA=(9+0.5)/n*2*Math.PI-Math.PI/2, span=Math.PI*0.55;
 subG=document.createElementNS(NS,'g');
 subG.style.opacity='0';subG.style.pointerEvents='none';subG.style.transition='opacity .2s';
 subItems.forEach(function(item,j){
-  var aS=actA-subSpan/2+j*subSpan/3,aE=actA-subSpan/2+(j+1)*subSpan/3;
+  var aS=actA-span/2+j*span/3, aE=actA-span/2+(j+1)*span/3;
   var x1=CX+R2_OUT*Math.cos(aS),y1=CY+R2_OUT*Math.sin(aS);
   var x2=CX+R2_OUT*Math.cos(aE),y2=CY+R2_OUT*Math.sin(aE);
   var x3=CX+R2_IN*Math.cos(aE),y3=CY+R2_IN*Math.sin(aE);
   var x4=CX+R2_IN*Math.cos(aS),y4=CY+R2_IN*Math.sin(aS);
   var pd='M'+x1.toFixed(2)+','+y1.toFixed(2)+' A'+R2_OUT+','+R2_OUT+',0,0,1,'+x2.toFixed(2)+','+y2.toFixed(2)+' L'+x3.toFixed(2)+','+y3.toFixed(2)+' A'+R2_IN+','+R2_IN+',0,0,0,'+x4.toFixed(2)+','+y4.toFixed(2)+'Z';
-  var am=(aS+aE)/2,mx=CX+R2_CENT*Math.cos(am),my=CY+R2_CENT*Math.sin(am);
+  var am=(aS+aE)/2, mx=CX+R2_CENT*Math.cos(am), my=CY+R2_CENT*Math.sin(am);
   var sg=document.createElementNS(NS,'g');sg.style.cursor='pointer';
   var sp2=document.createElementNS(NS,'path');
-  sp2.setAttribute('d',pd);sp2.setAttribute('fill',SECTOR_FILL);
-  sp2.setAttribute('stroke',STROKE);sp2.setAttribute('stroke-width','2');
+  sp2.setAttribute('d',pd);sp2.setAttribute('fill',SF);
+  sp2.setAttribute('stroke',STR);sp2.setAttribute('stroke-width','2');
   sp2.style.transition='fill .15s';sg.appendChild(sp2);
-  sg.appendChild(mkIco(ICONS[item.ico],mx,my-22,52,item.color));
-  var sl=document.createElementNS(NS,'text');
-  sl.setAttribute('x',mx.toFixed(1));sl.setAttribute('y',(my+36).toFixed(1));
-  sl.setAttribute('text-anchor','middle');sl.setAttribute('font-size','17');
-  sl.setAttribute('font-weight','600');sl.setAttribute('fill',TEXT_COLOR);
-  sl.setAttribute('font-family','system-ui');sl.style.pointerEvents='none';sl.textContent=item.label;
-  sg.appendChild(sl);
-  sg.addEventListener('mouseover',function(){sp2.setAttribute('fill',SECTOR_HOVER);});
-  sg.addEventListener('mouseout',function(){sp2.setAttribute('fill',SECTOR_FILL);});
+  sg.appendChild(mkIco(item.key,mx,my-22,52,item.color));
+  sg.appendChild(mkTxt(item.label,mx,my+36,TXT));
+  sg.addEventListener('mouseover',function(){sp2.setAttribute('fill',SH);});
+  sg.addEventListener('mouseout',function(){sp2.setAttribute('fill',SF);});
   sg.addEventListener('click',function(){elegir(item.key);});
   subG.appendChild(sg);
 });
 svg.appendChild(subG);
 
+// Centro RAW
 var cO=document.createElementNS(NS,'circle');
 cO.setAttribute('cx',CX);cO.setAttribute('cy',CY);cO.setAttribute('r',RAW_R);
-cO.setAttribute('fill',RAW_FILL);cO.setAttribute('stroke',RAW_STROKE);cO.setAttribute('stroke-width','3');
+cO.setAttribute('fill',RF);cO.setAttribute('stroke',RS);cO.setAttribute('stroke-width','3');
 cO.style.cursor='pointer';cO.addEventListener('click',function(){elegir('nueva');});svg.appendChild(cO);
 var cI=document.createElementNS(NS,'circle');
 cI.setAttribute('cx',CX);cI.setAttribute('cy',CY);cI.setAttribute('r','96');
@@ -177,11 +174,11 @@ cI.setAttribute('fill','rgba(99,102,241,0.08)');cI.setAttribute('stroke','rgba(9
 var cTx=document.createElementNS(NS,'text');
 cTx.setAttribute('x',CX);cTx.setAttribute('y',CY-12);cTx.setAttribute('text-anchor','middle');
 cTx.setAttribute('dominant-baseline','middle');cTx.setAttribute('font-size','54');
-cTx.setAttribute('fill',RAW_TEXT);cTx.style.cursor='pointer';cTx.textContent='⇄';
+cTx.setAttribute('fill',RT);cTx.style.cursor='pointer';cTx.textContent='⇄';
 cTx.addEventListener('click',function(){elegir('nueva');});svg.appendChild(cTx);
 var cLb=document.createElementNS(NS,'text');
 cLb.setAttribute('x',CX);cLb.setAttribute('y',CY+50);cLb.setAttribute('text-anchor','middle');
-cLb.setAttribute('font-size','22');cLb.setAttribute('font-weight','700');cLb.setAttribute('fill',RAW_TEXT);
+cLb.setAttribute('font-size','22');cLb.setAttribute('font-weight','700');cLb.setAttribute('fill',RT);
 cLb.setAttribute('font-family','system-ui');cLb.style.cursor='pointer';cLb.textContent='RAW';
 cLb.addEventListener('click',function(){elegir('nueva');});svg.appendChild(cLb);
 
