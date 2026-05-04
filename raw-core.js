@@ -592,6 +592,11 @@ function _posicionarRadial(){
 
 
 function abrirEntrada(){
+  // Guardar URL actual y navegar al dial
+  sessionStorage.removeItem('dial_modo');
+  location.href = 'dial.html';
+}
+function _abrirEntradaLegacy(){
   const paso1 = document.getElementById('entrada-paso1');
   const paso2 = document.getElementById('entrada-paso2');
   if(paso1) paso1.style.display = 'block';
@@ -676,6 +681,27 @@ function togGraf(bodyId){
   }
 }
 window.addEventListener('DOMContentLoaded',()=>{
+  // Revisar si viene de dial.html
+  var dialModo = sessionStorage.getItem('dial_modo');
+  if(dialModo){
+    sessionStorage.removeItem('dial_modo');
+    // Esperar a que la app cargue y abrir el form
+    var tries = 0;
+    var waitAndOpen = function(){
+      tries++;
+      if(tries > 20) return;
+      if(typeof setModoEntrada === 'function' && typeof api !== 'undefined'){
+        // Abrir el dropdown y navegar al modo
+        var dd = document.getElementById('entrada-dropdown');
+        if(dd){ dd.classList.add('show'); dd.style.display='flex'; }
+        setModoEntrada(dialModo);
+      } else {
+        setTimeout(waitAndOpen, 200);
+      }
+    };
+    setTimeout(waitAndOpen, 300);
+  }
+
   const hoy=fmtD(new Date());
   const fechaEl=document.getElementById('fecha');
   if(fechaEl) fechaEl.value=hoy;
