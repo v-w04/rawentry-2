@@ -321,8 +321,8 @@ html,body{
     box-sizing:border-box;
   }
   /* Cada columna es un wrapper flex que apila sus secciones sin huecos */
-  #col1-wrap{ grid-column:1; display:flex; flex-direction:column; gap:12px; align-self:start; min-width:0; }
-  #col-1{    grid-column:2; display:flex; flex-direction:column; gap:12px; align-self:start; min-width:0; }
+  #col-1{    grid-column:1; display:flex; flex-direction:column; gap:12px; align-self:start; min-width:0; }
+  #col-2{    grid-column:2; display:flex; flex-direction:column; gap:12px; align-self:start; min-width:0; min-height:40px; }
   #col-3{    grid-column:3; display:flex; flex-direction:column; gap:12px; align-self:start; min-width:0; }
   #col-4{    grid-column:4; display:flex; flex-direction:column; gap:12px; align-self:start; min-width:0; }
   .sec-hdr{cursor:default}
@@ -351,7 +351,7 @@ html,body{
   .tbl-wrap{display:none!important}
   .cards-grid{display:grid!important}
   .sections{display:flex!important;flex-direction:column!important;grid-template-columns:none!important}
-  #col-1,#col1-wrap,#col-3,#col-4{grid-column:1!important;display:flex!important;flex-direction:column!important;width:100%!important;gap:8px!important}
+  #col-1,#col-2,#col1-wrap,#col-3,#col-4{grid-column:1!important;display:flex!important;flex-direction:column!important;width:100%!important;gap:8px!important}
   .reverso > div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
   #inv-grid-full{grid-template-columns:repeat(2,1fr) !important}
   .board-face.panel-sheets{padding:0 !important}
