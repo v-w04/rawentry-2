@@ -714,7 +714,7 @@ function abrirEntrada(){
   if(paso2) paso2.style.display = 'none';
   // Paso1 = dial: quitar TODO fondo — dropdown, inner, overlay
   var ddEl=document.querySelector('.entrada-dropdown');
-  if(ddEl) ddEl.classList.add('dial-mode');
+  if(ddEl){ ddEl.classList.add('dial-mode'); ddEl.style.backdropFilter='none'; ddEl.style.webkitBackdropFilter='none'; ddEl.style.background='rgba(0,0,0,0.5)'; }
   var innerEl=document.querySelector('.entrada-dropdown-inner');
   if(innerEl) innerEl.removeAttribute('style');
   var hdrEl=document.querySelector('.entrada-selector-hdr');
@@ -1366,7 +1366,94 @@ function _renderTabEntrada(tab){
   else if(tab==='bancos')        _renderBancosForm(wrap);
   else if(tab==='nutricion')     _renderNutricionForm(wrap);
   else if(tab==='entrenamiento') _renderEntrenamientoForm(wrap);
+  else if(tab==='libro')   _renderLibroForm(wrap);
+  else if(tab==='movie')   _renderMovieForm(wrap);
+  else if(tab==='norut')   _renderNoRutForm(wrap);
   else if(tab==='activity')     _renderActivityForm(wrap);
+}
+
+// ── Formulario Libro ──
+function _renderLibroForm(wrap){
+  wrap.innerHTML=`
+    <div style="padding:16px var(--pad);display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Marcar libro como leído</div>
+      <input type="text" id="libro-nombre" class="finput" placeholder="Título del libro" style="font-size:14px;padding:10px 14px">
+      <input type="text" id="libro-autor" class="finput" placeholder="Autor (opcional)" style="font-size:14px;padding:10px 14px">
+      <button onclick="_guardarLibroForm()" class="btn-save" style="border-radius:var(--rad-pill)">
+        <i class="fas fa-book"></i> Guardar libro
+      </button>
+      <div id="libro-res" style="font-size:12px;text-align:center;color:var(--m)"></div>
+    </div>`;
+}
+function _guardarLibroForm(){
+  var nombre = document.getElementById('libro-nombre')?.value?.trim();
+  if(!nombre){ showToast('Escribe el título del libro',false); return; }
+  var res = document.getElementById('libro-res');
+  if(res) res.textContent='Guardando…';
+  api.marcarActivityItem('libro', nombre, true)
+    .then(function(r){
+      if(res) res.textContent = r.ok ? '✓ Libro guardado' : 'Error: '+r.mensaje;
+      if(r.ok){ document.getElementById('libro-nombre').value=''; if(document.getElementById('libro-autor')) document.getElementById('libro-autor').value=''; }
+    }).catch(function(){ if(res) res.textContent='Error al guardar'; });
+}
+
+// ── Formulario Movie ──
+function _renderMovieForm(wrap){
+  wrap.innerHTML=`
+    <div style="padding:16px var(--pad);display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Registrar película / serie</div>
+      <input type="text" id="movie-nombre" class="finput" placeholder="Título de la película o serie" style="font-size:14px;padding:10px 14px">
+      <div style="display:flex;gap:8px">
+        <button onclick="_setMovieTipo('pelicula')" id="movie-tipo-peli" class="rev-pill on" style="flex:1">🎬 Película</button>
+        <button onclick="_setMovieTipo('serie')" id="movie-tipo-serie" class="rev-pill" style="flex:1">📺 Serie</button>
+      </div>
+      <button onclick="_guardarMovieForm()" class="btn-save" style="border-radius:var(--rad-pill)">
+        <i class="fas fa-film"></i> Guardar
+      </button>
+      <div id="movie-res" style="font-size:12px;text-align:center;color:var(--m)"></div>
+    </div>`;
+}
+var _movieTipo = 'pelicula';
+function _setMovieTipo(t){
+  _movieTipo=t;
+  document.getElementById('movie-tipo-peli')?.classList.toggle('on',t==='pelicula');
+  document.getElementById('movie-tipo-serie')?.classList.toggle('on',t==='serie');
+}
+function _guardarMovieForm(){
+  var nombre = document.getElementById('movie-nombre')?.value?.trim();
+  if(!nombre){ showToast('Escribe el título',false); return; }
+  var res = document.getElementById('movie-res');
+  if(res) res.textContent='Guardando…';
+  api.marcarActivityItem('movie', nombre, true)
+    .then(function(r){
+      if(res) res.textContent = r.ok ? '✓ Guardado' : 'Error: '+r.mensaje;
+      if(r.ok) document.getElementById('movie-nombre').value='';
+    }).catch(function(){ if(res) res.textContent='Error al guardar'; });
+}
+
+// ── Formulario No Rutinaria ──
+function _renderNoRutForm(wrap){
+  wrap.innerHTML=`
+    <div style="padding:16px var(--pad);display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m)">Agregar pendiente / no rutinaria</div>
+      <input type="text" id="norut-nombre" class="finput" placeholder="Nombre de la tarea o pendiente" style="font-size:14px;padding:10px 14px">
+      <textarea id="norut-nota" class="finput" placeholder="Notas opcionales" rows="3" style="font-size:13px;padding:10px 14px;resize:none"></textarea>
+      <button onclick="_guardarNoRutForm()" class="btn-save" style="border-radius:var(--rad-pill)">
+        <i class="fas fa-thumbtack"></i> Guardar pendiente
+      </button>
+      <div id="norut-res" style="font-size:12px;text-align:center;color:var(--m)"></div>
+    </div>`;
+}
+function _guardarNoRutForm(){
+  var nombre = document.getElementById('norut-nombre')?.value?.trim();
+  if(!nombre){ showToast('Escribe el nombre del pendiente',false); return; }
+  var res = document.getElementById('norut-res');
+  if(res) res.textContent='Guardando…';
+  api.marcarActivityItem('norut', nombre, false)
+    .then(function(r){
+      if(res) res.textContent = r.ok ? '✓ Pendiente guardado' : 'Error: '+r.mensaje;
+      if(r.ok){ document.getElementById('norut-nombre').value=''; if(document.getElementById('norut-nota')) document.getElementById('norut-nota').value=''; }
+    }).catch(function(){ if(res) res.textContent='Error al guardar'; });
 }
 
 // ── Formulario Bancos ──
