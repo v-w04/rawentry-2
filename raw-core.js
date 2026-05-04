@@ -604,8 +604,34 @@ function abrirEntrada(){
     ov.id = 'dial-screen-overlay';
     document.body.appendChild(ov);
   }
-  // Máscara circular: oscuro en los bordes, transparente en el centro
-  ov.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:8000;pointer-events:none;background:radial-gradient(circle at center, transparent 36%, rgba(0,0,0,0.7) 58%, rgba(0,0,0,0.85) 100%)';
+  // Blur fuera del círculo: capa blur total + agujero circular encima
+  ov.innerHTML = '';
+  ov.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:8000;pointer-events:none';
+
+  var cx = window.innerWidth / 2;
+  var cy = window.innerHeight / 2;
+  var r = 500; // radio del dial en px de pantalla
+
+  // Capa 1: blur en todo el viewport con clip-path que deja agujero circular
+  var blurLayer = document.createElement('div');
+  blurLayer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;' +
+    'backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);' +
+    'background:rgba(0,0,0,0.5);' +
+    'clip-path:evenodd polygon(' +
+      '0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, ' +
+      // Trazar un círculo con puntos (aproximación poligonal de 64 puntos)
+      (function(){
+        var pts = [];
+        for(var a=0; a<=64; a++){
+          var ang = (a/64)*2*Math.PI;
+          var px = ((cx + r*Math.cos(ang))/window.innerWidth*100).toFixed(2)+'%';
+          var py = ((cy + r*Math.sin(ang))/window.innerHeight*100).toFixed(2)+'%';
+          pts.push(px+' '+py);
+        }
+        return pts.join(', ');
+      })() +
+    ')';
+  ov.appendChild(blurLayer);
 
   // Dropdown encima del overlay
   var ddEl = document.querySelector('.entrada-dropdown');
