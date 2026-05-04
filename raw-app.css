@@ -895,7 +895,7 @@ html.mob .hero-right{display:none !important}
   backdrop-filter:none;
   padding:0;
 }
-.entrada-dropdown.show{display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);backdrop-filter:blur(20px) brightness(0.45);-webkit-backdrop-filter:blur(20px) brightness(0.45)}
+.entrada-dropdown.show{display:flex;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .entrada-dropdown.dial-mode{background:rgba(0,0,0,0.4)!important;backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important;padding:0!important;}
 .entrada-dropdown.dial-mode .entrada-dropdown-inner{
   background:none!important;
