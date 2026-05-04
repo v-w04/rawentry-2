@@ -716,9 +716,11 @@ function abrirEntrada(){
   const paso2 = document.getElementById('entrada-paso2');
   if(paso1) paso1.style.display = 'block';
   if(paso2) paso2.style.display = 'none';
-  // Inner transparente para el dial
+  // Paso1 = dial: quitar TODO fondo — dropdown, inner, overlay
+  var ddEl=document.querySelector('.entrada-dropdown');
+  if(ddEl) ddEl.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:150;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);padding:0';
   var innerEl=document.querySelector('.entrada-dropdown-inner');
-  if(innerEl) innerEl.style.cssText='background:none!important;border:none!important;box-shadow:none!important;overflow:visible!important;padding:0!important;margin:0!important;width:auto!important;height:auto!important;min-height:0!important;max-width:none!important;max-height:none!important;border-radius:0!important';
+  if(innerEl) innerEl.style.cssText='background:none!important;border:none!important;box-shadow:none!important;overflow:visible!important;padding:0!important;margin:0!important;width:600px!important;height:600px!important;min-height:0!important;max-width:none!important;max-height:none!important;border-radius:0!important;display:block!important';
   var hdrEl=document.querySelector('.entrada-selector-hdr');
   if(hdrEl) hdrEl.style.display='none';
   toggleEntradaDropdown();
