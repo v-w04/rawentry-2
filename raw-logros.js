@@ -767,6 +767,9 @@ function _toggleHabitoKey(btn){
   var diasSemana = new Date(dat+'T12:00:00');
   var diaLetra = DIAS_MAP[String(diasSemana.getDay())];
 
+  // Actualizar hab.checks localmente para que renderActivity lo refleje sin recargar
+  if(hab.checks && diaLetra) hab.checks[diaLetra] = nuevoValor;
+
   // Escribir directamente en la hoja Activity Check
   var tipo = (src==='elec') ? 'electronics' : 'personal';
   if(hab.fila && diaLetra){
