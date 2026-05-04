@@ -1231,3 +1231,43 @@ html.mob .hero-right{display:none !important}
   align-items:start;
   overflow-x:auto;
 }
+
+/* ── MÓVIL: Entrada dropdown ── */
+html.mob .entrada-dropdown-inner{
+  max-width:100% !important;
+  max-height:95vh !important;
+  border-radius:var(--rad-lg) var(--rad-lg) 0 0 !important;
+  margin-top:auto !important;
+  width:100% !important;
+}
+html.mob .entrada-dropdown.show{
+  align-items:flex-end !important;
+  padding:0 !important;
+}
+html.mob .entrada-tipo-btn{
+  padding:10px 8px !important;
+  font-size:11px !important;
+}
+html.mob .finput{
+  font-size:16px !important; /* evita zoom en iOS */
+}
+html.mob .btn-save{
+  font-size:14px !important;
+  padding:14px !important;
+}
+
+/* ── MÓVIL: Activity Check 5 columnas → 1 columna ── */
+html.mob #act-container > div:last-child > div{
+  grid-template-columns:1fr !important;
+}
+html.mob .act-grid-5col{
+  grid-template-columns:1fr !important;
+}
+
+/* ── MÓVIL: dial.html ── */
+@media(max-width:600px){
+  #dial-wrap{
+    width:100vw !important;
+    height:100vw !important;
+  }
+}
