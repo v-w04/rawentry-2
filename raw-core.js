@@ -1358,6 +1358,7 @@ function _mostrarCamposBase(visible){
 function _renderTabEntrada(tab){
   const wrap = document.getElementById(tab+'-wrap');
   if(!wrap) return;
+  wrap.innerHTML = ''; // limpiar contenido anterior
   if(tab==='pensamiento') _renderPensamientoForm(wrap);
   else if(tab==='persona') _renderPersonaForm(wrap);
   else if(tab==='salud')   _renderSaludForm(wrap);
