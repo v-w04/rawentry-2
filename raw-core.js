@@ -730,7 +730,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         setTimeout(function(){ if(typeof actualizarNecInline==='function') actualizarNecInline(); }, 50);
       }
       if(typeof renderFlujoMensual==='function') renderFlujoMensual(d.flujoPorMes);
-      if(d.activityCheck){ _actData=d.activityCheck; }
+      if(d.activityCheck){ _actData=d.activityCheck; _actChecks={}; if(typeof renderActivity==='function') renderActivity(); }
       if(typeof renderFinancieroAvanzado==='function' && d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
       api.getPensamientos().then(r=>{ if(typeof renderPensamientos==='function') renderPensamientos(r); }).catch(()=>{});
       api.getRelaciones().then(r=>{ if(typeof renderRelaciones==='function') renderRelaciones(r); }).catch(()=>{});
@@ -932,7 +932,7 @@ function onCats(d){
         if(typeof renderNecesidades==='function') renderNecesidades(d.necesidades);
         if(typeof renderNecesidadesInline==='function'){ renderNecesidadesInline(d.necesidades); setTimeout(function(){ if(typeof actualizarNecInline==='function') actualizarNecInline(); },50); }
         if(typeof renderFlujoMensual==='function') renderFlujoMensual(d.flujoPorMes);
-        if(d.activityCheck){ _actData=d.activityCheck; if(typeof renderActivity==='function' && _pantalla==='activity') renderActivity(); }
+        if(d.activityCheck){ _actData=d.activityCheck; _actChecks={}; if(typeof renderActivity==='function') renderActivity(); }
         if(typeof renderFinancieroAvanzado==='function' && d.financieroAvanzado) renderFinancieroAvanzado(d.financieroAvanzado);
         setChip('ok','Listo ↺');
         showToast('✓ Datos actualizados');
