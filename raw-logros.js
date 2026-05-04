@@ -609,7 +609,8 @@ function renderActivity(){
       '<div style="font-size:11px;color:var(--m)">Marca tu 7° día para ver opciones de limpieza</div>' +
       btnMasivo +
     '</div>' +
-    '<div style="display:grid;grid-template-columns:0.65fr 0.55fr 1fr 1fr 1fr;gap:12px;align-items:start">' +
+    '<div style="display:grid;grid-template-columns:0.65fr 0.55fr 1fr 1fr 1fr;gap:12px;align-items:start;' +
+      (window.innerWidth < 700 ? 'grid-template-columns:1fr;' : '') + '">' +
       _colActividad('Personal',   '#4ADE80', 'pers', _htmlHabitosCol(habPers, semana, dias,     hoyIso, '#4ADE80', 'pers')) +
       _colActividad('Trabajo',    '#22D3EE', 'elec', _htmlHabitosCol(habElec, semana, diasElec, hoyIso, '#22D3EE', 'elec')) +
       _colActividad('Libros',     '#EC4899', null, _htmlMediaCol(libros, 'libro', '#EC4899'),
@@ -692,7 +693,7 @@ function _htmlHabitosCol(habitos, semana, dias, hoyIso, color, colId){
       var past = d.isPast;
       if(done) pct++;
       return '<button data-idx="'+habIdx+'" data-src="'+(colId||'pers')+'" data-sem="'+semana+'" data-dat="'+d.date+'" onclick="_toggleHabitoKey(this)" '+
-        'style="width:22px;height:22px;border-radius:5px;border:1px solid '+(done?color+'88':'rgba(255,255,255,.12)')+';'+
+        'style="width:'+(window.innerWidth<700?'28':'22')+'px;height:'+(window.innerWidth<700?'28':'22')+'px;border-radius:5px;border:1px solid '+(done?color+'88':'rgba(255,255,255,.12)')+';'+
         'background:'+(done?color+'33':'rgba(255,255,255,.03)')+';cursor:'+(past?'pointer':'default')+';'+
         'display:flex;align-items:center;justify-content:center;font-size:11px;'+
         'transition:all .2s;opacity:'+(past?1:.2)+';color:'+color+';flex-shrink:0;font-family:inherit"'+
