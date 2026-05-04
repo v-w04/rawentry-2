@@ -746,6 +746,8 @@ function abrirEntrada(){
 }
 
 function cerrarEntrada(){
+  var blurOv=document.getElementById('dial-blur-overlay');
+  if(blurOv) blurOv.style.display='none';
   const dd = document.getElementById('entrada-dropdown');
   const btn = document.getElementById('btn-nueva-entrada');
   if(dd){ dd.classList.remove('show'); dd.style.display='none'; }
@@ -1321,6 +1323,8 @@ function setModoEntrada(modo){
   if(paso1) paso1.style.display = 'none';
   if(paso2) paso2.style.display = 'block';
   // Restaurar inner y dropdown al estilo normal centrado
+  var blurOv2=document.getElementById('dial-blur-overlay');
+  if(blurOv2) blurOv2.style.display='none';
   var dd2=document.querySelector('.entrada-dropdown');
   if(dd2) dd2.classList.remove('dial-mode');
   var inner2=document.querySelector('.entrada-dropdown-inner');
