@@ -41,152 +41,7 @@
 
 
 <!-- DROPDOWN NUEVA ENTRADA -->
-<div id="entrada-dropdown" class="entrada-dropdown" style="display:none">
-  <div class="entrada-dropdown-inner" id="sec-entrada" onclick="event.stopPropagation()">
 
-    <!-- PASO 1: Selector de tipo -->
-    <div id="entrada-paso1">
-      <div class="entrada-selector-hdr">
-        <span>¿Qué quieres registrar?</span>
-        <button onclick="cerrarEntrada()" class="popup-close">✕</button>
-      </div>
-      <div class="entrada-selector-grid">
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('apartado')" style="--tipo-color:#4ADE80;--tipo-bg:rgba(74,222,128,.12)">
-          <i class="fas fa-piggy-bank entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Apartado</div>
-          <div class="entrada-tipo-sub">Meta de ahorro</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('bancos')" style="--tipo-color:#F59E0B;--tipo-bg:rgba(245,158,11,.12)">
-          <i class="fas fa-building-columns entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Bancos</div>
-          <div class="entrada-tipo-sub">Registrar saldo</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('editar')" style="--tipo-color:#94A3B8;--tipo-bg:rgba(148,163,184,.12)">
-          <i class="fas fa-pen entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Editar</div>
-          <div class="entrada-tipo-sub">Modificar RAW</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('entrenamiento')" style="--tipo-color:#FB923C;--tipo-bg:rgba(251,146,60,.1)">
-          <i class="fas fa-dumbbell entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Entrenamiento</div>
-          <div class="entrada-tipo-sub">Ejercicio · Sesión</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('nutricion')" style="--tipo-color:#4ADE80;--tipo-bg:rgba(0,196,132,.1)">
-          <i class="fas fa-apple-whole entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Nutrición</div>
-          <div class="entrada-tipo-sub">Alimento · Agua</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('patrimonio')" style="--tipo-color:#C4B5FD;--tipo-bg:rgba(139,92,246,.12)">
-          <i class="fas fa-landmark entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Patrimonio</div>
-          <div class="entrada-tipo-sub">Banco · Efectivo · Inversión</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('pensamiento')" style="--tipo-color:#F9A8D4;--tipo-bg:rgba(236,72,153,.1)">
-          <i class="fas fa-brain entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Pensamiento</div>
-          <div class="entrada-tipo-sub">Idea · Reflexión</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('persona')" style="--tipo-color:#93C5FD;--tipo-bg:rgba(59,130,246,.12)">
-          <i class="fas fa-user-group entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Persona</div>
-          <div class="entrada-tipo-sub">Interacción social</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('nueva')" style="--tipo-color:#6366F1;--tipo-bg:rgba(99,102,241,.15)">
-          <i class="fas fa-arrow-right-arrow-left entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">RAW</div>
-          <div class="entrada-tipo-sub">Ingreso · Egreso</div>
-        </button>
-        <button class="entrada-tipo-btn" onclick="setModoEntrada('salud')" style="--tipo-color:#FCA5A5;--tipo-bg:rgba(239,68,68,.1)">
-          <i class="fas fa-heart-pulse entrada-tipo-ico"></i>
-          <div class="entrada-tipo-lbl">Salud</div>
-          <div class="entrada-tipo-sub">Cita · Síntoma</div>
-        </button>
-      </div>
-    </div>
-
-    <!-- PASO 2: Formulario -->
-    <div id="entrada-paso2" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 0">
-        <button onclick="volverAPaso1()" style="background:none;border:none;color:var(--m);cursor:pointer;font-family:inherit;font-size:12px;display:flex;align-items:center;gap:4px;padding:4px 0">
-          <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
-        </button>
-        <span id="entrada-paso2-titulo" style="font-size:12px;font-weight:600;color:var(--m)"></span>
-        <button onclick="cerrarEntrada()" class="popup-close" style="width:24px;height:24px;font-size:13px">✕</button>
-      </div>
-      <div id="sec-entrada-body">
-        <div id="cf-fecha" class="cf done">
-          <div class="cf-label">Fecha</div>
-          <div class="cf-val-wrap"><input type="date" id="fecha" class="cf-date" onchange="onFechaChange()"></div>
-        </div>
-        <div id="cf-proyecto" class="cf" onclick="activarCampo('proyecto')">
-          <div class="cf-label">Proyecto</div>
-          <div class="cf-val-wrap"><span id="cv-proyecto" class="cf-val empty">—</span></div>
-          <div class="sw" id="sw-proyecto"></div>
-        </div>
-        <div id="cf-contacto" class="cf" onclick="activarCampo('contacto')">
-          <div class="cf-label">Contacto</div>
-          <div class="cf-val-wrap"><span id="cv-contacto" class="cf-val empty">—</span></div>
-          <div class="sw" id="sw-contacto"></div>
-        </div>
-        <div id="cf-concepto" class="cf" onclick="abrirConcepto()">
-          <div class="cf-label">Concepto</div>
-          <div class="cf-val-wrap"><span id="cv-concepto" class="cf-val empty">—</span></div>
-        </div>
-        <div id="cf-monto" class="cf" onclick="activarCampo('monto')">
-          <div class="cf-label">Monto</div>
-          <div class="cf-val-wrap">
-            <div class="monto-wrap">
-              <button id="sbp" class="msign pos" onclick="event.stopPropagation();setSign(1)">+</button>
-              <input type="number" id="monto" class="monto-input" step="0.01" inputmode="decimal" oninput="upM()" placeholder="0.00">
-              <button id="sbn" class="msign" onclick="event.stopPropagation();setSign(-1)">−</button>
-              <span id="mprev" class="mprev">$ 0.00</span>
-            </div>
-          </div>
-        </div>
-        <div id="cf-recurrencia" class="cf" onclick="activarCampo('recurrencia')">
-          <div class="cf-label">Recurrencia</div>
-          <div class="cf-val-wrap"><span id="cv-recurrencia" class="cf-val empty">—</span></div>
-          <div class="sw" id="sw-recurrencia"></div>
-        </div>
-        <div id="cf-necesidad" class="cf" onclick="activarCampo('necesidad')">
-          <div class="cf-label">Necesidad</div>
-          <div class="cf-val-wrap"><span id="cv-necesidad" class="cf-val empty">—</span></div>
-          <div class="sw" id="sw-necesidad"></div>
-        </div>
-        <div id="cf-clave" class="cf" onclick="activarCampo('clave')">
-          <div class="cf-label">Clave</div>
-          <div class="cf-val-wrap"><input type="text" id="clave" class="cf-text" placeholder="Opcional" onchange="onClaveChange()"></div>
-        </div>
-        <div class="form-actions">
-          <button class="btn-save" id="btnG" onclick="guardar()">
-            <div class="spin-sm" id="spin" style="display:none"></div>
-            <i class="fas fa-floppy-disk" id="bico"></i> Guardar
-          </button>
-          <button class="btn-sm sec" onclick="limpiar()" title="Limpiar"><i class="fas fa-rotate-left"></i></button>
-          <button class="btn-sm sec" onclick="irASheet()" title="Ver Sheet"><i class="fas fa-table-cells"></i></button>
-          <button class="btn-sm sec" onclick="oPanel()" title="Gestionar Lista"><i class="fas fa-list"></i></button>
-        </div>
-        <div id="save-res" class="save-res">
-          <span id="res-ico"></span> <span id="res-msg"></span>
-        </div>
-        <!-- Wraps para tabs del dial -->
-        <div id="pensamiento-wrap" style="display:none"></div>
-        <div id="persona-wrap"     style="display:none"></div>
-        <div id="salud-wrap"       style="display:none"></div>
-        <div id="apartado-wrap"    style="display:none"></div>
-        <div id="patrimonio-wrap"  style="display:none"></div>
-        <div id="bancos-wrap"      style="display:none"></div>
-        <div id="nutricion-wrap"   style="display:none"></div>
-        <div id="entrenamiento-wrap" style="display:none"></div>
-        <div id="libro-wrap"       style="display:none"></div>
-        <div id="movie-wrap"       style="display:none"></div>
-        <div id="norut-wrap"       style="display:none"></div>
-        <div id="editar-id-wrap"   style="display:none"></div>
-      </div>
-    </div>
-
-  </div>
-</div>
 
 
   <div class="board-wrap">
@@ -611,5 +466,151 @@
 <script src="raw-dashboard.js"></script>
 <script src="raw-logros.js"></script>
 <script src="encom-components.js"></script>
+<div id="entrada-dropdown" class="entrada-dropdown" style="display:none">
+  <div class="entrada-dropdown-inner" id="sec-entrada" onclick="event.stopPropagation()">
+
+    <!-- PASO 1: Selector de tipo -->
+    <div id="entrada-paso1">
+      <div class="entrada-selector-hdr">
+        <span>¿Qué quieres registrar?</span>
+        <button onclick="cerrarEntrada()" class="popup-close">✕</button>
+      </div>
+      <div class="entrada-selector-grid">
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('apartado')" style="--tipo-color:#4ADE80;--tipo-bg:rgba(74,222,128,.12)">
+          <i class="fas fa-piggy-bank entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">Apartado</div>
+          <div class="entrada-tipo-sub">Meta de ahorro</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('bancos')" style="--tipo-color:#F59E0B;--tipo-bg:rgba(245,158,11,.12)">
+          <i class="fas fa-building-columns entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">Bancos</div>
+          <div class="entrada-tipo-sub">Registrar saldo</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('editar')" style="--tipo-color:#94A3B8;--tipo-bg:rgba(148,163,184,.12)">
+          <i class="fas fa-pen entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">Editar</div>
+          <div class="entrada-tipo-sub">Modificar RAW</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('entrenamiento')" style="--tipo-color:#FB923C;--tipo-bg:rgba(251,146,60,.1)">
+          <i class="fas fa-dumbbell entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">Entrenamiento</div>
+          <div class="entrada-tipo-sub">Ejercicio · Sesión</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('nutricion')" style="--tipo-color:#4ADE80;--tipo-bg:rgba(0,196,132,.1)">
+          <i class="fas fa-apple-whole entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">Nutrición</div>
+          <div class="entrada-tipo-sub">Alimento · Agua</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('patrimonio')" style="--tipo-color:#C4B5FD;--tipo-bg:rgba(139,92,246,.12)">
+          <i class="fas fa-landmark entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">Patrimonio</div>
+          <div class="entrada-tipo-sub">Banco · Efectivo · Inversión</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('pensamiento')" style="--tipo-color:#F9A8D4;--tipo-bg:rgba(236,72,153,.1)">
+          <i class="fas fa-brain entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">Pensamiento</div>
+          <div class="entrada-tipo-sub">Idea · Reflexión</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('persona')" style="--tipo-color:#93C5FD;--tipo-bg:rgba(59,130,246,.12)">
+          <i class="fas fa-user-group entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">Persona</div>
+          <div class="entrada-tipo-sub">Interacción social</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('nueva')" style="--tipo-color:#6366F1;--tipo-bg:rgba(99,102,241,.15)">
+          <i class="fas fa-arrow-right-arrow-left entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">RAW</div>
+          <div class="entrada-tipo-sub">Ingreso · Egreso</div>
+        </button>
+        <button class="entrada-tipo-btn" onclick="setModoEntrada('salud')" style="--tipo-color:#FCA5A5;--tipo-bg:rgba(239,68,68,.1)">
+          <i class="fas fa-heart-pulse entrada-tipo-ico"></i>
+          <div class="entrada-tipo-lbl">Salud</div>
+          <div class="entrada-tipo-sub">Cita · Síntoma</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- PASO 2: Formulario -->
+    <div id="entrada-paso2" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 0">
+        <button onclick="volverAPaso1()" style="background:none;border:none;color:var(--m);cursor:pointer;font-family:inherit;font-size:12px;display:flex;align-items:center;gap:4px;padding:4px 0">
+          <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
+        </button>
+        <span id="entrada-paso2-titulo" style="font-size:12px;font-weight:600;color:var(--m)"></span>
+        <button onclick="cerrarEntrada()" class="popup-close" style="width:24px;height:24px;font-size:13px">✕</button>
+      </div>
+      <div id="sec-entrada-body">
+        <div id="cf-fecha" class="cf done">
+          <div class="cf-label">Fecha</div>
+          <div class="cf-val-wrap"><input type="date" id="fecha" class="cf-date" onchange="onFechaChange()"></div>
+        </div>
+        <div id="cf-proyecto" class="cf" onclick="activarCampo('proyecto')">
+          <div class="cf-label">Proyecto</div>
+          <div class="cf-val-wrap"><span id="cv-proyecto" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-proyecto"></div>
+        </div>
+        <div id="cf-contacto" class="cf" onclick="activarCampo('contacto')">
+          <div class="cf-label">Contacto</div>
+          <div class="cf-val-wrap"><span id="cv-contacto" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-contacto"></div>
+        </div>
+        <div id="cf-concepto" class="cf" onclick="abrirConcepto()">
+          <div class="cf-label">Concepto</div>
+          <div class="cf-val-wrap"><span id="cv-concepto" class="cf-val empty">—</span></div>
+        </div>
+        <div id="cf-monto" class="cf" onclick="activarCampo('monto')">
+          <div class="cf-label">Monto</div>
+          <div class="cf-val-wrap">
+            <div class="monto-wrap">
+              <button id="sbp" class="msign pos" onclick="event.stopPropagation();setSign(1)">+</button>
+              <input type="number" id="monto" class="monto-input" step="0.01" inputmode="decimal" oninput="upM()" placeholder="0.00">
+              <button id="sbn" class="msign" onclick="event.stopPropagation();setSign(-1)">−</button>
+              <span id="mprev" class="mprev">$ 0.00</span>
+            </div>
+          </div>
+        </div>
+        <div id="cf-recurrencia" class="cf" onclick="activarCampo('recurrencia')">
+          <div class="cf-label">Recurrencia</div>
+          <div class="cf-val-wrap"><span id="cv-recurrencia" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-recurrencia"></div>
+        </div>
+        <div id="cf-necesidad" class="cf" onclick="activarCampo('necesidad')">
+          <div class="cf-label">Necesidad</div>
+          <div class="cf-val-wrap"><span id="cv-necesidad" class="cf-val empty">—</span></div>
+          <div class="sw" id="sw-necesidad"></div>
+        </div>
+        <div id="cf-clave" class="cf" onclick="activarCampo('clave')">
+          <div class="cf-label">Clave</div>
+          <div class="cf-val-wrap"><input type="text" id="clave" class="cf-text" placeholder="Opcional" onchange="onClaveChange()"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-save" id="btnG" onclick="guardar()">
+            <div class="spin-sm" id="spin" style="display:none"></div>
+            <i class="fas fa-floppy-disk" id="bico"></i> Guardar
+          </button>
+          <button class="btn-sm sec" onclick="limpiar()" title="Limpiar"><i class="fas fa-rotate-left"></i></button>
+          <button class="btn-sm sec" onclick="irASheet()" title="Ver Sheet"><i class="fas fa-table-cells"></i></button>
+          <button class="btn-sm sec" onclick="oPanel()" title="Gestionar Lista"><i class="fas fa-list"></i></button>
+        </div>
+        <div id="save-res" class="save-res">
+          <span id="res-ico"></span> <span id="res-msg"></span>
+        </div>
+        <!-- Wraps para tabs del dial -->
+        <div id="pensamiento-wrap" style="display:none"></div>
+        <div id="persona-wrap"     style="display:none"></div>
+        <div id="salud-wrap"       style="display:none"></div>
+        <div id="apartado-wrap"    style="display:none"></div>
+        <div id="patrimonio-wrap"  style="display:none"></div>
+        <div id="bancos-wrap"      style="display:none"></div>
+        <div id="nutricion-wrap"   style="display:none"></div>
+        <div id="entrenamiento-wrap" style="display:none"></div>
+        <div id="libro-wrap"       style="display:none"></div>
+        <div id="movie-wrap"       style="display:none"></div>
+        <div id="norut-wrap"       style="display:none"></div>
+        <div id="editar-id-wrap"   style="display:none"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
 </body>
 </html>
