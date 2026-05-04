@@ -143,10 +143,10 @@ function _initMobTablero(){
 // ══════════════════════════════════════════
 
 // Colores de sector — monocromáticos
-var _DIAL_BASE   = 'rgba(14,14,20,0.86)';
-var _DIAL_HOVER  = 'rgba(26,26,38,0.96)';
-var _DIAL_SBASE  = 'rgba(10,10,16,0.90)';
-var _DIAL_SHOV   = 'rgba(20,20,30,0.98)';
+var _DIAL_BASE   = 'rgba(18,18,28,0.90)';
+var _DIAL_HOVER  = 'rgba(32,32,48,0.98)';
+var _DIAL_SBASE  = 'rgba(14,14,22,0.92)';
+var _DIAL_SHOV   = 'rgba(28,28,42,0.99)';
 
 // ── Funciones de ícono para subitems ──
 function _icoLibro(ctx,x,y,s,c){
@@ -231,7 +231,7 @@ var _DC = {
   R_OUT:280,  // radio exterior anillo principal
   R_SI:296,   // radio interior subanillo (gap de 16 entre anillos)
   R_SO:390,   // radio exterior subanillo
-  GAP:0.018,  // gap en radianes entre sectores
+  GAP:0.032,  // gap en radianes entre sectores
 };
 
 function _crearDialOverlay(){
@@ -386,8 +386,8 @@ function _dialDraw(){
     var rOut   = (isHov||isAct) ? dc.R_OUT+12 : dc.R_OUT;
 
     var fill   = (isHov||isAct) ? _DIAL_HOVER : _DIAL_BASE;
-    var bdrClr = (isHov||isAct) ? item.accent+'55' : 'rgba(255,255,255,0.05)';
-    var bdrW   = (isHov||isAct) ? 1.5 : 0.7;
+    var bdrClr = (isHov||isAct) ? item.accent+'88' : 'rgba(255,255,255,0.18)';
+    var bdrW   = (isHov||isAct) ? 2 : 1.5;
 
     _dialDrawSector(ctx, startA, endA, rOut, fill, bdrClr, bdrW);
 
@@ -415,8 +415,8 @@ function _dialDraw(){
     ctx.restore();
 
     // Label debajo del ícono, pequeño
-    ctx.font      = (isHov||isAct?'700':'600') + ' 10px -apple-system,BlinkMacSystemFont,sans-serif';
-    ctx.fillStyle = isHov||isAct ? '#fff' : 'rgba(255,255,255,0.65)';
+    ctx.font      = '700 11px -apple-system,BlinkMacSystemFont,sans-serif';
+    ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillText(item.label, cx, cy + 14);
@@ -451,7 +451,7 @@ function _dialDraw(){
         var rso    = isShov ? dc.R_SO+12 : dc.R_SO;
 
         var sfill = isShov ? _DIAL_SHOV : _DIAL_SBASE;
-        var sbdr  = isShov ? sub.accent+'66' : 'rgba(255,255,255,0.07)';
+        var sbdr  = isShov ? sub.accent+'88' : 'rgba(255,255,255,0.15)';
 
         _dialDrawSubSector(ctx, sA, eA, rso, dc.R_SI, sfill, sbdr, isShov?1.5:0.7);
 
@@ -478,8 +478,8 @@ function _dialDraw(){
         ctx.restore();
 
         // Label sub
-        ctx.font      = (isShov?'700':'600')+' 9px -apple-system,BlinkMacSystemFont,sans-serif';
-        ctx.fillStyle = isShov ? '#fff' : 'rgba(255,255,255,0.6)';
+        ctx.font      = '700 10px -apple-system,BlinkMacSystemFont,sans-serif';
+        ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.fillText(sub.label, scx, scy + 11);
