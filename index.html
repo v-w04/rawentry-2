@@ -26,7 +26,7 @@
 
     <div class="hero-right">
       <div id="chip" class="hero-chip load"><span id="chip-txt">Cargando</span></div>
-      <button class="btn-flip btn-nueva-entrada-hero" id="btn-nueva-entrada" onclick="abrirEntrada()" title="Nueva Entrada" style="background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#A5B4FC"><i class="fas fa-plus"></i> Nueva</button>
+      <button class="btn-flip btn-nueva-entrada-hero" id="btn-nueva-entrada" onclick="toggleEntradaDropdown()" title="Nueva Entrada" style="background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#A5B4FC"><i class="fas fa-plus"></i> Nueva</button>
       <button class="btn-flip" id="btn-logros" onclick="irALogros()" title="Logros"><i class="fas fa-trophy"></i> Logros</button>
       <button class="btn-flip" id="btn-maslow" onclick="irABitacora()" title="Bitácora"><i class="fas fa-book-open"></i> Bitácora</button>
       <button class="btn-flip" id="btn-activity" onclick="irAActivity()" title="Activity Check">⚡ Activity</button>
@@ -50,7 +50,7 @@
    <div class="sections" id="mob-sections">
 
     <!-- COL 1: Patrimonio fusionado (antes Bancos) -->
-    <div id="col1-wrap">
+    <div id="col-1">
     <div class="section" id="sec-entes" style="display:none">
       <div class="sec-hdr" id="sec-entes-hdr">
         <div class="sec-hdr-left">
@@ -75,7 +75,7 @@
     </div>
 
     <!-- COL 2: Financiero -->
-    <div id="col-1">
+    <div id="col-2">
     <div class="section" id="sec-financiero">
       <div class="sec-hdr" onclick="togSec(this)" id="sec-financiero-hdr">
         <div class="sec-hdr-left">
@@ -275,7 +275,7 @@
     <div class="maslow-cols" id="maslow-sections">
       <!-- SIMS NEEDS PANEL -->
       <div id="sims-needs-panel" style="grid-column:1/-1;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:var(--rad-lg);margin-bottom:8px"></div>
-      <div id="mcol-1">
+      <div id="mcol-2">
       <div class="section" id="sec-pensamientos">
         <div class="sec-hdr" onclick="togSec(this)" id="sec-pensamientos-hdr">
           <div class="sec-hdr-left">
