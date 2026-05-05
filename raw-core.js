@@ -1902,11 +1902,20 @@ document.addEventListener('DOMContentLoaded', function(){
       // Lista de items (libros/movies/pendientes)
       function itemList(items, tipo){
         if(!items||!items.length) return '<div style="padding:16px 0;color:rgba(255,255,255,.3);font-size:12px">Sin registros</div>';
+        // Pendientes primero, completados al fondo
+        var sorted = items.slice().sort(function(a,b){
+          var ad=a.completado===true||a.completado==='Sí'||a.completado==='Si'?1:0;
+          var bd=b.completado===true||b.completado==='Sí'||b.completado==='Si'?1:0;
+          return ad-bd;
+        });
         return '<div style="display:flex;flex-direction:column;gap:1px">'+
-          items.map(function(it){
+          sorted.map(function(it){
+            var done=it.completado===true||it.completado==='Sí'||it.completado==='Si';
             return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)">'+
-              chkItem(it.fila, tipo, it.completado)+
-              '<span style="font-size:13px;font-weight:600;color:'+(it.completado?'rgba(255,255,255,.35)':'#fff')+';'+
+              chkItem(it.fila, tipo, done)+
+              '<span style="font-size:13px;font-weight:600;'+
+              'color:'+(done?'rgba(255,255,255,.35)':'#fff')+';'+
+              'text-decoration:'+(done?'line-through':'none')+';'+
               'word-break:break-word;overflow-wrap:anywhere;min-width:0">'+
               it.nombre+'</span></div>';
           }).join('')+'</div>';
@@ -1942,8 +1951,8 @@ document.addEventListener('DOMContentLoaded', function(){
         '<div style="display:flex;gap:0;overflow-x:auto;padding:16px 20px 24px;align-items:flex-start;-webkit-overflow-scrolling:touch">'+
           colFixed('🧘 Personal <span style="opacity:.4;font-size:10px">'+(d.habitosPersonal||[]).length+'</span>',    habTable(d.habitosPersonal||[], DIAS_P), 390)+
           colFixed('⚡ Electronics <span style="opacity:.4;font-size:10px">'+(d.habitosElectronics||[]).length+'</span>', habTable(d.habitosElectronics||[], DIAS_E), 310)+
-          colDynamic('📚 Libros <span style="opacity:.4;font-size:10px">'+(d.libros||[]).length+'</span>',      itemList(d.libros||[],'libros'))+
-          colDynamic('🎬 Movies <span style="opacity:.4;font-size:10px">'+(d.movies||[]).length+'</span>',      itemList(d.movies||[],'movies'))+
+          colDynamic('📚 Libros <span style="opacity:.4;font-size:10px">'+(d.libros||[]).length+'</span>',      itemList(d.libros||[],'libro'))+
+          colDynamic('🎬 Movies <span style="opacity:.4;font-size:10px">'+(d.movies||[]).length+'</span>',      itemList(d.movies||[],'movie'))+
           colDynamic('✨ Pendientes <span style="opacity:.4;font-size:10px">'+(d.noRutinarias||[]).length+'</span>', itemList(d.noRutinarias||[],'norut'), true)+
         '</div>';
 
@@ -1952,10 +1961,23 @@ document.addEventListener('DOMContentLoaded', function(){
         var c = e.target.closest('._act-chk');
         if(c){
           var ok = !!c.querySelector('.fa-check');
-          c.style.borderColor = ok?'rgba(255,255,255,.25)':'rgba(74,222,128,.9)';
-          c.style.background  = ok?'transparent':'rgba(74,222,128,.22)';
-          c.innerHTML = ok?'':'<i class="fas fa-check" style="font-size:10px;color:#4ADE80;pointer-events:none"></i>';
-          if(typeof api!=='undefined') api.setActivityCheck(c.dataset.tipo, parseInt(c.dataset.fila), c.dataset.dia, !ok);
+          var nowChk = !ok;
+          c.style.borderColor = nowChk?'rgba(74,222,128,.9)':'rgba(255,255,255,.28)';
+          c.style.background  = nowChk?'rgba(74,222,128,.22)':'transparent';
+          c.innerHTML = nowChk?'<i class="fas fa-check" style="font-size:10px;color:#4ADE80;pointer-events:none"></i>':'';
+          // Revisar si todos los días de esa fila están marcados
+          var row = c.closest('tr');
+          if(row){
+            var allChks = row.querySelectorAll('._act-chk');
+            var allDone = Array.prototype.every.call(allChks, function(ch){ return !!ch.querySelector('.fa-check'); });
+            var nameCell = row.querySelector('td:first-child');
+            if(nameCell){
+              nameCell.style.background = allDone?'rgba(74,222,128,0.06)':'';
+              var nameDiv = nameCell.querySelector('div:last-child');
+              if(nameDiv) nameDiv.style.color = allDone?'#4ADE80':'rgba(255,255,255,.82)';
+            }
+          }
+          if(typeof api!=='undefined') api.setActivityCheck(c.dataset.tipo, parseInt(c.dataset.fila), c.dataset.dia, nowChk);
           return;
         }
         var it = e.target.closest('._act-item');
@@ -1971,10 +1993,14 @@ document.addEventListener('DOMContentLoaded', function(){
           var sp = row.querySelector('span');
           if(sp) sp.style.color = nowDone?'rgba(255,255,255,.35)':'#fff';
           if(sp) sp.style.textDecoration = nowDone?'line-through':'none';
-          // Mover al fondo si se completa
-          if(nowDone){
-            var parent = row.parentElement;
-            if(parent){ parent.appendChild(row); }
+          // Si se completa → mover al fondo; si se desmarca → mover arriba
+          var parent = row.parentElement;
+          if(parent){
+            if(nowDone){
+              parent.appendChild(row);  // appendChild = al fondo
+            } else {
+              parent.insertBefore(row, parent.firstChild);  // desmarcar = arriba
+            }
           }
           if(typeof api!=='undefined') api.setActivityCheck(it.dataset.tipo, parseInt(it.dataset.fila), null, nowDone);
         }
