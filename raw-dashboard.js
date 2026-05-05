@@ -160,21 +160,21 @@ function _dibujarNecesidesInlineCompleto(niveles){
   radarWrap.innerHTML =
     '<div style="display:flex;flex-direction:column;gap:0;width:100%;box-sizing:border-box">'+
 
-      // ── Fila 1: Radar + Pirámide lado a lado ──
-      '<div style="display:flex;align-items:flex-start;gap:20px;padding:14px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.05)">'+
+      // ── Fila 1: Radar + Pirámide centrados, más grandes ──
+      '<div style="display:flex;align-items:flex-start;justify-content:center;gap:32px;padding:20px 16px 18px;border-bottom:1px solid rgba(255,255,255,0.05)">'+
 
         // Radar
-        '<div style="display:flex;flex-direction:column;align-items:center;flex:0 0 auto">'+
-          '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;'+
-               'color:rgba(255,255,255,.3);margin-bottom:8px">Radar</div>'+
-          '<canvas id="radar-inline-canvas" width="200" height="200" style="display:block"></canvas>'+
+        '<div style="display:flex;flex-direction:column;align-items:center">'+
+          '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.10em;'+
+               'color:rgba(255,255,255,.3);margin-bottom:10px">Radar</div>'+
+          '<canvas id="radar-inline-canvas" width="260" height="260" style="display:block"></canvas>'+
         '</div>'+
 
         // Pirámide / Distribución SVG
-        '<div style="display:flex;flex-direction:column;align-items:center;flex:0 0 auto">'+
-          '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;'+
-               'color:rgba(255,255,255,.3);margin-bottom:8px">Distribución</div>'+
-          '<svg width="200" height="170" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg">'+svgPisos+'</svg>'+
+        '<div style="display:flex;flex-direction:column;align-items:center">'+
+          '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.10em;'+
+               'color:rgba(255,255,255,.3);margin-bottom:10px">Distribución</div>'+
+          '<svg width="220" height="190" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg" style="display:block">'+svgPisos+'</svg>'+
         '</div>'+
 
       '</div>'+
@@ -199,7 +199,7 @@ function _dibujarNecesidesInlineCompleto(niveles){
     var maxVal  = Math.max.apply(null, valores.concat([1]));
     var norm    = valores.map(function(v){ return v / maxVal * 100; });
     if(_radarInlineChart){ try{ _radarInlineChart.destroy(); }catch(e){} _radarInlineChart = null; }
-    _radarInlineChart = new Chart(canvas, {
+    canvas.width=260; canvas.height=260; _radarInlineChart = new Chart(canvas, {
       type: 'radar',
       data: { labels: labels, datasets: [{ data: norm,
         backgroundColor: 'rgba(139,92,246,.15)', borderColor: 'rgba(139,92,246,.7)',
