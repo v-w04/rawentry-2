@@ -1906,7 +1906,8 @@ document.addEventListener('DOMContentLoaded', function(){
           items.map(function(it){
             return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)">'+
               chkItem(it.fila, tipo, it.completado)+
-              '<span style="font-size:13px;font-weight:600;color:'+(it.completado?'rgba(255,255,255,.35)':'#fff')+'">'+
+              '<span style="font-size:13px;font-weight:600;color:'+(it.completado?'rgba(255,255,255,.35)':'#fff')+';'+
+              'word-break:break-word;overflow-wrap:anywhere;min-width:0">'+
               it.nombre+'</span></div>';
           }).join('')+'</div>';
       }
@@ -1921,13 +1922,29 @@ document.addEventListener('DOMContentLoaded', function(){
           inner+'</div>';
       }
 
+      // Anchos: Personal y Electronics fijos, las otras 3 dinámicas con máximo
+      function colFixed(title, inner, width){
+        return '<div style="flex:0 0 '+width+'px;width:'+width+'px;padding-right:20px;margin-right:4px;border-right:1px solid rgba(255,255,255,.08)">'+
+          '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.10em;'+
+               'color:rgba(255,255,255,.55);margin-bottom:14px;padding-bottom:4px;'+
+               'border-bottom:2px solid rgba(255,255,255,.08)">'+title+'</div>'+
+          inner+'</div>';
+      }
+      function colDynamic(title, inner, isLast){
+        return '<div style="flex:0 0 auto;min-width:180px;max-width:280px;padding-left:20px;'+
+               (isLast?'':'padding-right:20px;border-right:1px solid rgba(255,255,255,.08)')+'">' +
+          '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.10em;'+
+               'color:rgba(255,255,255,.55);margin-bottom:14px;padding-bottom:4px;'+
+               'border-bottom:2px solid rgba(255,255,255,.08)">'+title+'</div>'+
+          inner+'</div>';
+      }
       cont.innerHTML =
         '<div style="display:flex;gap:0;overflow-x:auto;padding:16px 20px 24px;align-items:flex-start;-webkit-overflow-scrolling:touch">'+
-          col('🧘 Personal <span style="opacity:.4;font-size:10px">'+( d.habitosPersonal||[]).length+'</span>',    habTable(d.habitosPersonal||[],    DIAS_P))+
-          col('⚡ Electronics <span style="opacity:.4;font-size:10px">'+(d.habitosElectronics||[]).length+'</span>', habTable(d.habitosElectronics||[], DIAS_E))+
-          col('📚 Libros <span style="opacity:.4;font-size:10px">'+(d.libros||[]).length+'</span>',                 itemList(d.libros||[],   'libros'))+
-          col('🎬 Movies <span style="opacity:.4;font-size:10px">'+(d.movies||[]).length+'</span>',                 itemList(d.movies||[],   'movies'))+
-          col('✨ Pendientes <span style="opacity:.4;font-size:10px">'+(d.noRutinarias||[]).length+'</span>',       itemList(d.noRutinarias||[],'norut'), true)+
+          colFixed('🧘 Personal <span style="opacity:.4;font-size:10px">'+(d.habitosPersonal||[]).length+'</span>',    habTable(d.habitosPersonal||[], DIAS_P), 320)+
+          colFixed('⚡ Electronics <span style="opacity:.4;font-size:10px">'+(d.habitosElectronics||[]).length+'</span>', habTable(d.habitosElectronics||[], DIAS_E), 280)+
+          colDynamic('📚 Libros <span style="opacity:.4;font-size:10px">'+(d.libros||[]).length+'</span>',      itemList(d.libros||[],'libros'))+
+          colDynamic('🎬 Movies <span style="opacity:.4;font-size:10px">'+(d.movies||[]).length+'</span>',      itemList(d.movies||[],'movies'))+
+          colDynamic('✨ Pendientes <span style="opacity:.4;font-size:10px">'+(d.noRutinarias||[]).length+'</span>', itemList(d.noRutinarias||[],'norut'), true)+
         '</div>';
 
       // Event delegation — checks
