@@ -1616,29 +1616,6 @@ document.addEventListener('DOMContentLoaded', function(){
     };
   }
 
-  // irAActivity — siempre actualizado para usar los fallbacks si aplica
-  window.irAActivity = function(){
-    _irAPanel('board-activity','activity');
-    if(window._actData){
-      if(typeof window.renderActivity==='function') window.renderActivity();
-    } else {
-      var cont = document.getElementById('act-container');
-      if(cont) cont.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,.25)"><i class="fas fa-circle-notch fa-spin" style="font-size:18px;color:#22d3ee"></i></div>';
-      if(typeof api!=='undefined') api.getActivityCheck().then(function(d){
-        window._actData = d;
-        if(typeof window.renderActivity==='function') window.renderActivity();
-      }).catch(function(){ var c=document.getElementById('act-container'); if(c) c.innerHTML='<div style="padding:32px;text-align:center;color:rgba(239,68,68,.4);font-size:12px">Error al cargar Activity</div>'; });
-    }
-  };
-
-  window.irANutricion = function(){
-    _irAPanel('board-nutricion','nutricion');
-    var body = document.getElementById('nut-panel-body');
-    if(body && body.querySelector('.fa-spin')){
-      if(typeof api!=='undefined') api.getNutricion().then(function(d){ window.renderNutricion(d); })
-        .catch(function(){ if(body) body.innerHTML='<div style="padding:32px;text-align:center;color:rgba(239,68,68,.4);font-size:12px">Error al cargar Nutrición</div>'; });
-    }
-  };
 
 });
 
