@@ -76,7 +76,7 @@ html,body{
 .hero-clock{font-size:12px;color:var(--m);font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.01em}
 .hero::before{display:none}
 .hero-top{display:none}
-.hero-brand{display:flex;align-items:center;gap:10px}
+.hero-brand{display:flex;flex-direction:column;align-items:flex-start;gap:1px}
 .hero-icon{
   width:36px;height:36px;border-radius:0;
   background:rgba(14,14,20,0.95);border:1px solid rgba(255,255,255,0.12);
@@ -403,8 +403,15 @@ html,body{
 
   .board-wrap{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;position:relative}
   .board-face{position:absolute;top:0;left:0;width:100%;min-height:100%}
-  .board-face.anverso{position:relative;width:100%;overflow:visible;display:block}
+  .board-face.anverso{position:relative;width:100%;overflow:visible;display:block;transition:opacity .18s ease,transform .18s ease}
   .board-face.anverso .sections{overflow-y:auto !important}
+  /* Ocultar anverso cuando hay un panel activo */
+  .board-face.anverso.slide-right{
+    opacity:0 !important;
+    pointer-events:none !important;
+    position:absolute !important;
+    transform:translateX(-8px) !important;
+  }
   .board-wrap::-webkit-scrollbar{width:6px}
   .board-wrap::-webkit-scrollbar-track{background:rgba(255,255,255,.03)}
   .board-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
@@ -412,6 +419,55 @@ html,body{
   #sheets-iframe-cont{height:calc(100vh - 120px)}
   .hero-hamburger{display:none}
   .hero-right{flex-wrap:nowrap;white-space:nowrap}
+
+  /* ── BTN-FLIP — botones de navegación del hero ── */
+  .btn-flip{
+    display:flex;align-items:center;gap:5px;
+    padding:5px 11px;
+    border-radius:0;
+    font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+    background:none;
+    border:none;border-bottom:2px solid transparent;
+    color:rgba(255,255,255,0.38);
+    cursor:pointer;font-family:inherit;
+    transition:all .15s;white-space:nowrap;
+    flex-shrink:0;
+  }
+  .btn-flip:hover{color:rgba(255,255,255,0.8);border-bottom-color:rgba(255,255,255,0.25)}
+  .btn-flip.active{
+    color:#fff !important;
+    border-bottom:2px solid rgba(255,255,255,0.7) !important;
+    background:rgba(255,255,255,0.05) !important;
+    text-shadow:0 0 10px rgba(255,255,255,0.4);
+  }
+
+  /* ── NAV-BTN SOS ── */
+  .nav-btn.sos{
+    display:flex;align-items:center;gap:5px;
+    padding:5px 11px;
+    border-radius:0;
+    font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+    background:rgba(239,68,68,0.12);
+    border:none;border-bottom:2px solid rgba(239,68,68,0.5);
+    color:#EF4444;
+    cursor:pointer;font-family:inherit;
+    transition:all .15s;white-space:nowrap;flex-shrink:0;
+  }
+  .nav-btn.sos:hover{background:rgba(239,68,68,0.2);color:#fff}
+
+  /* ── BTN-ENCOM ── */
+  #btn-encom-toggle{
+    display:flex;align-items:center;gap:4px;
+    padding:5px 10px;
+    border-radius:0;
+    font-size:10px;font-weight:700;letter-spacing:.06em;
+    background:rgba(0,238,238,0.05);
+    border:none;border-bottom:2px solid rgba(0,238,238,0.25);
+    color:rgba(0,238,238,0.5);
+    cursor:pointer;font-family:inherit;
+    transition:all .15s;white-space:nowrap;flex-shrink:0;
+  }
+  #btn-encom-toggle:hover{color:rgba(0,238,238,0.85);border-bottom-color:rgba(0,238,238,0.6)}
 }
 
 @media(max-width:899px){
@@ -1435,6 +1491,15 @@ html.mob #dial-overlay canvas{
 
 /* hero-ver — mismo estilo dim del dial */
 .hero-ver{ font-size:8px; color:rgba(255,255,255,0.2); font-weight:600; letter-spacing:.08em; margin-left:6px; }
+/* hero-sub — versión dim, casi invisible */
+.hero-sub {
+  font-size: 8px;
+  color: rgba(255,255,255,0.18);
+  font-weight: 500;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+
 
 /* chip-dot — match al color del chip */
 .hero-chip.ok  .chip-dot{ background:var(--ok); box-shadow:0 0 6px rgba(74,222,128,0.6); }
