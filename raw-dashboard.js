@@ -10,12 +10,13 @@ var _necModoHoy = true;
 
 // ── Fallback: NEC_NIVELES se define aquí si GAS no la inyectó ──
 if(typeof NEC_NIVELES === 'undefined'){
+  // Keys numéricos '1'..'5' — coinciden con lo que devuelve getNecesidades del GAS
   var NEC_NIVELES = [
-    { key:'fisiologicas',    label:'Fisiológicas',   color:'#f87171' },
-    { key:'seguridad',       label:'Seguridad',       color:'#fb923c' },
-    { key:'afiliacion',      label:'Afiliación',      color:'#fbbf24' },
-    { key:'reconocimiento',  label:'Reconocimiento',  color:'#a3e635' },
-    { key:'autorrealizacion',label:'Autorrealización', color:'#34d399' },
+    { key:'1', label:'Fisiológicas',   color:'#f87171' },
+    { key:'2', label:'Seguridad',      color:'#fb923c' },
+    { key:'3', label:'Afiliación',     color:'#fbbf24' },
+    { key:'4', label:'Reconocimiento', color:'#a3e635' },
+    { key:'5', label:'Autorrealización',color:'#34d399' },
   ];
 }
 
@@ -43,13 +44,36 @@ function actualizarNecInline(forzarMes){
   var hoyDate  = new Date();
   var mesFinal = _necModoHoy ? String(hoyDate.getMonth()+1) : (m || String(hoyDate.getMonth()+1));
 
+  // Mostrar loading mientras carga
+  var _radarWrap = document.getElementById('nec-inline-radar-wrap');
+  var _detCont   = document.getElementById('nec-inline-container');
+  if(_radarWrap) _radarWrap.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(255,255,255,.3);font-size:11px"><i class="fas fa-circle-notch fa-spin"></i> Cargando...</div>';
+  if(_detCont)   _detCont.innerHTML = '';
+
   api.getNecesidades(a, mesFinal, null).then(function(data){
     _necInlineData = data;
     if(data && data.ok){
       var niveles = data.niveles || [];
-      _dibujarNecesidesInlineCompleto(niveles);
+      if(!niveles.length || niveles.every(function(n){ return !n.total; })){
+        // Datos llegaron pero todos en cero — mostrar aviso útil
+        if(_radarWrap) _radarWrap.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(255,255,255,.3);font-size:11px">Sin registros con necesidad asignada este período.<br><span style="font-size:9px;opacity:.6">Los registros RAW deben tener la columna Necesidad en formato "1. Concepto"</span></div>';
+        return;
+      }
+      // Lazy-load Chart.js si hace falta
+      if(!window.Chart){
+        var s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+        s.onload=function(){ _dibujarNecesidesInlineCompleto(niveles); };
+        document.head.appendChild(s);
+      } else {
+        _dibujarNecesidesInlineCompleto(niveles);
+      }
+    } else {
+      if(_radarWrap) _radarWrap.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(239,68,68,.6);font-size:11px">Error al cargar necesidades</div>';
     }
-  }).catch(function(){});
+  }).catch(function(err){
+    if(_radarWrap) _radarWrap.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(239,68,68,.5);font-size:11px">Sin conexión</div>';
+  });
 }
 
 function necVolverHoy(){
@@ -594,15 +618,34 @@ function renderScore(data){
 var _necInlineData=null,_necInlineVista='piramide';
 
 function renderNecesidadesInline(data){
-  if(!data)return;
-  _necInlineData=data;
+  if(!data) return;
+  _necInlineData = data;
   _initNecInlineSelectors();
+
+  // Si ya tenemos niveles en los datos recibidos, dibujar directo sin nueva llamada a API
+  var niveles = data.niveles || [];
+  if(niveles.length){
+    function _drawWithChart(){
+      _dibujarNecesidesInlineCompleto(niveles);
+    }
+    if(!window.Chart){
+      var s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+      s.onload=function(){ setTimeout(_drawWithChart, 80); };
+      document.head.appendChild(s);
+    } else {
+      _drawWithChart();
+    }
+    return;
+  }
+
+  // Si no hay niveles en los datos, hacer llamada a API
   if(!window.Chart){
     var s=document.createElement('script');
     s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
-    s.onload=function(){actualizarNecInline();};
+    s.onload=function(){ actualizarNecInline(); };
     document.head.appendChild(s);
-  }else{
+  } else {
     actualizarNecInline();
   }
 }
