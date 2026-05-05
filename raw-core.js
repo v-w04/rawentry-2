@@ -1526,7 +1526,7 @@ function _renderActivityLocal(d){
       {key:'movies', label:'Movies 🎬', count:(d.movies||[]).length},
       {key:'norut', label:'No Rutinarias ✨', count:(d.noRutinarias||[]).length},
     ].map(function(t){
-      return '<button onclick="_actTab(''+t.key+'',this)" class="act-tab-btn" '+
+      return '<button onclick="_actTab(\'' +t.key+ '\',this)" class="act-tab-btn" '+
         'style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;'+
         'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);'+
         'color:rgba(255,255,255,.5);cursor:pointer;font-family:inherit;transition:all .12s">'+
@@ -1578,7 +1578,7 @@ function _actRenderTab(key, d){
       diasKeys.forEach(function(dia){
         var checked = h.checks && h.checks[dia];
         var esHoy = (dia === diaKey);
-        html += '<div style="display:flex;align-items:center;justify-content:center" onclick="_actToggle(''+h.fila+'',''+dia+'',this,''+(h.sims?'personal':'electronics')+'')">';
+        html += '<div style="display:flex;align-items:center;justify-content:center" onclick="_actToggle('+h.fila+',\''+dia+'\',this,\''+( h.sims?'personal':'electronics')+'\')">';
         html += '<div style="width:22px;height:22px;border-radius:50%;'+
           'border:'+(esHoy?'2px':'1.5px')+' solid '+(checked?'rgba(74,222,128,0.7)':'rgba(255,255,255,'+(esHoy?.28:.15)+')')+';'+
           'background:'+(checked?'rgba(74,222,128,0.18)':'transparent')+';'+
