@@ -486,15 +486,15 @@ html,body{
 }
 
 
-/* ── NECESIDADES INLINE — layout flex correcto ── */
+/* ── NECESIDADES INLINE — layout 2 filas ── */
 #sec-maslow-inline-body,
 #nec-inline-radar-wrap {
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-y: visible;
   min-width: 0;
 }
 #nec-inline-radar-wrap > div {
-  min-width: 560px;  /* radar(200) + gap(16) + dist(200) + gap(16) + detalle(~200) */
+  width: 100%;
 }
 /* ═══════════════════════════════════════════════════════════
    MÓVIL — Modo Apple Watch
