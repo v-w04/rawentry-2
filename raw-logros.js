@@ -140,7 +140,7 @@
 /* ── BODY — grid + sidebar ── */
 #lgr-body {
   display:grid;
-  grid-template-columns:1fr 300px;
+  grid-template-columns:1fr 360px;
   gap:0;
   flex:1;
   overflow:hidden;
@@ -349,25 +349,25 @@
   flex-shrink:0;
 }
 .lgr-sidebar-title {
-  padding:10px 14px 8px;
-  font-size:8px; font-weight:700;
-  text-transform:uppercase; letter-spacing:.16em;
-  color:rgba(0,255,136,0.6);
-  display:flex; align-items:center; gap:6px;
+  padding:12px 16px 9px;
+  font-size:9px; font-weight:800;
+  text-transform:uppercase; letter-spacing:.14em;
+  color:rgba(255,255,255,0.5);
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
 }
-.lgr-sidebar-title i { color:rgba(0,255,136,0.8); }
+.lgr-sidebar-title i { color:rgba(255,255,255,0.6); font-size:11px; }
 
 /* Completados lista */
 .lgr-completado-item {
   display:flex; align-items:center; gap:10px;
-  padding:9px 14px;
-  border-bottom:1px solid rgba(0,255,136,0.05);
+  padding:11px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.05);
   transition:background .12s;
   cursor:default;
 }
 .lgr-completado-item:hover { background:rgba(0,255,136,0.03); }
-.lgr-completado-nombre { flex:1; font-size:11px; font-weight:600; color:rgba(255,255,255,0.8); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.lgr-completado-monto  { font-size:11px; font-weight:700; color:#00ff88; text-shadow:0 0 6px rgba(0,255,136,0.3); flex-shrink:0; font-variant-numeric:tabular-nums; }
+.lgr-completado-nombre { flex:1; font-size:12px; font-weight:700; color:rgba(255,255,255,0.85); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lgr-completado-monto  { font-size:13px; font-weight:800; color:#4ADE80; text-shadow:0 0 6px rgba(74,222,128,0.35); flex-shrink:0; font-variant-numeric:tabular-nums; }
 .lgr-completado-meta   { font-size:9px; color:rgba(255,255,255,0.3); }
 .lgr-completado-btn {
   font-size:9px; padding:2px 8px;
@@ -389,40 +389,40 @@
 
 /* Categorías */
 .lgr-cat-item {
-  display:flex; align-items:center; gap:8px;
-  padding:7px 14px;
-  border-bottom:1px solid rgba(0,255,136,0.04);
+  display:flex; align-items:center; gap:10px;
+  padding:9px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
   cursor:pointer; transition:background .12s;
 }
 .lgr-cat-item:hover { background:rgba(0,255,136,0.03); }
 .lgr-cat-item.on    { background:rgba(0,255,136,0.06); }
 .lgr-cat-ico { font-size:12px; width:16px; text-align:center; flex-shrink:0; }
-.lgr-cat-nombre { flex:1; font-size:11px; font-weight:600; color:rgba(255,255,255,0.65); }
+.lgr-cat-nombre { flex:1; font-size:12px; font-weight:700; color:rgba(255,255,255,0.65); }
 .lgr-cat-item.on .lgr-cat-nombre { color:#fff; }
 .lgr-cat-prog-wrap { width:52px; height:2px; background:rgba(255,255,255,0.06); flex-shrink:0; }
 .lgr-cat-prog-fill { height:100%; background:var(--cat-color,rgba(255,255,255,0.3)); box-shadow:0 0 4px var(--cat-color,rgba(255,255,255,0.3)); }
-.lgr-cat-frac { font-size:9px; font-weight:700; color:rgba(255,255,255,0.3); flex-shrink:0; min-width:24px; text-align:right; }
+.lgr-cat-frac { font-size:11px; font-weight:700; color:rgba(255,255,255,0.35); flex-shrink:0; min-width:28px; text-align:right; }
 
 /* Recompensa por nivel */
 .lgr-recompensa {
-  padding:12px 14px 16px;
-  display:flex; flex-direction:column; gap:8px;
+  padding:14px 16px 20px;
+  display:flex; flex-direction:column; gap:10px;
 }
-.lgr-recompensa-nivel { font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); letter-spacing:.04em; }
+.lgr-recompensa-nivel { font-size:11px; font-weight:700; color:rgba(255,255,255,0.45); letter-spacing:.04em; }
 .lgr-recompensa-items { display:flex; gap:8px; align-items:center; }
 .lgr-recompensa-chip {
-  display:flex; align-items:center; gap:5px;
-  padding:5px 10px;
+  display:flex; align-items:center; gap:6px;
+  padding:7px 13px;
   background:rgba(251,191,36,0.08);
   border:1px solid rgba(251,191,36,0.25);
-  font-size:12px; font-weight:700; color:#fbbf24;
-  text-shadow:0 0 6px rgba(251,191,36,0.3);
+  font-size:14px; font-weight:800; color:#fbbf24;
+  text-shadow:0 0 8px rgba(251,191,36,0.35);
 }
 .lgr-recompensa-chip.verde {
-  background:rgba(0,255,136,0.08);
-  border-color:rgba(0,255,136,0.25);
-  color:#00ff88;
-  text-shadow:0 0 6px rgba(0,255,136,0.3);
+  background:rgba(74,222,128,0.08);
+  border-color:rgba(74,222,128,0.25);
+  color:#4ADE80;
+  text-shadow:0 0 8px rgba(74,222,128,0.35);
 }
 .lgr-recompensa-bar-wrap {
   height:3px; background:rgba(251,191,36,0.10); overflow:hidden;
@@ -463,7 +463,7 @@
 /* Responsive */
 @media(max-width:899px){
   #lgr-body { grid-template-columns:1fr !important; }
-  #lgr-sidebar { border-left:none; border-top:1px solid rgba(0,255,136,0.12); max-height:320px; }
+  #lgr-sidebar { border-left:none; border-top:1px solid rgba(255,255,255,0.10); max-height:380px; }
   #lgr-header { padding:10px 14px 8px; gap:10px; }
   #lgr-nivel-badge { width:52px; height:52px; }
   #lgr-nivel-num { font-size:17px; }
@@ -486,7 +486,7 @@ var _lgr = {
   xpActual:    0,
   xpNivel:     500,
   pagComp:     0,
-  perPagComp:  4,
+  perPagComp:  6,
   tipIdx:      0,
   tips: [
     'Completa logros para ganar XP y subir de nivel. ¡Cada nivel desbloquea mejores recompensas!',
@@ -748,9 +748,26 @@ function _lgrPintarGrid(){
 }
 
 function _lgrCardClick(l){
-  if(_lgrIsDone(l)) return; // Ya completado
-  // Si tiene función de completar logro, llamarla
-  if(typeof completarLogro==='function') completarLogro(l.id||l.nombre);
+  if(_lgrIsDone(l)){
+    // Ya completado → ofrecer revertir via GAS si existe la función
+    if(typeof marcarLogro==='function' && l.fila){
+      if(!confirm('¿Desmarcar "' + (l.concepto||l.id||'este logro') + '"?')) return;
+      marcarLogro(l.fila, 'No');
+      l.completado='No';
+      _lgrXP(_lgr.items);
+      _lgrGrid(); _lgrSidebar(); _lgrHeader();
+    }
+    return;
+  }
+  // Pendiente → marcar completado
+  if(typeof marcarLogro==='function' && l.fila){
+    marcarLogro(l.fila, 'Sí');
+    l.completado='Sí';
+    _lgrXP(_lgr.items);
+    _lgrGrid(); _lgrSidebar(); _lgrHeader();
+  } else if(typeof completarLogro==='function'){
+    completarLogro(l.id||l.concepto||'');
+  }
 }
 
 /* ── SIDEBAR ── */
@@ -876,6 +893,15 @@ function _lgrCompNext(){
 }
 
 /* ── NAVEGACIÓN ── */
+function _lgrVolver(){
+  // Usar la función nativa si existe, sino activar el anverso directamente
+  if(typeof volverAlAnverso==='function'){ volverAlAnverso(); return; }
+  document.querySelectorAll('.board-face').forEach(function(f){ f.classList.remove('active'); });
+  var anv=document.getElementById('board-anverso');
+  if(anv) anv.classList.add('active');
+  if(typeof _syncMobTab==='function') _syncMobTab('entrada');
+}
+
 function irALogros(){
   if(typeof _syncMobTab==='function') _syncMobTab('logros');
   document.querySelectorAll('.board-face').forEach(function(f){ f.classList.remove('active'); });
