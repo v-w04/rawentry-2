@@ -330,7 +330,7 @@ function _crearDialOverlay(){
   _dialCanvas = document.createElement('canvas');
   _dialCanvas.width  = _DC.W;
   _dialCanvas.height = _DC.H;
-  _dialCanvas.style.cssText = 'display:block;cursor:pointer;width:min(680px,88vw);height:min(680px,88vw);position:relative';
+  _dialCanvas.style.cssText = 'display:block;cursor:pointer;width:min(850px,88vw);height:min(850px,88vw);position:relative';
   _dialCtx = _dialCanvas.getContext('2d');
 
   // Overlay centrado — el dial siempre en el centro exacto
@@ -348,10 +348,10 @@ function _crearDialOverlay(){
   _navPanel.style.cssText = [
     'position:fixed',
     'top:50%',
-    'left:calc(50% + min(360px,46vw))',  // justo a la derecha del dial centrado
+    'left:calc(50% + min(430px,52vw))',
     'transform:translateY(-50%)',
-    'display:flex','flex-direction:column','gap:8px',
-    'width:172px',
+    'display:flex','flex-direction:column','gap:6px',
+    'width:190px',
     'z-index:9001',
   ].join(';');
 
@@ -365,43 +365,68 @@ function _crearDialOverlay(){
   ];
 
   var hdr = document.createElement('div');
-  hdr.style.cssText = 'font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:4px;padding-left:2px';
+  hdr.style.cssText = [
+    'font-size:8px','font-weight:700','letter-spacing:.18em',
+    'text-transform:uppercase','color:rgba(255,255,255,0.22)',
+    'margin-bottom:6px','padding-left:4px',
+  ].join(';');
   hdr.textContent = 'Navegación';
   _navPanel.appendChild(hdr);
 
   NAV_ITEMS.forEach(function(nav){
     var btn = document.createElement('button');
+    // Estilo base: mismo lenguaje visual que el dial
+    // fondo muy oscuro semitransparente, borde sutil de sector, sin radio
     btn.style.cssText = [
-      'display:flex','align-items:center','gap:12px',
-      'padding:11px 16px',
-      'background:rgba(255,255,255,0.04)',
-      'border:1px solid rgba(255,255,255,0.09)',
-      'border-radius:10px',
+      'display:flex','align-items:center','gap:13px',
+      'padding:10px 15px',
+      'background:rgba(18,18,28,0.88)',
+      'border:1px solid rgba(255,255,255,0.10)',
+      'border-radius:0',
       'cursor:pointer',
-      'font-family:inherit',
-      'font-size:13px','font-weight:600',
-      'color:rgba(255,255,255,0.75)',
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif',
+      'font-size:11px','font-weight:700',
+      'letter-spacing:.06em','text-transform:uppercase',
+      'color:rgba(255,255,255,0.55)',
       'text-align:left',
-      'transition:all .18s',
+      'transition:all .15s',
       'width:100%',
+      'position:relative',
+      'overflow:hidden',
     ].join(';');
 
-    btn.innerHTML = '<i class="fas ' + nav.icon + '" style="font-size:14px;color:' + nav.color + ';width:18px;text-align:center;flex-shrink:0"></i>' +
-                    '<span>' + nav.label + '</span>';
+    // Ícono con glow de color del sector
+    btn.innerHTML =
+      '<i class="fas ' + nav.icon + '" style="' +
+        'font-size:15px;color:' + nav.color + ';' +
+        'width:20px;text-align:center;flex-shrink:0;' +
+        'filter:drop-shadow(0 0 4px ' + nav.color + '88);' +
+        'transition:filter .15s' +
+      '"></i>' +
+      '<span style="letter-spacing:.05em">' + nav.label + '</span>';
 
     btn.addEventListener('mouseenter', function(){
-      btn.style.background = 'rgba(255,255,255,0.09)';
-      btn.style.borderColor = nav.color + '55';
+      btn.style.background = 'rgba(26,26,40,0.97)';
+      btn.style.borderColor = nav.color + '70';
       btn.style.color = '#ffffff';
-      btn.style.boxShadow = '0 0 16px ' + nav.color + '22, inset 0 0 0 1px ' + nav.color + '30';
-      btn.style.transform = 'translateX(4px)';
+      // glow exterior del acento — como el borde iluminado del sector en hover
+      btn.style.boxShadow =
+        '0 0 0 1px ' + nav.color + '44,' +
+        '0 0 18px ' + nav.color + '18,' +
+        'inset 0 0 14px rgba(0,0,0,0.4)';
+      btn.style.transform = 'translateX(5px)';
+      // intensificar glow del ícono
+      var ico = btn.querySelector('i');
+      if(ico) ico.style.filter = 'drop-shadow(0 0 8px ' + nav.color + ')';
     });
     btn.addEventListener('mouseleave', function(){
-      btn.style.background = 'rgba(255,255,255,0.04)';
-      btn.style.borderColor = 'rgba(255,255,255,0.09)';
-      btn.style.color = 'rgba(255,255,255,0.75)';
+      btn.style.background = 'rgba(18,18,28,0.88)';
+      btn.style.borderColor = 'rgba(255,255,255,0.10)';
+      btn.style.color = 'rgba(255,255,255,0.55)';
       btn.style.boxShadow = 'none';
       btn.style.transform = 'translateX(0)';
+      var ico = btn.querySelector('i');
+      if(ico) ico.style.filter = 'drop-shadow(0 0 4px ' + nav.color + '88)';
     });
     btn.addEventListener('click', function(e){
       e.stopPropagation();
@@ -621,7 +646,7 @@ function _dialDrawCentro(ctx, dc, isHov, pulseT){
   ctx.save();
   ctx.shadowColor = 'rgba(185,180,255,0.9)';
   ctx.shadowBlur  = isHov ? (16 + pulse*12) : 10;
-  ctx.font        = '500 ' + (isHov ? 28 : 24) + 'px -apple-system,sans-serif';
+  ctx.font        = '500 ' + (isHov ? 34 : 28) + 'px -apple-system,sans-serif';
   ctx.fillStyle   = isHov
     ? 'rgba(220,210,255,' + (0.9 + pulse*0.1) + ')'
     : 'rgba(165,180,252,0.8)';
@@ -634,7 +659,7 @@ function _dialDrawCentro(ctx, dc, isHov, pulseT){
   ctx.save();
   ctx.shadowColor = 'rgba(180,160,255,0.7)';
   ctx.shadowBlur  = isHov ? (10 + pulse*8) : 6;
-  ctx.font        = 'bold ' + (isHov ? 17 : 15) + 'px -apple-system,sans-serif';
+  ctx.font        = 'bold ' + (isHov ? 22 : 18) + 'px -apple-system,sans-serif';
   ctx.fillStyle   = isHov ? '#e0d8ff' : '#c4b5fd';
   ctx.textAlign   = 'center';
   ctx.textBaseline = 'middle';
@@ -705,7 +730,7 @@ function _dialDraw(){
     var cy   = dc.CY + rMid*Math.sin(midA);
 
     // Ícono — grande, con glow de color en hover
-    var icoS = isHov||isAct ? 42 : 36;
+    var icoS = isHov||isAct ? 52 : 44;
     ctx.save();
     ctx.shadowColor = item.accent;
     ctx.shadowBlur  = isHov||isAct ? 28 : 12;
@@ -773,7 +798,7 @@ function _dialDraw(){
         var srMid = dc.R_SI + (rso-dc.R_SI)*0.52;
         var scx   = dc.CX + srMid*Math.cos(smA);
         var scy   = dc.CY + srMid*Math.sin(smA);
-        var sicoS = isShov ? 32 : 28;
+        var sicoS = isShov ? 40 : 34;
 
         ctx.save();
         ctx.shadowColor=sub.accent;
@@ -782,7 +807,7 @@ function _dialDraw(){
         ctx.restore();
 
         ctx.save();
-        ctx.font='bold '+(isShov?12:10)+'px -apple-system,BlinkMacSystemFont,sans-serif';
+        ctx.font='bold '+(isShov?14:12)+'px -apple-system,BlinkMacSystemFont,sans-serif';
         ctx.fillStyle='#ffffff';
         ctx.textAlign='center';
         ctx.textBaseline='top';
