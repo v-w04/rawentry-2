@@ -1843,80 +1843,147 @@ document.addEventListener('DOMContentLoaded', function(){
     window.renderActivity = function(){
       var d = window._actData; if(!d) return;
       var cont = document.getElementById('act-container'); if(!cont) return;
+
       var DIAS_P=['L','M','W','J','V','S','D'], DIAS_E=['L','M','W','J','V'];
       var DLBL={L:'Lun',M:'Mar',W:'Mié',J:'Jue',V:'Vie',S:'Sáb',D:'Dom'};
-      var diaKey=DIAS_P[(new Date().getDay()+6)%7];
-      function chk(fila,dia,checked,tipo){
-        var esH=(dia===diaKey);
+      var diaKey = DIAS_P[(new Date().getDay()+6)%7];
+
+      // Círculo de check diario
+      function chk(fila, dia, checked, tipo){
+        var esH = (dia===diaKey);
         return '<div class="_act-chk" data-fila="'+fila+'" data-dia="'+dia+'" data-tipo="'+tipo+'"'+
-          ' style="width:24px;height:24px;border-radius:50%;cursor:pointer;margin:auto;transition:all .12s;'+
-          'border:'+(esH?2:1.5)+'px solid '+(checked?'rgba(74,222,128,.75)':'rgba(255,255,255,'+(esH?.28:.12)+')')+';'+
-          'background:'+(checked?'rgba(74,222,128,.18)':'transparent')+';'+
+          ' style="width:28px;height:28px;border-radius:50%;cursor:pointer;margin:auto;transition:all .12s;'+
+          'border:'+(esH?'2.5':'1.5')+'px solid '+(checked?'rgba(74,222,128,.9)':esH?'rgba(255,255,255,.5)':'rgba(255,255,255,.25)')+';'+
+          'background:'+(checked?'rgba(74,222,128,.22)':esH?'rgba(255,255,255,.04)':'transparent')+';'+
           'display:flex;align-items:center;justify-content:center">'+
-          (checked?'<i class="fas fa-check" style="font-size:9px;color:#4ADE80;pointer-events:none"></i>':'')+
+          (checked?'<i class="fas fa-check" style="font-size:10px;color:#4ADE80;pointer-events:none"></i>':'')+
         '</div>';
       }
-      function chkItem(fila,tipo,checked){
+
+      // Círculo check simple (libros/movies/pendientes)
+      function chkItem(fila, tipo, checked){
         return '<div class="_act-item" data-fila="'+fila+'" data-tipo="'+tipo+'"'+
-          ' style="width:22px;height:22px;border-radius:50%;flex-shrink:0;cursor:pointer;transition:all .12s;'+
-          'border:1.5px solid '+(checked?'rgba(74,222,128,.75)':'rgba(255,255,255,.14)')+';'+
-          'background:'+(checked?'rgba(74,222,128,.18)':'transparent')+';'+
+          ' style="width:26px;height:26px;border-radius:50%;flex-shrink:0;cursor:pointer;transition:all .12s;'+
+          'border:1.5px solid '+(checked?'rgba(74,222,128,.9)':'rgba(255,255,255,.28)')+';'+
+          'background:'+(checked?'rgba(74,222,128,.20)':'transparent')+';'+
           'display:flex;align-items:center;justify-content:center">'+
-          (checked?'<i class="fas fa-check" style="font-size:9px;color:#4ADE80;pointer-events:none"></i>':'')+
+          (checked?'<i class="fas fa-check" style="font-size:10px;color:#4ADE80;pointer-events:none"></i>':'')+
         '</div>';
       }
+
+      // Tabla de hábitos con días
       function habTable(items, dias){
-        var h='<table style="border-collapse:collapse"><tr><th style="text-align:left;padding:5px 8px;font-size:8px;color:rgba(255,255,255,.25);font-weight:700;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.07)">Hábito</th>';
-        dias.forEach(function(d){h+='<th style="text-align:center;padding:5px 3px;font-size:8px;font-weight:'+(d===diaKey?800:600)+';color:'+(d===diaKey?'#fff':'rgba(255,255,255,.25)')+';border-bottom:1px solid rgba(255,255,255,.07);min-width:28px">'+DLBL[d]+'</th>';});
-        h+='</tr>';
-        items.forEach(function(hab){
-          h+='<tr><td style="padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px;white-space:nowrap">';
-          if(hab.sims||hab.bw)h+='<div style="font-size:7px;color:rgba(255,255,255,.22);text-transform:uppercase;letter-spacing:.07em">'+(hab.sims||hab.bw)+'</div>';
-          h+='<div style="font-weight:600;color:rgba(255,255,255,.82)">'+hab.nombre+'</div></td>';
-          dias.forEach(function(dia){h+='<td style="text-align:center;padding:5px 2px;border-bottom:1px solid rgba(255,255,255,.04)">'+chk(hab.fila,dia,hab.checks&&hab.checks[dia],hab.sims?'personal':'electronics')+'</td>';});
-          h+='</tr>';
+        if(!items||!items.length) return '<div style="padding:16px 0;color:rgba(255,255,255,.3);font-size:12px">Sin registros</div>';
+        var h = '<table style="border-collapse:collapse;width:100%">';
+        h += '<tr><th style="text-align:left;padding:6px 10px;font-size:10px;color:rgba(255,255,255,.4);font-weight:700;'+
+             'text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid rgba(255,255,255,.10);white-space:nowrap">Hábito</th>';
+        dias.forEach(function(d){
+          var esH = (d===diaKey);
+          h += '<th style="text-align:center;padding:6px 4px;font-size:10px;font-weight:'+(esH?800:600)+';'+
+               'color:'+(esH?'#fff':'rgba(255,255,255,.4)')+';'+
+               'border-bottom:1px solid rgba(255,255,255,.10);min-width:34px">'+DLBL[d]+'</th>';
         });
-        return h+'</table>';
+        h += '</tr>';
+        items.forEach(function(hab){
+          h += '<tr><td style="padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.06)">';
+          if(hab.sims||hab.bw) h += '<div style="font-size:9px;color:rgba(255,255,255,.38);text-transform:uppercase;'+
+                                    'letter-spacing:.08em;margin-bottom:2px">'+(hab.sims||hab.bw)+'</div>';
+          h += '<div style="font-size:13px;font-weight:600;color:#fff">'+hab.nombre+'</div></td>';
+          dias.forEach(function(dia){
+            h += '<td style="text-align:center;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.06)">'+
+                 chk(hab.fila, dia, hab.checks&&hab.checks[dia], hab.sims?'personal':'electronics')+'</td>';
+          });
+          h += '</tr>';
+        });
+        h += '</table>';
+        return h;
       }
-      function itemList(items,tipo){
-        return items.map(function(it){
-          return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">'+chkItem(it.fila,tipo,it.completado)+'<span style="font-size:11px;font-weight:600;color:'+(it.completado?'rgba(255,255,255,.35)':'rgba(255,255,255,.8)')+'">'+it.nombre+'</span></div>';
-        }).join('');
+
+      // Lista de items (libros/movies/pendientes)
+      function itemList(items, tipo){
+        if(!items||!items.length) return '<div style="padding:16px 0;color:rgba(255,255,255,.3);font-size:12px">Sin registros</div>';
+        return '<div style="display:flex;flex-direction:column;gap:1px">'+
+          items.map(function(it){
+            return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)">'+
+              chkItem(it.fila, tipo, it.completado)+
+              '<span style="font-size:13px;font-weight:600;color:'+(it.completado?'rgba(255,255,255,.35)':'#fff')+'">'+
+              it.nombre+'</span></div>';
+          }).join('')+'</div>';
       }
-      function col(title, inner){
-        return '<div style="flex:0 0 auto;padding:0 16px;border-right:1px solid rgba(255,255,255,.06)">'+
-          '<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.10em;color:rgba(255,255,255,.4);margin-bottom:10px">'+title+'</div>'+inner+'</div>';
+
+      // Columna
+      function col(title, inner, isLast){
+        return '<div style="flex:0 0 auto;padding:0 '+(isLast?'0':'20px')+' 0 0;'+
+               (isLast?'':'border-right:1px solid rgba(255,255,255,.08);margin-right:20px')+'">'+
+          '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.10em;'+
+               'color:rgba(255,255,255,.55);margin-bottom:14px;padding-bottom:4px;'+
+               'border-bottom:2px solid rgba(255,255,255,.08)">'+title+'</div>'+
+          inner+'</div>';
       }
-      cont.innerHTML='<div style="display:flex;gap:0;overflow-x:auto;padding:4px 4px 20px;align-items:flex-start;-webkit-overflow-scrolling:touch">'+
-        col('🧘 Personal',    habTable(d.habitosPersonal||[],    DIAS_P))+
-        col('⚡ Electronics', habTable(d.habitosElectronics||[], DIAS_E))+
-        col('📚 Libros',      '<div>'+itemList(d.libros||[],'libros')+'</div>')+
-        col('🎬 Movies',      '<div>'+itemList(d.movies||[],'movies')+'</div>')+
-        '<div style="flex:0 0 auto;padding-left:16px"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.10em;color:rgba(255,255,255,.4);margin-bottom:10px">✨ No Rutinarias</div><div>'+itemList(d.noRutinarias||[],'norut')+'</div></div>'+
-      '</div>';
-      cont.addEventListener('click',function(e){
-        var c=e.target.closest('._act-chk');
-        if(c){var ok=!!c.querySelector('.fa-check');c.style.borderColor=ok?'rgba(255,255,255,.12)':'rgba(74,222,128,.75)';c.style.background=ok?'transparent':'rgba(74,222,128,.18)';c.innerHTML=ok?'':'<i class="fas fa-check" style="font-size:9px;color:#4ADE80;pointer-events:none"></i>';if(typeof api!=='undefined')api.setActivityCheck(c.dataset.tipo,parseInt(c.dataset.fila),c.dataset.dia,!ok);return;}
-        var it=e.target.closest('._act-item');
-        if(it){var ok=!!it.querySelector('.fa-check');it.style.borderColor=ok?'rgba(255,255,255,.12)':'rgba(74,222,128,.75)';it.style.background=ok?'transparent':'rgba(74,222,128,.18)';it.innerHTML=ok?'':'<i class="fas fa-check" style="font-size:9px;color:#4ADE80;pointer-events:none"></i>';var sp=it.parentElement.querySelector('span');if(sp)sp.style.color=ok?'rgba(255,255,255,.8)':'rgba(255,255,255,.35)';if(typeof api!=='undefined')api.setActivityCheck(it.dataset.tipo,parseInt(it.dataset.fila),null,!ok);}
+
+      cont.innerHTML =
+        '<div style="display:flex;gap:0;overflow-x:auto;padding:16px 20px 24px;align-items:flex-start;-webkit-overflow-scrolling:touch">'+
+          col('🧘 Personal <span style="opacity:.4;font-size:10px">'+( d.habitosPersonal||[]).length+'</span>',    habTable(d.habitosPersonal||[],    DIAS_P))+
+          col('⚡ Electronics <span style="opacity:.4;font-size:10px">'+(d.habitosElectronics||[]).length+'</span>', habTable(d.habitosElectronics||[], DIAS_E))+
+          col('📚 Libros <span style="opacity:.4;font-size:10px">'+(d.libros||[]).length+'</span>',                 itemList(d.libros||[],   'libros'))+
+          col('🎬 Movies <span style="opacity:.4;font-size:10px">'+(d.movies||[]).length+'</span>',                 itemList(d.movies||[],   'movies'))+
+          col('✨ Pendientes <span style="opacity:.4;font-size:10px">'+(d.noRutinarias||[]).length+'</span>',       itemList(d.noRutinarias||[],'norut'), true)+
+        '</div>';
+
+      // Event delegation — checks
+      cont.addEventListener('click', function(e){
+        var c = e.target.closest('._act-chk');
+        if(c){
+          var ok = !!c.querySelector('.fa-check');
+          c.style.borderColor = ok?'rgba(255,255,255,.25)':'rgba(74,222,128,.9)';
+          c.style.background  = ok?'transparent':'rgba(74,222,128,.22)';
+          c.innerHTML = ok?'':'<i class="fas fa-check" style="font-size:10px;color:#4ADE80;pointer-events:none"></i>';
+          if(typeof api!=='undefined') api.setActivityCheck(c.dataset.tipo, parseInt(c.dataset.fila), c.dataset.dia, !ok);
+          return;
+        }
+        var it = e.target.closest('._act-item');
+        if(it){
+          var ok = !!it.querySelector('.fa-check');
+          it.style.borderColor = ok?'rgba(255,255,255,.28)':'rgba(74,222,128,.9)';
+          it.style.background  = ok?'transparent':'rgba(74,222,128,.20)';
+          it.innerHTML = ok?'':'<i class="fas fa-check" style="font-size:10px;color:#4ADE80;pointer-events:none"></i>';
+          var sp = it.parentElement.querySelector('span');
+          if(sp) sp.style.color = ok?'#fff':'rgba(255,255,255,.35)';
+          if(typeof api!=='undefined') api.setActivityCheck(it.dataset.tipo, parseInt(it.dataset.fila), null, !ok);
+        }
       });
     };
   }
 
   if(typeof window.renderNutricion !== 'function'){
     window.renderNutricion = function(data){
-      var body=document.getElementById('nut-panel-body'); if(!body)return;
-      if(!data||!data.ok){body.innerHTML='<div style="padding:40px;text-align:center;color:rgba(255,255,255,.25);font-size:12px">Sin registros</div>';return;}
-      var dias=data.semana||Object.values(data.dias||{});
-      var html='<div style="padding:0 20px 24px;display:flex;flex-direction:column;gap:10px">';
+      var body = document.getElementById('nut-panel-body'); if(!body) return;
+      if(!data||!data.ok){
+        body.innerHTML='<div style="padding:40px;text-align:center;color:rgba(255,255,255,.25);font-size:13px">Sin registros</div>';
+        return;
+      }
+      var dias = data.semana || Object.values(data.dias||{});
+      if(!dias.length){
+        body.innerHTML='<div style="padding:40px;text-align:center;color:rgba(255,255,255,.25);font-size:13px">Sin registros esta semana</div>';
+        return;
+      }
+      var html = '<div style="padding:0 20px 24px;display:flex;flex-direction:column;gap:14px">';
       dias.forEach(function(dia){
-        if(!dia.items||!dia.items.length)return;
-        html+='<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:5px">'+dia.fecha+'</div>';
-        dia.items.forEach(function(it){html+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:9px;padding:2px 6px;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.35);text-transform:uppercase;flex-shrink:0">'+(it.momento||'—')+'</span><span style="flex:1;font-size:12px;color:rgba(255,255,255,.8)">'+it.alimento+'</span>'+(it.cal?'<span style="font-size:11px;font-weight:700;color:#fbbf24;flex-shrink:0">'+Math.round(it.cal)+' kcal</span>':'')+'</div>';});
-        html+='</div>';
+        if(!dia.items||!dia.items.length) return;
+        html += '<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;'+
+                'color:rgba(255,255,255,.45);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.08)">'+dia.fecha+'</div>';
+        dia.items.forEach(function(it){
+          html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">'+
+            '<span style="font-size:10px;font-weight:700;padding:3px 8px;border:1px solid rgba(255,255,255,.12);'+
+            'color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;white-space:nowrap">'+(it.momento||'—')+'</span>'+
+            '<span style="flex:1;font-size:13px;font-weight:500;color:#fff">'+it.alimento+'</span>'+
+            (it.cal?'<span style="font-size:12px;font-weight:700;color:#fbbf24;flex-shrink:0">'+Math.round(it.cal)+' kcal</span>':'')+
+          '</div>';
+        });
+        html += '</div>';
       });
-      html+='</div>';
-      body.innerHTML=html;
+      html += '</div>';
+      body.innerHTML = html;
     };
   }
 
