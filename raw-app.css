@@ -485,6 +485,17 @@ html,body{
   #sheets-iframe-cont{height:calc(100vh - 180px)}
 }
 
+
+/* ── NECESIDADES INLINE — layout flex correcto ── */
+#sec-maslow-inline-body,
+#nec-inline-radar-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  min-width: 0;
+}
+#nec-inline-radar-wrap > div {
+  min-width: 560px;  /* radar(200) + gap(16) + dist(200) + gap(16) + detalle(~200) */
+}
 /* ═══════════════════════════════════════════════════════════
    MÓVIL — Modo Apple Watch
    Pantalla densa, info en microcomponentes, navegación crown
