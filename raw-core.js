@@ -227,10 +227,112 @@ function _crearDialOverlay(){
   _dialCanvas = document.createElement('canvas');
   _dialCanvas.width  = _DC.W;
   _dialCanvas.height = _DC.H;
-  _dialCanvas.style.cssText = 'display:block;cursor:pointer;width:min(680px,88vw);height:min(680px,88vw)';
+  _dialCanvas.style.cssText = 'display:block;cursor:pointer;width:min(600px,70vw);height:min(600px,70vw);flex-shrink:0';
   _dialCtx = _dialCanvas.getContext('2d');
 
+  // ── Layout: [sidebar derecha] [dial] centrados ──
+  // Cambiamos el overlay a flex-row para meter el panel lateral
+  _dialOverlay.style.cssText = [
+    'position:fixed','inset:0','z-index:9000',
+    'display:none','align-items:center','justify-content:center',
+    'gap:32px',
+    'background:rgba(4,4,10,0.5)',
+    'backdrop-filter:blur(24px) saturate(150%)',
+    '-webkit-backdrop-filter:blur(24px) saturate(150%)',
+    'padding:0 40px',
+    'box-sizing:border-box',
+  ].join(';');
+
+  // ── Panel derecho — navegación a otras secciones ──
+  var _navPanel = document.createElement('div');
+  _navPanel.id = 'dial-nav-panel';
+  _navPanel.style.cssText = [
+    'display:flex','flex-direction:column','gap:10px',
+    'width:180px','flex-shrink:0',
+  ].join(';');
+
+  var NAV_ITEMS = [
+    { label:'Logros',     icon:'fa-trophy',      fn:'irALogros',    color:'#fbbf24' },
+    { label:'Bitácora',   icon:'fa-book-open',   fn:'irABitacora',  color:'#c4b5fd' },
+    { label:'Activity',   icon:'fa-bolt',        fn:'irAActivity',  color:'#22d3c8' },
+    { label:'Nutrición',  icon:'fa-leaf',        fn:'irANutricion', color:'#86efac' },
+    { label:'RAW Sheet',  icon:'fa-table',       fn:'irASheets',    color:'#a5b4fc' },
+    { label:'Actualizar', icon:'fa-rotate-right', fn:'refreshTodo', color:'#94a3b8' },
+  ];
+
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:4px;padding-left:2px';
+  hdr.textContent = 'Navegación';
+  _navPanel.appendChild(hdr);
+
+  NAV_ITEMS.forEach(function(nav){
+    var btn = document.createElement('button');
+    btn.style.cssText = [
+      'display:flex','align-items:center','gap:12px',
+      'padding:11px 16px',
+      'background:rgba(255,255,255,0.04)',
+      'border:1px solid rgba(255,255,255,0.09)',
+      'border-radius:10px',
+      'cursor:pointer',
+      'font-family:inherit',
+      'font-size:13px','font-weight:600',
+      'color:rgba(255,255,255,0.75)',
+      'text-align:left',
+      'transition:all .18s',
+      'width:100%',
+    ].join(';');
+
+    btn.innerHTML = '<i class="fas ' + nav.icon + '" style="font-size:14px;color:' + nav.color + ';width:18px;text-align:center;flex-shrink:0"></i>' +
+                    '<span>' + nav.label + '</span>';
+
+    btn.addEventListener('mouseenter', function(){
+      btn.style.background = 'rgba(255,255,255,0.09)';
+      btn.style.borderColor = nav.color + '55';
+      btn.style.color = '#ffffff';
+      btn.style.boxShadow = '0 0 16px ' + nav.color + '22, inset 0 0 0 1px ' + nav.color + '30';
+      btn.style.transform = 'translateX(4px)';
+    });
+    btn.addEventListener('mouseleave', function(){
+      btn.style.background = 'rgba(255,255,255,0.04)';
+      btn.style.borderColor = 'rgba(255,255,255,0.09)';
+      btn.style.color = 'rgba(255,255,255,0.75)';
+      btn.style.boxShadow = 'none';
+      btn.style.transform = 'translateX(0)';
+    });
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      cerrarDial();
+      if(typeof window[nav.fn] === 'function') window[nav.fn]();
+    });
+    _navPanel.appendChild(btn);
+  });
+
+  // Separador + botón cerrar al final
+  var sep = document.createElement('div');
+  sep.style.cssText = 'height:1px;background:rgba(255,255,255,0.07);margin:4px 0';
+  _navPanel.appendChild(sep);
+
+  var btnCerrar = document.createElement('button');
+  btnCerrar.style.cssText = [
+    'display:flex','align-items:center','justify-content:center','gap:8px',
+    'padding:10px 16px',
+    'background:rgba(239,68,68,0.06)',
+    'border:1px solid rgba(239,68,68,0.15)',
+    'border-radius:10px',
+    'cursor:pointer','font-family:inherit',
+    'font-size:12px','font-weight:600',
+    'color:rgba(239,68,68,0.7)',
+    'width:100%','transition:all .18s',
+  ].join(';');
+  btnCerrar.innerHTML = '<i class="fas fa-xmark" style="font-size:13px"></i><span>Cerrar</span>';
+  btnCerrar.addEventListener('mouseenter',function(){ btnCerrar.style.background='rgba(239,68,68,0.12)'; btnCerrar.style.color='#fca5a5'; });
+  btnCerrar.addEventListener('mouseleave',function(){ btnCerrar.style.background='rgba(239,68,68,0.06)'; btnCerrar.style.color='rgba(239,68,68,0.7)'; });
+  btnCerrar.addEventListener('click',function(e){ e.stopPropagation(); cerrarDial(); });
+  _navPanel.appendChild(btnCerrar);
+
+  // Orden: dial a la izquierda, nav a la derecha
   _dialOverlay.appendChild(_dialCanvas);
+  _dialOverlay.appendChild(_navPanel);
   document.body.appendChild(_dialOverlay);
 
   _dialOverlay.addEventListener('click',function(e){ if(e.target===_dialOverlay) cerrarDial(); });
@@ -592,6 +694,15 @@ function abrirDial(){
   _dialDraw();
   _dialOverlay.style.display='flex';
   _dialVisible=true;
+  // Ocultar panel nav en pantallas pequeñas
+  var navPanel=document.getElementById('dial-nav-panel');
+  if(navPanel){
+    var esMovil=window.innerWidth<900;
+    navPanel.style.display=esMovil?'none':'flex';
+    // En móvil el canvas vuelve a tamaño completo
+    _dialCanvas.style.width=esMovil?'min(520px,92vw)':'min(600px,70vw)';
+    _dialCanvas.style.height=esMovil?'min(520px,92vw)':'min(600px,70vw)';
+  }
   var btn=document.getElementById('btn-nueva-entrada');
   if(btn) btn.classList.add('active');
 }
