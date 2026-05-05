@@ -1175,114 +1175,330 @@ select{
   50%    { transform:scale(1.4); opacity:1; }
 }
 
-/* ════════════════════════════════════════════════════════
-   BRIEF — Identidad fuerte + feedback + jerarquía + progreso
-   Solo CSS, cero riesgo a lógica existente
-════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════
+   MICROCOMPONENTES RADIALES — anillos, segmentos, rellenos
+   "interfaz densa pero clara"
+════════════════════════════════════════════════════════════════ */
 
-/* ── 1. RIPPLE — feedback táctil inmediato en cualquier elemento interactivo ── */
-.field,
-.ente-row,
-.sec-hdr,
-.rev-pill,
-.btn-flip,
-.lgr-card,
-.mob-tab,
-.opt,
-.pop-item,
-.apartado-item,
-.rel-item,
-.salud-item {
+/* ── RING-GAUGE — anillo de progreso CSS puro con conic-gradient ──
+   Uso: <div class="ring-gauge" style="--pct:72;--clr:#4ADE80">
+          <span>72%</span>
+        </div>
+*/
+.ring-gauge {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; flex-shrink: 0;
+  background: conic-gradient(
+    var(--clr, #4ADE80) calc(var(--pct, 0) * 1%),
+    rgba(255,255,255,0.07) calc(var(--pct, 0) * 1%)
+  );
+  transition: background .5s ease;
+}
+.ring-gauge::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--bg, #020810);
+}
+.ring-gauge span {
+  position: relative; z-index: 1;
+  font-size: 9px; font-weight: 800;
+  color: var(--clr, #4ADE80);
+  letter-spacing: -.02em;
+  line-height: 1;
+}
+/* Variantes de tamaño */
+.ring-gauge.sm { width: 28px; height: 28px; }
+.ring-gauge.sm::before { inset: 3px; }
+.ring-gauge.sm span { font-size: 7px; }
+.ring-gauge.lg { width: 48px; height: 48px; }
+.ring-gauge.lg::before { inset: 5px; }
+.ring-gauge.lg span { font-size: 12px; }
+/* Animación de entrada */
+.ring-gauge.animate {
+  animation: ringIn .5s cubic-bezier(.4,0,.2,1) forwards;
+}
+@keyframes ringIn {
+  from { opacity:0; transform:scale(.7); }
+  to   { opacity:1; transform:scale(1); }
+}
+
+/* ── ARC-BADGE — badge semicircular de estado ──
+   Uso: <div class="arc-badge ok">52%</div>
+*/
+.arc-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 3px 8px;
+  font-size: 10px; font-weight: 800; letter-spacing: .02em;
+  position: relative; overflow: hidden;
+  border-radius: 0;
+  border: 1px solid currentColor;
+  transition: all .15s;
+}
+.arc-badge::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: var(--pct, 50%);
+  background: currentColor;
+  opacity: .12;
+  transition: width .5s ease;
+}
+.arc-badge.ok    { color: var(--ok); }
+.arc-badge.warn  { color: var(--warn); }
+.arc-badge.err   { color: var(--err); }
+.arc-badge.muted { color: var(--m); border-color: var(--m); }
+
+/* ── SPARKLINE-INLINE — mini barras en línea ──
+   Uso: <div class="sparkline"><div class="sp-bar" style="--h:40%"></div>...</div>
+*/
+.sparkline {
+  display: flex; align-items: flex-end;
+  gap: 2px; height: 20px;
+}
+.sp-bar {
+  flex: 1;
+  height: var(--h, 50%);
+  background: var(--clr, rgba(255,255,255,0.2));
+  border-radius: 1px 1px 0 0;
+  min-height: 2px;
+  transition: height .4s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── SEG-DOT — dot de segmento de estado (reemplaza chip-dot) ──
+*/
+.seg-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%; flex-shrink: 0;
+  background: var(--clr, var(--m));
+  box-shadow: 0 0 6px var(--clr, transparent);
+  animation: segPulse 2.5s ease-in-out infinite;
+}
+.seg-dot.static { animation: none; }
+@keyframes segPulse {
+  0%,100% { transform: scale(1);   opacity: .8; }
+  50%     { transform: scale(1.3); opacity: 1;  }
+}
+
+/* ── STAT-CHIP — dato compacto con label + valor + ring opcionales ──
+   Uso: <div class="stat-chip">
+          <div class="ring-gauge sm" style="--pct:72;--clr:#4ADE80"><span>72</span></div>
+          <div class="stat-chip-body">
+            <div class="stat-chip-lbl">Ahorro</div>
+            <div class="stat-chip-val">52%</div>
+          </div>
+        </div>
+*/
+.stat-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 0;
+  transition: all .15s;
+  cursor: default;
+}
+.stat-chip:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.13);
+}
+.stat-chip-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.stat-chip-lbl  { font-size: 9px; font-weight: 700; text-transform: uppercase;
+                  letter-spacing: .09em; color: var(--m); white-space: nowrap; }
+.stat-chip-val  { font-size: 14px; font-weight: 800; letter-spacing: -.02em;
+                  font-variant-numeric: tabular-nums; color: #fff; line-height: 1; }
+
+/* ── KARD MEJORADO — con ring-gauge integrado ── */
+.kard {
+  border-radius: 0 !important;
+  background: rgba(14,14,20,0.90) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  transition: all .15s !important;
+}
+.kard:hover {
+  border-color: rgba(255,255,255,0.16) !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08) !important;
+}
+.kard-prog {
+  height: 2px !important;
+  background: rgba(255,255,255,0.06) !important;
+  margin-top: 6px !important;
+}
+.kard-prog-fill {
+  height: 100% !important;
+  background: var(--kard-clr, #fff) !important;
+  box-shadow: 0 0 6px var(--kard-clr, rgba(255,255,255,.3)) !important;
+  transition: width .5s cubic-bezier(.4,0,.2,1) !important;
+}
+
+/* ── FIN-CARD mejorada con micro-ring ── */
+.fin-card {
+  position: relative; overflow: hidden;
+  border-radius: 0 !important;
+  transition: all .15s !important;
+}
+.fin-card::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  height: 2px; width: 0;
+  background: var(--fc-clr, rgba(255,255,255,.2));
+  transition: width .5s ease;
+}
+.fin-card:hover::after { width: 100%; }
+.fin-card.ok  { --fc-clr: #4ADE80; }
+.fin-card.warn{ --fc-clr: #F59E0B; }
+.fin-card.alerta{ --fc-clr: #EF4444; }
+
+/* ── HERO-CHIP mejorado — con ring inline ──
+   Añadir data-pct al chip para activar el fill
+*/
+.hero-chip[data-pct] {
+  padding-left: 6px !important;
+}
+.hero-chip[data-pct]::before {
+  content: '';
+  display: inline-block;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: conic-gradient(
+    currentColor calc(attr(data-pct) * 1%),
+    rgba(255,255,255,0.08) calc(attr(data-pct) * 1%)
+  );
+  margin-right: 5px;
+  flex-shrink: 0;
+  /* fallback sin attr() */
+  background: conic-gradient(currentColor 52%, rgba(255,255,255,0.08) 52%);
+  box-shadow: 0 0 6px currentColor;
+  opacity: .7;
+  vertical-align: middle;
+}
+
+/* ── SEC-HDR-VAL con indicador de tendencia ── */
+.sec-hdr-val-wrap {
+  display: flex; align-items: center; gap: 6px;
+}
+.trend-arrow {
+  font-size: 9px; font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 0;
+  line-height: 1;
+}
+.trend-arrow.up   { color: var(--ok);   background: rgba(74,222,128,.10); }
+.trend-arrow.down { color: var(--err);  background: rgba(239,68,68,.10);  }
+.trend-arrow.flat { color: var(--m);    background: rgba(255,255,255,.06);}
+
+/* ── PROGRESS-RING animada para Score de Vida ──
+   Las barras del score ahora tienen fill animado
+*/
+.score-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width .8s cubic-bezier(.4,0,.2,1);
   position: relative;
   overflow: hidden;
 }
-.field::after,
-.ente-row::after,
-.sec-hdr::after {
+.score-bar-fill::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at var(--rx,50%) var(--ry,50%), rgba(255,255,255,0.07) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity .4s ease;
-  pointer-events: none;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.15) 50%, transparent 100%);
+  animation: barShine 2s ease-in-out infinite;
 }
-.field:active::after,
-.ente-row:active::after,
-.sec-hdr:active::after {
-  opacity: 1;
-  transition: opacity 0s;
+@keyframes barShine {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(200%); }
 }
 
-/* ── 2. PRESS SCALE — respuesta física a cada tap/click ── */
-.field:active          { transform: scale(0.995); }
-.ente-row:active       { transform: scale(0.997); }
-.opt:active            { transform: scale(0.94) !important; }
-.rev-pill:active       { transform: scale(0.93) !important; }
-.mob-tab:active        { transform: scale(0.88) !important; }
-.pop-item:active       { transform: scale(0.97); }
-.lgr-card:active       { transform: scale(0.97) !important; }
-.btn-save:active       { transform: scale(0.98) !important; }
+/* ── INSIGHT-DOT animado ── */
+.insight-dot {
+  animation: dotPulse 2.5s ease-in-out infinite !important;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+@keyframes dotPulse {
+  0%,100% { transform:scale(1);   opacity:.7; }
+  50%     { transform:scale(1.4); opacity:1;  }
+}
 
-/* ── 3. TAB ACTIVO — jerarquía visual más fuerte, usuario sabe siempre dónde está ── */
-.btn-flip.active {
+/* ── DENSE ROW — fila compacta con múltiples datos en una línea ──
+   Para ente-row, field, apartado-item etc.
+*/
+.ente-row {
+  transition: background .12s, border-color .12s !important;
+}
+.ente-row:hover .ente-nombre {
   color: #fff !important;
-  border-bottom: 2px solid #fff !important;
-  background: rgba(255,255,255,0.07) !important;
-  text-shadow: 0 0 12px rgba(255,255,255,0.5);
-  animation: tabActivePulse 3s ease-in-out infinite;
-}
-@keyframes tabActivePulse {
-  0%,100% { text-shadow: 0 0 8px rgba(255,255,255,0.35); border-bottom-color: rgba(255,255,255,0.75); }
-  50%     { text-shadow: 0 0 16px rgba(255,255,255,0.7); border-bottom-color: #fff; }
 }
 
-/* ── 4. TRANSICIÓN DE PANELES — navegación fluida, sin corte ── */
+/* ── TOOLTIP MICRO — aparece en hover de stat-chip ──
+*/
+[data-tip] {
+  position: relative;
+}
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(14,14,22,0.97);
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 4px 8px;
+  font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.75);
+  white-space: nowrap; pointer-events: none; letter-spacing: .04em;
+  opacity: 0; transition: all .15s;
+  z-index: 100;
+}
+[data-tip]:hover::after {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+/* ── SIMS BARS mejoradas — estilo The Sims ── */
+.sims-bar-wrap {
+  height: 10px; background: rgba(255,255,255,.05);
+  border-radius: 2px; overflow: hidden; position: relative;
+}
+.sims-bar-fill {
+  height: 100%; border-radius: 2px;
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+  position: relative;
+}
+.sims-bar-fill::after {
+  content: '';
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: rgba(255,255,255,.35);
+  border-radius: 0 2px 2px 0;
+}
+
+/* ── TRANSICIÓN DE PANELES mejorada ── */
 .board-face {
-  transition: opacity .18s ease, transform .18s ease;
-  will-change: opacity, transform;
+  transition: opacity .2s ease, transform .2s ease !important;
 }
 .board-face:not(.active):not(.anverso) {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(6px);
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(8px) !important;
 }
 .board-face.active,
 .board-face.anverso:not(.slide-right):not(.slide-left) {
-  opacity: 1;
-  pointer-events: all;
-  transform: translateY(0);
+  opacity: 1 !important;
+  pointer-events: all !important;
+  transform: translateY(0) !important;
 }
 
-/* ── 5. SECCIÓN HOVER — borde izquierdo de acento, indica acción disponible ── */
-.sec-hdr:hover .sec-hdr-title {
-  color: #fff;
-  text-shadow: 0 0 8px rgba(255,255,255,0.2);
-  transition: all .15s;
-}
-.sec-hdr:hover .sec-hdr-icon {
-  border-color: rgba(255,255,255,0.25) !important;
-  box-shadow: 0 0 10px rgba(255,255,255,0.08) !important;
-}
+/* ── PRESS FEEDBACK mejorado ── */
+.field:active       { transform: scale(0.995); background: rgba(255,255,255,.03) !important; }
+.ente-row:active    { transform: scale(0.997); }
+.opt:active         { transform: scale(0.93) !important; }
+.mob-tab:active     { transform: scale(0.88) !important; }
+.lgr-card:active    { transform: scale(0.97) !important; }
+.btn-save:active    { transform: scale(0.98) !important; }
+.stat-chip:active   { transform: scale(0.97); }
 
-/* ── 6. FILA BANCO/DATO — hover más pronunciado ── */
-.ente-row:hover {
-  background: rgba(255,255,255,0.04) !important;
-  border-bottom-color: rgba(255,255,255,0.09) !important;
-}
-.field:hover {
-  background: rgba(255,255,255,0.025) !important;
-}
-
-/* ── 7. BTN-SAVE — estado loading visible, éxito animado ── */
-.btn-save {
-  transition: all .15s cubic-bezier(.4,0,.2,1) !important;
-}
-.btn-save:not(:disabled):hover {
-  background: rgba(255,255,255,0.92) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(255,255,255,0.15) !important;
-}
+/* ── BTN-SAVE SAVED STATE ── */
 .btn-save.saved {
   background: rgba(74,222,128,0.15) !important;
   border: 1px solid rgba(74,222,128,0.4) !important;
@@ -1295,49 +1511,13 @@ select{
   100%{ box-shadow: 0 0 12px rgba(74,222,128,0.1); }
 }
 
-/* ── 8. OPT SELECCIONADO — feedback de selección más claro ── */
-.opt {
-  transition: all .1s cubic-bezier(.4,0,.2,1) !important;
-}
+/* ── OPT SELECCIONADO ── */
 .opt.on {
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.6), 0 0 12px rgba(255,255,255,0.1) !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.5), 0 0 10px rgba(255,255,255,0.08) !important;
   transform: scale(1.02);
 }
-.opt:hover:not(.on) {
-  background: rgba(255,255,255,0.09) !important;
-  border-color: rgba(255,255,255,0.2) !important;
-}
 
-/* ── 9. PROGRESO CARGA — barra de progreso más prominente ── */
-.prog-wrap {
-  height: 2px !important;
-}
-.prog-bar {
-  background: #fff !important;
-  box-shadow: 0 0 8px rgba(255,255,255,0.6) !important;
-}
-
-/* ── 10. CHEVRON de sección — animación más fluida ── */
-.sec-chevron {
-  transition: transform .22s cubic-bezier(.4,0,.2,1) !important;
-}
-.sec-hdr.open .sec-chevron {
-  transform: rotate(180deg) !important;
-}
-
-/* ── 11. MOB TAB ACTIVO — indicador más visible en móvil ── */
-.mob-tab.active .mob-tab-icon {
-  filter: drop-shadow(0 0 6px rgba(255,255,255,0.5));
-}
-.mob-tab.active .mob-tab-label {
-  color: #fff;
-  text-shadow: 0 0 8px rgba(255,255,255,0.4);
-}
-
-/* ── 12. SALDO — animación al cambiar de valor ── */
-.saldo-val {
-  transition: color .3s ease, transform .15s ease !important;
-}
+/* ── SALDO UPDATE ── */
 .saldo-val.updated {
   animation: saldoUpdate .4s cubic-bezier(.34,1.56,.64,1);
 }
@@ -1347,59 +1527,46 @@ select{
   100%{ transform: scale(1); }
 }
 
-/* ── 13. HERO CHIP OK — glow más visible para comunicar estado ── */
-.hero-chip.ok {
-  box-shadow: 0 0 12px rgba(74,222,128,0.2), inset 0 0 6px rgba(74,222,128,0.06) !important;
-  animation: chipGlow 3s ease-in-out infinite;
-}
-@keyframes chipGlow {
-  0%,100% { box-shadow: 0 0 8px rgba(74,222,128,0.15); }
-  50%     { box-shadow: 0 0 18px rgba(74,222,128,0.3); }
+/* ── TAB ACTIVO ── */
+.btn-flip.active {
+  color: #fff !important;
+  border-bottom: 2px solid #fff !important;
+  background: rgba(255,255,255,0.06) !important;
+  text-shadow: 0 0 10px rgba(255,255,255,0.4);
 }
 
-/* ── 14. TOAST — slide-up con más carácter ── */
-.toast {
-  transition: all .22s cubic-bezier(.34,1.56,.64,1) !important;
+/* ── CHIP-DOT MEJORADO ── */
+.hero-chip.ok .chip-dot {
+  background: var(--ok);
+  box-shadow: 0 0 8px rgba(74,222,128,0.7);
+  animation: chipPulse 2s ease-in-out infinite;
 }
-.toast.show {
-  transform: translateX(-50%) translateY(0) !important;
-  opacity: 1 !important;
-}
-
-/* ── 15. SEC-HDR-ICON — feedback visual en hover de sección ── */
-.sec-hdr-icon {
-  transition: all .15s ease !important;
+@keyframes chipPulse {
+  0%,100% { box-shadow: 0 0 0 0   rgba(74,222,128,.4); }
+  50%     { box-shadow: 0 0 0 4px rgba(74,222,128,0);  }
 }
 
-/* ── 16. POPUP/PANEL ENTRADA — slide desde abajo en móvil ── */
-@media(max-width:899px){
-  .entrada-dropdown.show #sec-entrada {
-    animation: slideUp .22s cubic-bezier(.4,0,.2,1);
-  }
-  @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0.7; }
-    to   { transform: translateY(0);    opacity: 1; }
-  }
+/* ── PROG BAR GLOBAL ── */
+.prog-wrap { height: 2px !important; }
+.prog-bar  { animation: progGlow 2s ease-in-out infinite; }
+@keyframes progGlow {
+  0%,100% { box-shadow: 0 0 4px rgba(255,255,255,0.3); }
+  50%     { box-shadow: 0 0 10px rgba(255,255,255,0.7); }
 }
 
-/* ── 17. SKELETON LOADER — comunica progreso mientras carga ── */
-.sec-body-loading {
-  padding: 16px;
-}
+/* ── SKELETON ── */
 .skel {
   background: linear-gradient(90deg,
-    rgba(255,255,255,0.04) 0%,
-    rgba(255,255,255,0.09) 50%,
-    rgba(255,255,255,0.04) 100%);
+    rgba(255,255,255,.04) 0%,
+    rgba(255,255,255,.09) 50%,
+    rgba(255,255,255,.04) 100%);
   background-size: 200% 100%;
   animation: skelShimmer 1.4s ease-in-out infinite;
-  border-radius: 0;
-  height: 14px;
-  margin-bottom: 10px;
+  height: 14px; margin-bottom: 10px;
 }
-.skel.wide  { width: 80%; }
-.skel.mid   { width: 55%; }
-.skel.short { width: 35%; }
+.skel.wide  { width:80%; }
+.skel.mid   { width:55%; }
+.skel.short { width:35%; }
 @keyframes skelShimmer {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
