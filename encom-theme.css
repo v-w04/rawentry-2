@@ -227,7 +227,7 @@ html.encom .section {
   border: 1px solid var(--enc-border) !important;
   border-radius: 0 !important;
   box-shadow: var(--enc-shadow) !important;
-  animation: encBorderPulse 5s ease-in-out infinite !important;
+  animation: encBorderPulse 3.5s ease-in-out infinite !important;
 }
 html.encom .section:hover {
   border-color: rgba(0,255,136,0.45) !important;
@@ -236,8 +236,37 @@ html.encom .section:hover {
 }
 
 @keyframes encBorderPulse {
-  0%,100% { box-shadow: 0 0 0 1px rgba(0,255,136,0.14), 0 0 10px rgba(0,255,136,0.04); }
-  50%      { box-shadow: 0 0 0 1px rgba(0,255,136,0.24), 0 0 20px rgba(0,255,136,0.10); }
+  0%,100% {
+    box-shadow:
+      0 0 0 1px rgba(0,255,136,0.20),
+      0 0 8px  rgba(0,255,136,0.06),
+      inset 0 0 12px rgba(0,255,136,0.03);
+    border-color: rgba(0,200,120,0.22) !important;
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(0,255,136,0.45),
+      0 0 20px rgba(0,255,136,0.18),
+      0 0 40px rgba(0,255,136,0.06),
+      inset 0 0 20px rgba(0,255,136,0.06);
+    border-color: rgba(0,255,136,0.50) !important;
+  }
+}
+
+/* Breathing de separadores y líneas horizontales */
+@keyframes encLinePulse {
+  0%,100% { opacity: .18; box-shadow: none; }
+  50%      { opacity: .55; box-shadow: 0 0 6px rgba(0,255,136,0.4); }
+}
+
+/* Breathing de esquinas corner */
+@keyframes encCornerPulse {
+  0%,100% { opacity: .5;  box-shadow: -2px -2px 4px rgba(0,255,136,0.2); }
+  50%      { opacity: 1;   box-shadow: -3px -3px 10px rgba(0,255,136,0.6), 0 0 16px rgba(0,255,136,0.3); }
+}
+@keyframes encCornerPulseR {
+  0%,100% { opacity: .5;  box-shadow: 2px 2px 4px rgba(0,255,136,0.2); }
+  50%      { opacity: 1;   box-shadow: 3px 3px 10px rgba(0,255,136,0.6), 0 0 16px rgba(0,255,136,0.3); }
 }
 
 /* Header de sección — imagen: fondo más oscuro/azulado que el card */
@@ -1052,13 +1081,14 @@ html.encom .section::before {
   top: 0; left: 0;
   border-top: 2px solid var(--enc-green);
   border-left: 2px solid var(--enc-green);
-  box-shadow: -2px -2px 6px rgba(0,255,136,0.3);
+  animation: encCornerPulse 3.5s ease-in-out infinite;
 }
 html.encom .section::after {
   bottom: 0; right: 0;
   border-bottom: 2px solid var(--enc-green);
   border-right: 2px solid var(--enc-green);
-  box-shadow: 2px 2px 6px rgba(0,255,136,0.3);
+  animation: encCornerPulseR 3.5s ease-in-out infinite;
+  animation-delay: 1.75s;
 }
 html.encom .section { position: relative !important; overflow: visible !important; }
 
@@ -1090,4 +1120,135 @@ html.encom #editar-id-overlay > div {
   border: 1px solid var(--enc-green) !important;
   background: rgba(0,8,18,0.98) !important;
   box-shadow: 0 0 40px rgba(0,255,136,0.16) !important;
+}
+
+/* ════════════════════════════════════════
+   BREATHING — separadores y líneas
+════════════════════════════════════════ */
+
+/* Bordes inferiores de th — pulsan */
+html.encom .tbl th {
+  animation: encLinePulse 3s ease-in-out infinite !important;
+  animation-delay: calc(var(--i, 0) * .15s);
+}
+
+/* Separadores entre filas de ente (bancos) */
+html.encom .ente-row {
+  animation: encLinePulse 4s ease-in-out infinite !important;
+  animation-delay: .5s;
+}
+
+/* sec-hdr — header de cada sección pulsa ligeramente */
+html.encom .sec-hdr {
+  animation: encLinePulse 4s ease-in-out infinite !important;
+}
+
+/* Línea inferior del hero */
+html.encom .hero {
+  animation: encHeroGlow 4s ease-in-out infinite !important;
+}
+@keyframes encHeroGlow {
+  0%,100% { box-shadow: 0 1px 0 rgba(0,255,136,0.10), 0 0 12px rgba(0,255,136,0.04) !important; }
+  50%      { box-shadow: 0 1px 0 rgba(0,255,136,0.35), 0 0 28px rgba(0,255,136,0.10) !important; }
+}
+
+/* Línea decorativa after del hero también pulsa */
+html.encom .hero::after {
+  animation: encLineAfter 4s ease-in-out infinite;
+}
+@keyframes encLineAfter {
+  0%,100% { opacity: .22; box-shadow: none; }
+  50%      { opacity: .70; box-shadow: 0 0 18px var(--enc-green), 0 0 4px var(--enc-green); }
+}
+
+/* Borde inferior de sec-hdr.open */
+html.encom .sec-hdr.open {
+  animation: encLinePulse 3s ease-in-out infinite !important;
+}
+
+/* Separadores de CF rows en formulario */
+html.encom .cf {
+  position: relative;
+}
+html.encom .cf::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: rgba(0,255,136,0.12);
+  animation: encLinePulse 3.5s ease-in-out infinite;
+}
+
+/* Insights row */
+html.encom .insight-item {
+  animation: encLinePulse 4.5s ease-in-out infinite !important;
+}
+
+/* Progress bar wrapper — respira */
+html.encom #prog {
+  animation: encProgPulse 3s ease-in-out infinite !important;
+}
+@keyframes encProgPulse {
+  0%,100% { box-shadow: none; }
+  50%      { box-shadow: 0 0 10px rgba(0,255,136,0.35); }
+}
+
+/* prog-bar fill — glow pulsante en el fill */
+html.encom .prog-bar,
+html.encom .prog-bar.ind {
+  animation: encFillPulse 2.5s ease-in-out infinite !important;
+}
+@keyframes encFillPulse {
+  0%,100% { box-shadow: 0 0 6px rgba(0,255,136,0.4); }
+  50%      { box-shadow: 0 0 14px rgba(0,255,136,0.8), 0 0 28px rgba(0,255,136,0.3); }
+}
+
+/* Kard prog fill */
+html.encom .kard-prog-fill {
+  animation: encFillPulse 2.5s ease-in-out infinite !important;
+}
+
+/* mob-tabbar borde top */
+html.encom .mob-tabbar {
+  animation: encMobBar 4s ease-in-out infinite !important;
+}
+@keyframes encMobBar {
+  0%,100% { box-shadow: 0 -1px 10px rgba(0,255,136,0.05) !important; }
+  50%      { box-shadow: 0 -1px 24px rgba(0,255,136,0.18) !important; }
+}
+
+/* Tab activo en hero — borde inferior pulsa */
+html.encom .btn-flip.active {
+  animation: encTabPulse 2.8s ease-in-out infinite !important;
+}
+@keyframes encTabPulse {
+  0%,100% { text-shadow: 0 0 4px rgba(0,255,136,0.3) !important;  border-bottom-color: rgba(0,255,136,0.5) !important; }
+  50%      { text-shadow: 0 0 12px rgba(0,255,136,0.7) !important; border-bottom-color: var(--enc-green) !important; box-shadow: 0 4px 12px rgba(0,255,136,0.25) !important; }
+}
+
+/* Enc hdr line — glow animado al expandirse */
+html.encom .enc-hdr-line {
+  animation: encHdrLine 3s ease-in-out infinite;
+}
+@keyframes encHdrLine {
+  0%,100% { opacity: .4; filter: none; }
+  50%      { opacity: .9; filter: drop-shadow(0 0 4px var(--enc-green)); }
+}
+
+/* Insight dot — pulso individual */
+html.encom .insight-dot {
+  animation: encDotPulse 2s ease-in-out infinite !important;
+}
+@keyframes encDotPulse {
+  0%,100% { transform: scale(1);    opacity: .7; }
+  50%      { transform: scale(1.35); opacity: 1;  }
+}
+
+/* sec-hdr-icon — pulso de glow */
+html.encom .sec-hdr-icon {
+  animation: encIconGlow 4s ease-in-out infinite !important;
+}
+@keyframes encIconGlow {
+  0%,100% { box-shadow: 0 0 6px rgba(0,255,136,0.10) !important; }
+  50%      { box-shadow: 0 0 14px rgba(0,255,136,0.40), 0 0 4px rgba(0,255,136,0.20) !important; }
 }
