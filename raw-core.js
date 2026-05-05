@@ -197,6 +197,9 @@ var _dialHovered   = -1;
 var _dialSubHov    = -1;
 var _dialActiveSub = -1;
 var _dialVisible   = false;
+var _dialCentroHov = false;   // hover sobre botón RAW
+var _dialPulseT    = 0;       // tiempo para animación pulso centro
+var _dialRAF       = null;    // requestAnimationFrame del pulso
 
 // Geometría del dial
 var _DC = {
@@ -237,12 +240,19 @@ function _crearDialOverlay(){
     var r=_dialCanvas.getBoundingClientRect();
     var mx=(e.clientX-r.left)*(_DC.W/r.width);
     var my=(e.clientY-r.top)*(_DC.H/r.height);
-    var h=_dialHitTest(mx,my,false);
-    var hs=_dialActiveSub>=0?_dialHitTest(mx,my,true):-1;
-    if(h!==_dialHovered||hs!==_dialSubHov){ _dialHovered=h;_dialSubHov=hs;_dialDraw(); }
-    _dialCanvas.style.cursor=(h>=0||hs>=0)?'pointer':'default';
+    var dx0=mx-_DC.CX,dy0=my-_DC.CY;
+    var enCentro=(Math.sqrt(dx0*dx0+dy0*dy0)<_DC.R_IN);
+    var h=enCentro?-1:_dialHitTest(mx,my,false);
+    var hs=_dialActiveSub>=0&&!enCentro?_dialHitTest(mx,my,true):-1;
+    var cambio=(h!==_dialHovered||hs!==_dialSubHov||enCentro!==_dialCentroHov);
+    _dialHovered=h; _dialSubHov=hs; _dialCentroHov=enCentro;
+    if(cambio){
+      if(enCentro){ _iniciarPulsoCentro(); }
+      else { _detenerPulsoCentro(); _dialDraw(); }
+    }
+    _dialCanvas.style.cursor=(h>=0||hs>=0||enCentro)?'pointer':'default';
   });
-  _dialCanvas.addEventListener('mouseleave',function(){ _dialHovered=-1;_dialSubHov=-1;_dialDraw(); });
+  _dialCanvas.addEventListener('mouseleave',function(){ _dialHovered=-1;_dialSubHov=-1;_dialCentroHov=false;_detenerPulsoCentro();_dialDraw(); });
   _dialCanvas.addEventListener('click',function(e){
     var r=_dialCanvas.getBoundingClientRect();
     var mx=(e.clientX-r.left)*(_DC.W/r.width);
@@ -303,20 +313,133 @@ function _dialDrawSector(ctx,startA,endA,rOut,rIn,fill,accent,isActive){
   ctx.strokeStyle='rgba(255,255,255,0.10)'; ctx.lineWidth=1; ctx.stroke();
 
   // Borde exterior iluminado — el efecto "3D" de la referencia
-  var glowA = isActive ? accent : 'rgba(255,255,255,0.22)';
-  var glowW = isActive ? 3 : 1.5;
+  var glowA = isActive ? accent : 'rgba(255,255,255,0.28)';
+  var glowW = isActive ? 3.5 : 2;
   ctx.save();
-  ctx.shadowColor = isActive ? accent : 'rgba(255,255,255,0.3)';
-  ctx.shadowBlur  = isActive ? 16 : 6;
+  ctx.shadowColor = isActive ? accent : 'rgba(255,255,255,0.4)';
+  ctx.shadowBlur  = isActive ? 24 : 10;
   ctx.beginPath();
   ctx.arc(dc.CX,dc.CY,rOut,startA+0.01,endA-0.01);
   ctx.strokeStyle=glowA; ctx.lineWidth=glowW; ctx.stroke();
   ctx.restore();
+  // Segundo pass para más intensidad
+  if(isActive){
+    ctx.save();
+    ctx.globalAlpha=0.4;
+    ctx.shadowColor=accent; ctx.shadowBlur=40;
+    ctx.beginPath();
+    ctx.arc(dc.CX,dc.CY,rOut,startA+0.01,endA-0.01);
+    ctx.strokeStyle=accent; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.restore();
+  }
 
   // Borde interior (el que da el efecto de anillo biselado interior)
   ctx.beginPath();
   ctx.arc(dc.CX,dc.CY,rIn+1,startA+0.01,endA-0.01);
   ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1; ctx.stroke();
+}
+
+// ── Dibuja el centro RAW con hover y animación de pulso ──
+function _dialDrawCentro(ctx, dc, isHov, pulseT){
+  var pulse  = isHov ? (Math.sin(pulseT * 0.08) * 0.5 + 0.5) : 0;
+  var glowAmt = isHov ? (30 + pulse * 25) : 14;
+  var scaleR  = isHov ? (dc.R_IN + pulse * 6) : dc.R_IN;
+
+  // Halo exterior animado — aparece solo en hover
+  if(isHov){
+    ctx.save();
+    ctx.shadowColor = 'rgba(165,150,255,0.7)';
+    ctx.shadowBlur  = 40 + pulse*20;
+    ctx.beginPath();
+    ctx.arc(dc.CX, dc.CY, scaleR + 4, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(165,150,255,' + (0.3 + pulse*0.3) + ')';
+    ctx.lineWidth   = 2;
+    ctx.stroke();
+    ctx.restore();
+    // Segundo halo más externo, más tenue
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(dc.CX, dc.CY, scaleR + 14, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(140,120,255,' + (0.12 + pulse*0.15) + ')';
+    ctx.lineWidth   = 1;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Fondo gradiente radial
+  var g = ctx.createRadialGradient(dc.CX, dc.CY, 0, dc.CX, dc.CY, scaleR);
+  if(isHov){
+    g.addColorStop(0,   'rgba(40,36,80,0.99)');
+    g.addColorStop(0.5, 'rgba(24,22,52,0.99)');
+    g.addColorStop(1,   'rgba(10,10,22,0.99)');
+  } else {
+    g.addColorStop(0,   'rgba(28,28,50,0.98)');
+    g.addColorStop(0.6, 'rgba(14,14,28,0.98)');
+    g.addColorStop(1,   'rgba(8,8,16,0.98)');
+  }
+  ctx.beginPath();
+  ctx.arc(dc.CX, dc.CY, scaleR, 0, Math.PI*2);
+  ctx.fillStyle = g; ctx.fill();
+
+  // Borde principal con glow
+  ctx.save();
+  ctx.shadowColor = isHov ? 'rgba(180,160,255,0.9)' : 'rgba(140,130,255,0.5)';
+  ctx.shadowBlur  = isHov ? (glowAmt + pulse*10) : 16;
+  ctx.beginPath();
+  ctx.arc(dc.CX, dc.CY, scaleR, 0, Math.PI*2);
+  ctx.strokeStyle = isHov
+    ? 'rgba(180,160,255,' + (0.8 + pulse*0.2) + ')'
+    : 'rgba(120,110,240,0.65)';
+  ctx.lineWidth = isHov ? 2.5 : 1.8;
+  ctx.stroke();
+  ctx.restore();
+
+  // Anillo interior secundario
+  ctx.beginPath();
+  ctx.arc(dc.CX, dc.CY, scaleR - 11, 0, Math.PI*2);
+  ctx.strokeStyle = isHov
+    ? 'rgba(160,140,255,' + (0.18 + pulse*0.12) + ')'
+    : 'rgba(100,90,200,0.20)';
+  ctx.lineWidth = 1; ctx.stroke();
+
+  // ⇄ icono
+  ctx.save();
+  ctx.shadowColor = 'rgba(185,180,255,0.9)';
+  ctx.shadowBlur  = isHov ? (16 + pulse*12) : 10;
+  ctx.font        = '500 ' + (isHov ? 28 : 24) + 'px -apple-system,sans-serif';
+  ctx.fillStyle   = isHov
+    ? 'rgba(220,210,255,' + (0.9 + pulse*0.1) + ')'
+    : 'rgba(165,180,252,0.8)';
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('⇄', dc.CX, dc.CY - 14);
+  ctx.restore();
+
+  // RAW label
+  ctx.save();
+  ctx.shadowColor = 'rgba(180,160,255,0.7)';
+  ctx.shadowBlur  = isHov ? (10 + pulse*8) : 6;
+  ctx.font        = 'bold ' + (isHov ? 17 : 15) + 'px -apple-system,sans-serif';
+  ctx.fillStyle   = isHov ? '#e0d8ff' : '#c4b5fd';
+  ctx.textAlign   = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('RAW', dc.CX, dc.CY + 14);
+  ctx.restore();
+}
+
+function _iniciarPulsoCentro(){
+  if(_dialRAF) return;  // ya corriendo
+  function loop(){
+    _dialPulseT++;
+    _dialDraw();
+    _dialRAF = requestAnimationFrame(loop);
+  }
+  _dialRAF = requestAnimationFrame(loop);
+}
+
+function _detenerPulsoCentro(){
+  if(_dialRAF){ cancelAnimationFrame(_dialRAF); _dialRAF=null; }
+  _dialPulseT = 0;
 }
 
 function _dialDraw(){
@@ -327,13 +450,21 @@ function _dialDraw(){
 
   ctx.clearRect(0,0,dc.W,dc.H);
 
-  // Sombra exterior del dial completo — da el halo de fondo
+  // Halo exterior del dial completo
   ctx.save();
-  ctx.shadowColor='rgba(99,102,241,0.15)';
-  ctx.shadowBlur=40;
+  ctx.shadowColor='rgba(120,110,255,0.25)';
+  ctx.shadowBlur=50;
   ctx.beginPath();
-  ctx.arc(dc.CX,dc.CY,dc.R_OUT+4,0,Math.PI*2);
-  ctx.fillStyle='transparent'; ctx.fill();
+  ctx.arc(dc.CX,dc.CY,dc.R_OUT+2,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,255,255,0.08)';
+  ctx.lineWidth=1.5; ctx.stroke();
+  ctx.restore();
+  // Segundo halo — círculo grande muy tenue
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(dc.CX,dc.CY,dc.R_OUT+18,0,Math.PI*2);
+  ctx.strokeStyle='rgba(120,110,255,0.06)';
+  ctx.lineWidth=8; ctx.stroke();
   ctx.restore();
 
   // ── Anillo principal ──
@@ -362,9 +493,18 @@ function _dialDraw(){
     var icoS = isHov||isAct ? 42 : 36;
     ctx.save();
     ctx.shadowColor = item.accent;
-    ctx.shadowBlur  = isHov||isAct ? 20 : 8;
+    ctx.shadowBlur  = isHov||isAct ? 28 : 12;
     item.draw(ctx,cx,cy-8,icoS,item.accent);
     ctx.restore();
+    // Segundo pass de glow más intenso en hover/activo
+    if(isHov||isAct){
+      ctx.save();
+      ctx.globalAlpha = 0.45;
+      ctx.shadowColor = item.accent;
+      ctx.shadowBlur  = 40;
+      item.draw(ctx,cx,cy-8,icoS,item.accent);
+      ctx.restore();
+    }
 
     // Label — uppercase, bold, blanco, fuente mediana
     ctx.save();
@@ -438,44 +578,8 @@ function _dialDraw(){
     }
   }
 
-  // ── Centro ──
-  // Fondo con gradiente radial como en referencia
-  var g=ctx.createRadialGradient(dc.CX,dc.CY,0,dc.CX,dc.CY,dc.R_IN);
-  g.addColorStop(0,'rgba(28,28,50,0.98)');
-  g.addColorStop(0.6,'rgba(14,14,28,0.98)');
-  g.addColorStop(1,'rgba(8,8,16,0.98)');
-  ctx.beginPath();
-  ctx.arc(dc.CX,dc.CY,dc.R_IN,0,Math.PI*2);
-  ctx.fillStyle=g; ctx.fill();
-
-  // Borde exterior del centro — doble anillo de referencia
-  ctx.save();
-  ctx.shadowColor='rgba(140,130,255,0.6)';
-  ctx.shadowBlur=20;
-  ctx.beginPath();
-  ctx.arc(dc.CX,dc.CY,dc.R_IN,0,Math.PI*2);
-  ctx.strokeStyle='rgba(120,110,240,0.7)';
-  ctx.lineWidth=2; ctx.stroke();
-  ctx.restore();
-  ctx.beginPath();
-  ctx.arc(dc.CX,dc.CY,dc.R_IN-10,0,Math.PI*2);
-  ctx.strokeStyle='rgba(100,90,200,0.25)';
-  ctx.lineWidth=1; ctx.stroke();
-
-  // ⇄ y RAW
-  ctx.save();
-  ctx.shadowColor='rgba(165,180,252,0.8)';
-  ctx.shadowBlur=12;
-  ctx.font='500 26px -apple-system,sans-serif';
-  ctx.fillStyle='rgba(165,180,252,0.85)';
-  ctx.textAlign='center';
-  ctx.textBaseline='middle';
-  ctx.fillText('⇄',dc.CX,dc.CY-12);
-  ctx.font='bold 16px -apple-system,sans-serif';
-  ctx.fillStyle='#c4b5fd';
-  ctx.letterSpacing='0.15em';
-  ctx.fillText('RAW',dc.CX,dc.CY+16);
-  ctx.restore();
+  // ── Centro — con hover y pulso ──
+  _dialDrawCentro(ctx, dc, _dialCentroHov, _dialPulseT);
 }
 
 function toggleEntradaDropdown(){
@@ -484,7 +588,7 @@ function toggleEntradaDropdown(){
 
 function abrirDial(){
   _crearDialOverlay();
-  _dialHovered=-1; _dialSubHov=-1; _dialActiveSub=-1;
+  _dialHovered=-1; _dialSubHov=-1; _dialActiveSub=-1; _dialCentroHov=false; _detenerPulsoCentro();
   _dialDraw();
   _dialOverlay.style.display='flex';
   _dialVisible=true;
@@ -494,7 +598,7 @@ function abrirDial(){
 
 function cerrarDial(){
   if(_dialOverlay) _dialOverlay.style.display='none';
-  _dialVisible=false; _dialActiveSub=-1;
+  _dialVisible=false; _dialActiveSub=-1; _dialCentroHov=false; _detenerPulsoCentro();
   var btn=document.getElementById('btn-nueva-entrada');
   if(btn) btn.classList.remove('active');
 }
