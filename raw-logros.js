@@ -827,7 +827,7 @@ function _lgrCardClick(l){
     // Feedback visual inmediato
     l.completado='No';
     _lgrCalcularNivel(_lgr.items);
-    _lgrGrid(); _lgrSidebar(); _lgrHeader();
+    _lgrPintarGrid(); _lgrPintarSidebar(); _lgrPintarHeader();
     // Persistir en GAS
     if(_marcar) _marcar(l.fila,'No');
     return;
@@ -838,7 +838,7 @@ function _lgrCardClick(l){
   // Feedback inmediato
   l.completado='S\u00ed';
   _lgrCalcularNivel(_lgr.items);
-  _lgrGrid(); _lgrSidebar(); _lgrHeader();
+  _lgrPintarGrid(); _lgrPintarSidebar(); _lgrPintarHeader();
   // Persistir en GAS
   if(_marcar){
     _marcar(l.fila,'S\u00ed');
@@ -1008,7 +1008,7 @@ function _lgrRevertirDesdeSidebar(fila){
   if(!confirm('\u00bfDesmarcar "'+(l.concepto||'este logro')+'"?')) return;
   l.completado='No';
   _lgrCalcularNivel(_lgr.items);
-  _lgrGrid(); _lgrSidebar(); _lgrHeader();
+  _lgrPintarGrid(); _lgrPintarSidebar(); _lgrPintarHeader();
   if(typeof api!=='undefined' && typeof api.marcarLogro==='function'){
     api.marcarLogro(fila,'No');
   }
