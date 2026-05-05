@@ -1457,9 +1457,41 @@ window.irABitacora = window.irABitacora || function(){
   _irAPanel('board-bitacora','bitacora');
 };
 
-// irAActivity / irANutricion — window assignment (no hoisting, no sobreescribe el GAS)
-window.irAActivity  = window.irAActivity  || function(){ _irAPanel('board-activity','activity'); };
-window.irANutricion = window.irANutricion || function(){ _irAPanel('board-nutricion','nutricion'); };
+// irAActivity / irANutricion — window assignment (no hoisting)
+window.irAActivity = window.irAActivity || function(){
+  _irAPanel('board-activity','activity');
+  function _doRenderActivity(){
+    if(typeof window.renderActivity==='function') window.renderActivity();
+  }
+  if(window._actData){
+    _doRenderActivity();
+  } else {
+    // Sin datos — cargar via API y luego renderizar
+    var cont = document.getElementById('act-container');
+    if(cont) cont.innerHTML='<div style="padding:40px;text-align:center;color:rgba(255,255,255,.25)"><i class="fas fa-circle-notch fa-spin" style="font-size:18px;color:#22d3ee"></i></div>';
+    if(typeof api!=='undefined'){
+      api.getActivityCheck().then(function(d){
+        window._actData = d;
+        _doRenderActivity();
+      }).catch(function(){
+        if(cont) cont.innerHTML='<div style="padding:40px;text-align:center;color:rgba(239,68,68,.4);font-size:12px">Error al cargar Activity</div>';
+      });
+    }
+  }
+};
+window.irANutricion = window.irANutricion || function(){
+  _irAPanel('board-nutricion','nutricion');
+  var body = document.getElementById('nut-panel-body');
+  if(body && body.children.length && !body.querySelector('.fa-spin')) return;
+  if(body) body.innerHTML='<div style="padding:40px;text-align:center;color:rgba(255,255,255,.25)"><i class="fas fa-circle-notch fa-spin" style="font-size:18px;color:#4ade80"></i></div>';
+  if(typeof api!=='undefined'){
+    api.getNutricion().then(function(d){
+      if(typeof window.renderNutricion==='function') window.renderNutricion(d);
+    }).catch(function(){
+      if(body) body.innerHTML='<div style="padding:40px;text-align:center;color:rgba(239,68,68,.4);font-size:12px">Error al cargar Nutrición</div>';
+    });
+  }
+};
 
 window._syncMobTab = window._syncMobTab || function(tabKey){
   document.querySelectorAll('.mob-tab').forEach(function(t){
