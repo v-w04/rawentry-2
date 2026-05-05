@@ -227,28 +227,29 @@ function _crearDialOverlay(){
   _dialCanvas = document.createElement('canvas');
   _dialCanvas.width  = _DC.W;
   _dialCanvas.height = _DC.H;
-  _dialCanvas.style.cssText = 'display:block;cursor:pointer;width:min(600px,70vw);height:min(600px,70vw);flex-shrink:0';
+  _dialCanvas.style.cssText = 'display:block;cursor:pointer;width:min(680px,88vw);height:min(680px,88vw);position:relative';
   _dialCtx = _dialCanvas.getContext('2d');
 
-  // ── Layout: [sidebar derecha] [dial] centrados ──
-  // Cambiamos el overlay a flex-row para meter el panel lateral
+  // Overlay centrado — el dial siempre en el centro exacto
   _dialOverlay.style.cssText = [
     'position:fixed','inset:0','z-index:9000',
     'display:none','align-items:center','justify-content:center',
-    'gap:32px',
     'background:rgba(4,4,10,0.5)',
     'backdrop-filter:blur(24px) saturate(150%)',
     '-webkit-backdrop-filter:blur(24px) saturate(150%)',
-    'padding:0 40px',
-    'box-sizing:border-box',
   ].join(';');
 
   // ── Panel derecho — navegación a otras secciones ──
   var _navPanel = document.createElement('div');
   _navPanel.id = 'dial-nav-panel';
   _navPanel.style.cssText = [
-    'display:flex','flex-direction:column','gap:10px',
-    'width:180px','flex-shrink:0',
+    'position:fixed',
+    'top:50%',
+    'left:calc(50% + min(360px,46vw))',  // justo a la derecha del dial centrado
+    'transform:translateY(-50%)',
+    'display:flex','flex-direction:column','gap:8px',
+    'width:172px',
+    'z-index:9001',
   ].join(';');
 
   var NAV_ITEMS = [
@@ -307,28 +308,7 @@ function _crearDialOverlay(){
     _navPanel.appendChild(btn);
   });
 
-  // Separador + botón cerrar al final
-  var sep = document.createElement('div');
-  sep.style.cssText = 'height:1px;background:rgba(255,255,255,0.07);margin:4px 0';
-  _navPanel.appendChild(sep);
 
-  var btnCerrar = document.createElement('button');
-  btnCerrar.style.cssText = [
-    'display:flex','align-items:center','justify-content:center','gap:8px',
-    'padding:10px 16px',
-    'background:rgba(239,68,68,0.06)',
-    'border:1px solid rgba(239,68,68,0.15)',
-    'border-radius:10px',
-    'cursor:pointer','font-family:inherit',
-    'font-size:12px','font-weight:600',
-    'color:rgba(239,68,68,0.7)',
-    'width:100%','transition:all .18s',
-  ].join(';');
-  btnCerrar.innerHTML = '<i class="fas fa-xmark" style="font-size:13px"></i><span>Cerrar</span>';
-  btnCerrar.addEventListener('mouseenter',function(){ btnCerrar.style.background='rgba(239,68,68,0.12)'; btnCerrar.style.color='#fca5a5'; });
-  btnCerrar.addEventListener('mouseleave',function(){ btnCerrar.style.background='rgba(239,68,68,0.06)'; btnCerrar.style.color='rgba(239,68,68,0.7)'; });
-  btnCerrar.addEventListener('click',function(e){ e.stopPropagation(); cerrarDial(); });
-  _navPanel.appendChild(btnCerrar);
 
   // Orden: dial a la izquierda, nav a la derecha
   _dialOverlay.appendChild(_dialCanvas);
@@ -696,13 +676,7 @@ function abrirDial(){
   _dialVisible=true;
   // Ocultar panel nav en pantallas pequeñas
   var navPanel=document.getElementById('dial-nav-panel');
-  if(navPanel){
-    var esMovil=window.innerWidth<900;
-    navPanel.style.display=esMovil?'none':'flex';
-    // En móvil el canvas vuelve a tamaño completo
-    _dialCanvas.style.width=esMovil?'min(520px,92vw)':'min(600px,70vw)';
-    _dialCanvas.style.height=esMovil?'min(520px,92vw)':'min(600px,70vw)';
-  }
+  if(navPanel) navPanel.style.display=window.innerWidth<900?'none':'flex';
   var btn=document.getElementById('btn-nueva-entrada');
   if(btn) btn.classList.add('active');
 }
