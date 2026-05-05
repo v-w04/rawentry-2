@@ -158,24 +158,29 @@ function _dibujarNecesidesInlineCompleto(niveles){
 
   // ── Layout: 3 columnas en fila ──
   radarWrap.innerHTML =
-    '<div style="display:flex;align-items:flex-start;gap:16px;padding:14px 16px 8px;width:100%;box-sizing:border-box">'+
+    '<div style="display:flex;flex-direction:column;gap:0;width:100%;box-sizing:border-box">'+
 
-      // Col 1: Radar
-      '<div style="display:flex;flex-direction:column;align-items:center;flex:0 0 auto">'+
-        '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;'+
-             'color:rgba(255,255,255,.3);margin-bottom:8px">Radar</div>'+
-        '<canvas id="radar-inline-canvas" width="200" height="200" style="display:block"></canvas>'+
+      // ── Fila 1: Radar + Pirámide lado a lado ──
+      '<div style="display:flex;align-items:flex-start;gap:20px;padding:14px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.05)">'+
+
+        // Radar
+        '<div style="display:flex;flex-direction:column;align-items:center;flex:0 0 auto">'+
+          '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;'+
+               'color:rgba(255,255,255,.3);margin-bottom:8px">Radar</div>'+
+          '<canvas id="radar-inline-canvas" width="200" height="200" style="display:block"></canvas>'+
+        '</div>'+
+
+        // Pirámide / Distribución SVG
+        '<div style="display:flex;flex-direction:column;align-items:center;flex:0 0 auto">'+
+          '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;'+
+               'color:rgba(255,255,255,.3);margin-bottom:8px">Distribución</div>'+
+          '<svg width="200" height="170" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg">'+svgPisos+'</svg>'+
+        '</div>'+
+
       '</div>'+
 
-      // Col 2: Distribución SVG
-      '<div style="display:flex;flex-direction:column;align-items:center;flex:0 0 auto">'+
-        '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;'+
-             'color:rgba(255,255,255,.3);margin-bottom:8px">Distribución</div>'+
-        '<svg width="200" height="170" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg">'+svgPisos+'</svg>'+
-      '</div>'+
-
-      // Col 3: Detalle por nivel
-      '<div style="flex:1;min-width:0;padding-top:24px">'+
+      // ── Fila 2: Detalle por nivel (barras) ──
+      '<div style="padding:12px 16px 16px">'+
         detHtml+
       '</div>'+
 
