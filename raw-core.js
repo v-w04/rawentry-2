@@ -226,12 +226,12 @@ var _dialVisible   = false;
 
 // Geometría — canvas 800 para que el subanillo (hasta ~390px) quepa
 var _DC = {
-  W:800, H:800, CX:400, CY:400,
-  R_IN:80,    // radio interior (donut hole)
-  R_OUT:280,  // radio exterior anillo principal
-  R_SI:296,   // radio interior subanillo (gap de 16 entre anillos)
-  R_SO:390,   // radio exterior subanillo
-  GAP:0.032,  // gap en radianes entre sectores
+  W:920, H:920, CX:460, CY:460,
+  R_IN:80,
+  R_OUT:280,
+  R_SI:296,
+  R_SO:380,
+  GAP:0.032,
 };
 
 function _crearDialOverlay(){
@@ -251,7 +251,7 @@ function _crearDialOverlay(){
   _dialCanvas.width  = _DC.W;
   _dialCanvas.height = _DC.H;
   // CSS size: 780px max, pero cabe en pantalla
-  _dialCanvas.style.cssText = 'display:block;cursor:pointer;width:min(780px,94vw);height:min(780px,94vw)';
+  _dialCanvas.style.cssText = 'display:block;cursor:pointer;width:min(700px,90vw);height:min(700px,90vw)';
   _dialCtx = _dialCanvas.getContext('2d');
 
   _dialOverlay.appendChild(_dialCanvas);
@@ -532,8 +532,17 @@ function cerrarDial(){
 
 function abrirFormulario(modo){
   var dd=document.getElementById('entrada-dropdown');
-  if(dd){dd.style.display='flex';dd.classList.add('show');}
+  if(dd){
+    dd.style.cssText='position:fixed;inset:0;z-index:9001;display:flex;align-items:center;justify-content:center;background:rgba(6,6,14,0.42);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%)';
+    dd.classList.add('show');
+  }
+  var inner=document.getElementById('sec-entrada');
+  if(inner){
+    inner.style.cssText='background:rgba(16,16,26,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:16px;box-shadow:0 8px 48px rgba(0,0,0,0.6);width:420px;max-width:94vw;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column';
+  }
   if(typeof _inyectarToggleModo==='function') _inyectarToggleModo();
+  var tabs=document.getElementById('toggle-modo-wrap');
+  if(tabs) tabs.style.display='none';
   var p1=document.getElementById('entrada-paso1');
   var p2=document.getElementById('entrada-paso2');
   if(p1) p1.style.display='none';
