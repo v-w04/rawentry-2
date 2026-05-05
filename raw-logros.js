@@ -816,23 +816,32 @@ function _lgrPintarGrid(){
 }
 
 function _lgrCardClick(l){
+  // Usar api.marcarLogro (la función real del sistema)
+  var _marcar = (typeof api!=='undefined' && typeof api.marcarLogro==='function')
+    ? function(fila,val){ return api.marcarLogro(fila,val); }
+    : (typeof marcarLogro==='function' ? marcarLogro : null);
+
   if(_lgrIsDone(l)){
-    // Ya completado → ofrecer revertir via GAS si existe la función
-    if(typeof marcarLogro==='function' && l.fila){
-      if(!confirm('¿Desmarcar "' + (l.concepto||l.id||'este logro') + '"?')) return;
-      marcarLogro(l.fila, 'No');
-      l.completado='No';
-      _lgrXP(_lgr.items);
-      _lgrGrid(); _lgrSidebar(); _lgrHeader();
-    }
-    return;
-  }
-  // Pendiente → marcar completado
-  if(typeof marcarLogro==='function' && l.fila){
-    marcarLogro(l.fila, 'Sí');
-    l.completado='Sí';
+    if(!l.fila){ return; }
+    if(!confirm('\u00bfDesmarcar "'+(l.concepto||l.id||'este logro')+'"?')) return;
+    // Feedback visual inmediato
+    l.completado='No';
     _lgrXP(_lgr.items);
     _lgrGrid(); _lgrSidebar(); _lgrHeader();
+    // Persistir en GAS
+    if(_marcar) _marcar(l.fila,'No');
+    return;
+  }
+
+  // Pendiente → marcar completado
+  if(!l.fila){ return; }
+  // Feedback inmediato
+  l.completado='S\u00ed';
+  _lgrXP(_lgr.items);
+  _lgrGrid(); _lgrSidebar(); _lgrHeader();
+  // Persistir en GAS
+  if(_marcar){
+    _marcar(l.fila,'S\u00ed');
   } else if(typeof completarLogro==='function'){
     completarLogro(l.id||l.concepto||'');
   }
@@ -866,7 +875,7 @@ function _lgrPintarSidebar(){
         '<div class="lgr-completado-meta">'+escH(cat+(fecha?' · '+fecha:''))+'</div>' +
       '</div>' +
       (fmt?'<div class="lgr-completado-monto">'+escH(fmt)+'</div>':'') +
-      (typeof revertirLogro==='function'?'<button class="lgr-completado-btn" onclick="revertirLogro(\''+escH(l.id||l.nombre||'')+'\')">Revertir</button>':'') +
+      '<button class="lgr-completado-btn" onclick="_lgrRevertirDesdeSidebar('+l.fila+')">Revertir</button>' +
     '</div>';
   }).join('');
   if(!pag.length) itemsComp='<div style="padding:12px 14px;font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:.06em">Sin completados</div>';
@@ -982,3 +991,15 @@ function irALogros(){
 
 /* ── HELPER ── */
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function _lgrRevertirDesdeSidebar(fila){
+  var l = _lgr.items.find(function(it){ return it.fila===fila; });
+  if(!l) return;
+  if(!confirm('\u00bfDesmarcar "'+(l.concepto||'este logro')+'"?')) return;
+  l.completado='No';
+  _lgrXP(_lgr.items);
+  _lgrGrid(); _lgrSidebar(); _lgrHeader();
+  if(typeof api!=='undefined' && typeof api.marcarLogro==='function'){
+    api.marcarLogro(fila,'No');
+  }
+}
