@@ -1,929 +1,813 @@
-/* RAW Entry — Logros v.5.078
-   Activity Check → 5 columnas simultáneas
-   Sims Needs → barras estilo Sims, colores dinámicos
-*/
-// ══════════════════════════════════════════
-//  ESTADO
-// ══════════════════════════════════════════
-let _pantalla       = 'anverso';
-let _boardFlipped   = false;
-let _ordenLogros    = 'az';
-let _reversoMostrarDone = false;
+/* ═══════════════════════════════════════════════════════
+   RAW LOGROS — Panel rediseñado estilo dial
+   Cards con glow de color por categoría, header con nivel/XP,
+   sidebar completados + categorías + recompensa por nivel
+   v2.0 · Mismo lenguaje visual que el dial
+═══════════════════════════════════════════════════════ */
 
-function setOrdenLogros(orden) {
-  _ordenLogros = orden;
-  ['az','desc','asc'].forEach(k => {
-    const btn = document.getElementById('lord-' + k);
-    if (btn) btn.classList.remove('on');
-  });
-  const map = { 'az': 'az', 'monto-desc': 'desc', 'monto': 'asc' };
-  const btn = document.getElementById('lord-' + (map[orden] || 'az'));
-  if (btn) btn.classList.add('on');
-  pintarReverso();
+/* ── Inyectar estilos del panel ── */
+(function _inyectarEstilosLogros(){
+  if(document.getElementById('logros-styles')) return;
+  var s = document.createElement('style');
+  s.id = 'logros-styles';
+  s.textContent = `
+/* ── PANEL LOGROS WRAPPER ── */
+#board-logros {
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:#020810;
 }
 
-function _setPantalla(p){
-  _pantalla = p;
-  _boardFlipped = (p !== 'anverso');
-  const anv    = document.getElementById('board-anverso');
-  const logros = document.getElementById('board-logros');
-  const maslow = document.getElementById('board-bitacora');
-  const act    = document.getElementById('board-activity');
-  const sheets = document.getElementById('board-sheets');
-  anv.classList.remove('slide-left','slide-right');
-  if(logros) logros.classList.remove('active');
-  if(maslow) maslow.classList.remove('active');
-  if(act)    act.classList.remove('active');
-  if(sheets) sheets.classList.remove('active');
-  const scoreP = document.getElementById('board-score');
-  if(scoreP) scoreP.classList.remove('active');
-  const nutP = document.getElementById('board-nutricion');
-  if(nutP) nutP.classList.remove('active');
-  if(p === 'logros'){ anv.classList.add('slide-left'); if(logros) logros.classList.add('active'); }
-  else if(p === 'bitacora'){ anv.classList.add('slide-right'); if(maslow) maslow.classList.add('active'); }
-  else if(p === 'activity'){ anv.classList.add('slide-right'); if(act) act.classList.add('active'); }
-  else if(p.startsWith('sheets_')){ anv.classList.add('slide-right'); if(sheets) sheets.classList.add('active'); }
-  else if(p === 'score'){
-    anv.classList.add('slide-right');
-    const scorePanel = document.getElementById('board-score');
-    if(scorePanel) scorePanel.classList.add('active');
-  }
-  else if(p === 'nutricion'){ anv.classList.add('slide-right'); if(nutP) nutP.classList.add('active'); }
-  const bL = document.getElementById('btn-logros');
-  const bM = document.getElementById('btn-maslow');
-  const bA = document.getElementById('btn-activity');
-  const bS  = document.getElementById('btn-sheets');
-  const bSc = document.getElementById('btn-score');
-  if(bL)  bL.classList.toggle('active', p==='logros');
-  if(bM)  bM.classList.toggle('active', p==='bitacora');
-  if(bA)  bA.classList.toggle('active', p==='activity');
-  if(bS)  bS.classList.toggle('active', p.startsWith('sheets_'));
-  if(bSc) bSc.classList.toggle('active', p==='score');
-  var bNut = document.getElementById('btn-nutricion');
-  if(bNut) bNut.classList.toggle('active', p==='nutricion');
-  if(typeof _syncMobTab==='function') _syncMobTab(p);
+/* ── HEADER ── */
+#lgr-header {
+  display:flex;
+  align-items:center;
+  gap:20px;
+  padding:14px 24px 12px;
+  background:rgba(1,5,14,0.98);
+  border-bottom:1px solid rgba(0,200,120,0.18);
+  box-shadow:0 1px 0 rgba(0,255,136,0.08);
+  flex-shrink:0;
+  flex-wrap:wrap;
 }
 
-function irALogros(){ if(_pantalla==='logros'){ volverAlAnverso(); return; } _setPantalla('logros'); pintarReverso(); }
-function irABitacora(){ irAMaslowLegacy(); }
-function irAMaslowLegacy(){
-  if(_pantalla==='bitacora'){ volverAlAnverso(); return; }
-  _setPantalla('bitacora');
-  if(typeof renderSimsNeeds==='function') renderSimsNeeds();
-  if(typeof api!=='undefined'){
-    api.getPensamientos().then(function(r){ window._pensamientosData=r; renderPensamientos(r); renderSimsNeeds(); }).catch(function(){});
-    api.getRelaciones().then(function(r){ window._relacionesData=r; renderRelaciones(r); renderSimsNeeds(); }).catch(function(){});
-    api.getSalud().then(renderSalud).catch(function(){});
-    api.getNutricion().then(renderNutricion).catch(function(){ renderNutricion({ok:true,items:[],resumen:{}}); });
-    api.getEntrenamiento().then(renderEntrenamiento).catch(function(){ renderEntrenamiento({ok:true,items:[]}); });
-  }
+/* Nivel circular */
+#lgr-nivel-badge {
+  width:64px; height:64px;
+  border-radius:50%;
+  background:rgba(0,12,24,0.95);
+  border:2px solid rgba(0,200,120,0.5);
+  box-shadow:0 0 20px rgba(0,255,136,0.2), inset 0 0 12px rgba(0,255,136,0.06);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  animation:logrosBadgePulse 3s ease-in-out infinite;
 }
-function irAActivity(){
-  if(_pantalla==='activity'){ volverAlAnverso(); return; }
-  _setPantalla('activity');
-  if(typeof api !== 'undefined' && api.resetearElectronics){
-    api.resetearElectronics().catch(function(){});
-  }
-  if(_actData) renderActivity();
-  else {
-    var grid = document.getElementById('act-container');
-    if(grid) grid.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px"></i></div>';
-    api.getActivityCheck().then(function(d){ _actData=d; renderActivity(); }).catch(function(){});
-  }
+@keyframes logrosBadgePulse {
+  0%,100%{ box-shadow:0 0 16px rgba(0,255,136,0.18), inset 0 0 10px rgba(0,255,136,0.05); border-color:rgba(0,200,120,0.42); }
+  50%    { box-shadow:0 0 30px rgba(0,255,136,0.35), inset 0 0 18px rgba(0,255,136,0.12); border-color:rgba(0,255,136,0.72); }
 }
-function irAScore(){ if(_pantalla==='score'){ volverAlAnverso(); return; } _setPantalla('score'); cargarScore(); }
+#lgr-nivel-num  { font-size:20px; font-weight:800; color:#00ff88; letter-spacing:-.02em; line-height:1; text-shadow:0 0 10px rgba(0,255,136,0.6); }
+#lgr-nivel-lbl  { font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; color:rgba(0,255,136,0.5); margin-top:1px; }
 
-function irANutricion(){
-  if(_pantalla==='nutricion'){ volverAlAnverso(); return; }
-  _setPantalla('nutricion');
-  var lbl = document.getElementById('nut-fecha-lbl');
-  if(lbl){ var hoy=new Date(); lbl.textContent=hoy.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'}); }
-  if(typeof renderNutricion==='function' && typeof api!=='undefined'){
-    Promise.all([api.getNutricion(), api.getMetasNutricion ? api.getMetasNutricion() : Promise.resolve(null)])
-      .then(function(res){ renderNutricion(res[0], res[1]); })
-      .catch(function(){ renderNutricion({ok:true,dias:{},semana:[],hoy:{cal:0,prot:0,carbos:0,grasa:0,agua:0}}); });
-  }
+/* Progreso general */
+#lgr-progreso-wrap { flex:1; min-width:200px; }
+#lgr-progreso-titulo { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; color:rgba(255,255,255,0.35); margin-bottom:6px; }
+#lgr-progreso-bar-wrap {
+  height:6px;
+  background:rgba(0,255,136,0.10);
+  border-radius:0;
+  overflow:hidden;
+  position:relative;
 }
-function volverAlAnverso(){ _setPantalla('anverso'); }
-function flipBoard(){ if(_pantalla==='anverso') irALogros(); else volverAlAnverso(); }
-
-function poblarFiltrosReverso(){
-  const proyectos = [...new Set(_logrosRaw.map(it=>it.proyecto))].sort();
-  const grupos    = [...new Set(_logrosRaw.map(it=>it.grupo))].sort();
-  const selP = document.getElementById('reverso-fil-proyecto');
-  const selG = document.getElementById('reverso-fil-grupo');
-  if(selP) selP.innerHTML = '<option value="">Proyecto</option>' + proyectos.map(p=>`<option value="${p}">${p}</option>`).join('');
-  if(selG) selG.innerHTML = '<option value="">Contacto</option>' + grupos.map(g=>`<option value="${g}">${g}</option>`).join('');
+#lgr-progreso-bar {
+  height:100%;
+  background:linear-gradient(90deg,#00cc66,#00ff88);
+  box-shadow:0 0 10px rgba(0,255,136,0.6);
+  transition:width 1s cubic-bezier(.4,0,.2,1);
+  animation:logrosFillPulse 2.5s ease-in-out infinite;
 }
-
-function toggleReversoMostrarDone(){
-  _reversoMostrarDone = !_reversoMostrarDone;
-  const btn = document.getElementById('reverso-tog-done');
-  if(btn){
-    btn.innerHTML = _reversoMostrarDone ? '<i class="fas fa-eye"></i> Completados' : '<i class="fas fa-eye-slash"></i> Completados';
-    btn.style.background = _reversoMostrarDone ? 'rgba(34,197,94,.2)' : 'rgba(34,197,94,.08)';
-  }
-  pintarReverso();
+@keyframes logrosFillPulse {
+  0%,100%{ box-shadow:0 0 8px rgba(0,255,136,0.5); }
+  50%    { box-shadow:0 0 18px rgba(0,255,136,0.9), 0 0 4px #00ff88; }
 }
+#lgr-progreso-txt { display:flex; justify-content:space-between; margin-top:5px; }
+#lgr-progreso-frac { font-size:12px; font-weight:700; color:#fff; }
+#lgr-prox-recompensa { font-size:11px; color:rgba(255,255,255,0.4); }
+#lgr-prox-xp { font-size:11px; font-weight:700; color:#fbbf24; text-shadow:0 0 6px rgba(251,191,36,0.4); }
+#lgr-prox-dinero { font-size:11px; font-weight:700; color:#00ff88; text-shadow:0 0 6px rgba(0,255,136,0.4); }
 
-function resetReverso(){
-  ['reverso-fil-proyecto','reverso-fil-grupo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  _ordenLogros = 'az'; setOrdenLogros('az');
+/* Filtros y ordenamiento */
+#lgr-filtros {
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  margin-left:auto;
 }
+.lgr-select {
+  background:rgba(0,12,24,0.9);
+  border:1px solid rgba(0,255,136,0.22);
+  border-radius:0;
+  color:rgba(0,255,136,0.8);
+  font-family:inherit; font-size:10px; font-weight:600;
+  padding:5px 10px; outline:none; cursor:pointer;
+  letter-spacing:.04em;
+  -webkit-appearance:none; appearance:none;
+  transition:border-color .15s;
+}
+.lgr-select:hover { border-color:rgba(0,255,136,0.5); }
+.lgr-select option { background:#020810; color:#fff; }
 
-function pintarReverso(){
-  if(typeof poblarFiltrosMes === 'function') poblarFiltrosMes();
-  poblarFiltrosReverso();
-  const filP  = document.getElementById('reverso-fil-proyecto')?.value||'';
-  const filG  = document.getElementById('reverso-fil-grupo')?.value||'';
-  const orden = _ordenLogros || 'az';
-  let items = _logrosRaw.filter(it=>{
-    if(!_reversoMostrarDone && it.completado) return false;
-    if(filP && it.proyecto!==filP) return false;
-    if(filG && it.grupo!==filG) return false;
-    return true;
-  });
-  if(orden==='az') items.sort((a,b)=>a.concepto.localeCompare(b.concepto,'es'));
-  else if(orden==='monto') items.sort((a,b)=>(Math.abs(a.monto||0))-(Math.abs(b.monto||0)));
-  else if(orden==='monto-desc') items.sort((a,b)=>(Math.abs(b.monto||0))-(Math.abs(a.monto||0)));
-  const total = _logrosRaw.length;
-  const done  = _logrosRaw.filter(it=>it.completado).length;
-  const cnt   = document.getElementById('reverso-count');
-  if(cnt) cnt.textContent = `${done} completados · ${total-done} pendientes`;
-  const grid = document.getElementById('inv-grid-full');
-  if(!grid) return;
-  if(!items.length){
-    grid.innerHTML=`<div style="text-align:center;padding:48px;color:var(--m);grid-column:1/-1">
-      <div style="font-size:48px;margin-bottom:12px">🏆</div>
-      <div style="font-size:14px">${done===total&&total>0?'¡Todos completados! 🎉':'Sin logros aún — agrega desde tu Sheet.'}</div>
-    </div>`;
-    return;
-  }
-  // Tabla completados adyacente
-  var tablaComp = document.getElementById('logros-completados-tabla');
-  if(tablaComp){
-    var comp = _logrosRaw.filter(function(it){ return it.completado; });
-    tablaComp.innerHTML = !comp.length
-      ? '<div style="padding:16px;color:var(--m);font-size:12px;text-align:center">Sin completados</div>'
-      : comp.map(function(it){
-          var monto = it.monto ? '$ '+Math.abs(it.monto).toLocaleString('es-MX',{minimumFractionDigits:0}) : '—';
-          return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04)">' +
-            '<div style="flex:1;min-width:0">' +
-              '<div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+it.concepto+'</div>' +
-              '<div style="font-size:10px;color:var(--m);margin-top:2px">'+it.proyecto+(it.fechaCompletado?' · '+it.fechaCompletado:'')+'</div>' +
-            '</div>' +
-            '<div style="font-size:12px;font-weight:700;color:var(--ok);flex-shrink:0">'+monto+'</div>' +
-            '<button onclick="revertirLogro('+it.fila+')" style="padding:3px 8px;border-radius:var(--rad-pill);border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:var(--err);cursor:pointer;font-size:10px;font-weight:600;font-family:inherit;flex-shrink:0">Revertir</button>' +
-          '</div>';
-        }).join('');
-  }
+.lgr-pill-group { display:flex; gap:2px; background:rgba(0,0,0,0.6); padding:2px; border:1px solid rgba(0,255,136,0.12); }
+.lgr-pill {
+  padding:5px 12px;
+  font-size:10px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.08em;
+  background:none; border:none;
+  color:rgba(255,255,255,0.35);
+  cursor:pointer; font-family:inherit;
+  transition:all .12s;
+}
+.lgr-pill:hover  { color:#fff; background:rgba(0,255,136,0.06); }
+.lgr-pill.on     { background:rgba(0,255,136,0.14); color:#00ff88; box-shadow:0 0 8px rgba(0,255,136,0.2); }
 
-  grid.innerHTML = items.map((it,i)=>{
-    const icon   = getLogroIcon(it);
-    const label  = it.concepto;
-    const monto  = it.monto?'$ '+Math.abs(it.monto).toLocaleString('es-MX',{minimumFractionDigits:0}):'';
-    const tag    = it.grupo!==it.proyecto?it.grupo:'';
-    const tooltip= [label,monto,it.proyecto,it.fecha].filter(Boolean).join(' · ');
-    const isDone = it.completado;
-    const isInc  = it.incompleto;
-    const uid    = it.fila || ('tmp_'+i);
-    return `<div class="inv-item${isDone?' done':''}${isInc?' inc':''}"
-      title="${tooltip}" data-uid="${uid}" onclick="toggleLogroReverso('${uid}')">
-      <div class="inv-corner ${isDone?'done':isInc?'warn':'pend'}">
-        <i class="fas fa-${isDone?'check':isInc?'exclamation':'lock'}"></i>
-      </div>
-      <div class="inv-icon" style="opacity:${isDone?.5:1}">${icon}</div>
-      <div class="inv-label" style="color:${isDone?'var(--m)':isInc?'var(--warn)':'var(--t)'};text-decoration:${isDone?'line-through':'none'}">
-        ${label.length>28?label.slice(0,27)+'…':label}
-      </div>
-      ${monto?`<div class="inv-monto" style="opacity:${isDone?.5:1}">${monto}</div>`:''}
-      ${tag?`<div class="inv-tag">${tag}</div>`:''}
-    </div>`;
-  }).join('');
-  if(_pantalla==='bitacora') dibujarNecesidades();
+.lgr-btn-volver {
+  display:flex; align-items:center; gap:6px;
+  padding:6px 14px;
+  background:rgba(0,12,24,0.9);
+  border:1px solid rgba(0,255,136,0.25);
+  border-radius:0;
+  color:rgba(0,255,136,0.8); font-family:inherit;
+  font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.08em;
+  cursor:pointer; transition:all .15s;
+}
+.lgr-btn-volver:hover { background:rgba(0,255,136,0.10); color:#fff; box-shadow:0 0 12px rgba(0,255,136,0.2); }
+.lgr-btn-done {
+  display:flex; align-items:center; gap:5px;
+  padding:5px 12px;
+  background:rgba(0,0,0,0.5);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:0; color:rgba(255,255,255,0.4);
+  font-family:inherit; font-size:10px; font-weight:600;
+  text-transform:uppercase; letter-spacing:.06em;
+  cursor:pointer; transition:all .15s;
+}
+.lgr-btn-done:hover { border-color:rgba(255,255,255,0.25); color:#fff; }
+.lgr-btn-done.on    { border-color:rgba(251,191,36,0.4); color:#fbbf24; background:rgba(251,191,36,0.06); }
+
+/* ── BODY — grid + sidebar ── */
+#lgr-body {
+  display:grid;
+  grid-template-columns:1fr 300px;
+  gap:0;
+  flex:1;
+  overflow:hidden;
 }
 
-function revertirLogro(fila){
-  var item = _logrosRaw.find(function(it){ return String(it.fila) === String(fila); });
-  if(!item) return;
-  item.completado = false;
-  item.fechaCompletado = '';
-  pintarReverso();
-  api.marcarLogro(item.fila, 'No')
-    .then(function(r){ if(!r.ok){ item.completado=true; pintarReverso(); } else showToast('Logro revertido'); })
-    .catch(function(){ item.completado=true; pintarReverso(); });
+/* ── GRID DE CARDS ── */
+#lgr-grid-wrap {
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:16px 20px 24px;
+}
+#lgr-grid-wrap::-webkit-scrollbar { width:4px; }
+#lgr-grid-wrap::-webkit-scrollbar-thumb { background:rgba(0,255,136,0.2); }
+
+#inv-grid-full {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+  gap:8px;
 }
 
-function toggleLogroReverso(uid){
-  const item = _logrosRaw.find(it=>{
-    const itUid = it.fila ? String(it.fila) : null;
-    return itUid === String(uid) || ('tmp_'+_logrosRaw.indexOf(it)) === String(uid);
-  });
-  if(!item) return;
-  if(item.incompleto){ showToast('⚠ Completa el Concepto en el Sheet primero', false); return; }
-  const nuevoVal = item.completado ? 'No' : 'Sí';
-  item.completado = !item.completado;
-  pintarReverso();
-  if(item.fila){
-    api.marcarLogro(item.fila, nuevoVal)
-      .then(r=>{ if(!r.ok){item.completado=!item.completado;pintarReverso();showToast('Error al guardar',false);}
-                 else showToast(nuevoVal==='Sí'?'✓ Logro completado':'Logro desmarcado',nuevoVal==='Sí'); })
-      .catch(()=>{item.completado=!item.completado;pintarReverso();});
-  } else {
-    showToast(nuevoVal==='Sí'?'✓ Marcado':'Desmarcado', true);
-  }
+/* ── CARD DE LOGRO ── */
+.lgr-card {
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  padding:16px 10px 12px;
+  background:rgba(0,10,20,0.92);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:0;
+  cursor:pointer;
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s;
+  overflow:hidden;
+  user-select:none;
+}
+.lgr-card::before {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:2px;
+  background:var(--lgr-color, rgba(255,255,255,0.2));
+  box-shadow:0 0 8px var(--lgr-color, rgba(255,255,255,0.2));
+  opacity:0.7;
+  transition:opacity .2s;
+}
+/* Esquinas estilo dial */
+.lgr-card::after {
+  content:'';
+  position:absolute;
+  bottom:0; right:0;
+  width:8px; height:8px;
+  border-bottom:2px solid var(--lgr-color, rgba(255,255,255,0.2));
+  border-right:2px solid var(--lgr-color, rgba(255,255,255,0.2));
+  opacity:0.5;
+}
+.lgr-card:hover {
+  transform:translateY(-4px) scale(1.02);
+  box-shadow:0 8px 28px rgba(0,0,0,0.5), 0 0 0 1px var(--lgr-color, rgba(255,255,255,0.2));
+}
+.lgr-card:hover::before { opacity:1; }
+.lgr-card.done {
+  background:rgba(0,20,10,0.88);
+  border-color:rgba(0,255,136,0.18);
+}
+.lgr-card.done::before { opacity:1; box-shadow:0 0 12px rgba(0,255,136,0.5); }
+.lgr-card.activo {
+  border-color:rgba(251,191,36,0.3);
 }
 
-// ══════════════════════════════════════════
-//  TOOLTIP GLOBAL
-// ══════════════════════════════════════════
-function initTooltip(){
-  const tip=document.getElementById('gtip');
-  document.addEventListener('mouseover',e=>{
-    const el=e.target.closest('[title]');
-    if(!el||!el.title)return;
-    tip.textContent=el.title;tip.classList.add('show');
-    const r=el.getBoundingClientRect();
-    tip.style.left=Math.max(6,r.left+r.width/2-tip.offsetWidth/2)+'px';
-    tip.style.top=(r.bottom+8)+'px';
-  });
-  document.addEventListener('mouseout',()=>tip.classList.remove('show'));
+/* Candado */
+.lgr-lock {
+  position:absolute; top:7px; right:8px;
+  font-size:9px; color:rgba(255,255,255,0.22);
+}
+.lgr-card.done .lgr-lock { display:none; }
+
+/* Ícono */
+.lgr-ico {
+  width:44px; height:44px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px;
+  filter:drop-shadow(0 0 6px var(--lgr-color, rgba(255,255,255,0.3)));
+  transition:filter .2s, transform .2s;
+}
+.lgr-card:hover .lgr-ico {
+  filter:drop-shadow(0 0 14px var(--lgr-color, rgba(255,255,255,0.5)));
+  transform:scale(1.1);
+}
+.lgr-card:not(.done) .lgr-ico { filter:grayscale(30%) brightness(.65); }
+.lgr-card:hover .lgr-ico, .lgr-card.done .lgr-ico { filter:drop-shadow(0 0 10px var(--lgr-color, rgba(255,255,255,0.4))) none; }
+
+/* Nombre */
+.lgr-nombre {
+  font-size:10px; font-weight:700;
+  text-align:center; color:rgba(255,255,255,0.82);
+  line-height:1.3; max-width:100%;
+  letter-spacing:-.01em;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.lgr-card.done .lgr-nombre { color:#fff; }
+
+/* Precio */
+.lgr-precio {
+  font-size:12px; font-weight:700;
+  font-variant-numeric:tabular-nums;
+  color:rgba(255,255,255,0.5);
+  letter-spacing:-.02em;
+}
+.lgr-card.done .lgr-precio { color:var(--lgr-color, #00ff88); text-shadow:0 0 6px var(--lgr-color, rgba(0,255,136,0.4)); }
+
+/* Badge (ACTIVO, DENTISTA, etc.) */
+.lgr-badge {
+  font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+  padding:2px 7px;
+  background:rgba(251,191,36,0.12);
+  border:1px solid rgba(251,191,36,0.3);
+  color:#fbbf24;
 }
 
-(function tickClock(){
-  const now=new Date();
-  const t=now.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
-  ['saldo-clock','saldo-clock2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t;});
-  setTimeout(tickClock,1000);
+/* Progreso 0/1 */
+.lgr-progress-row {
+  display:flex; align-items:center; gap:6px; width:100%;
+  margin-top:2px;
+}
+.lgr-progress-bar {
+  flex:1; height:2px;
+  background:rgba(255,255,255,0.06);
+  overflow:hidden;
+}
+.lgr-progress-fill {
+  height:100%;
+  background:var(--lgr-color, rgba(255,255,255,0.3));
+  box-shadow:0 0 4px var(--lgr-color, rgba(255,255,255,0.3));
+  transition:width .6s ease;
+}
+.lgr-progress-txt {
+  font-size:9px; font-weight:600; color:rgba(255,255,255,0.28);
+  flex-shrink:0; letter-spacing:.02em;
+}
+.lgr-card.done .lgr-progress-txt { color:var(--lgr-color, #00ff88); }
+
+/* Badge completado */
+.lgr-done-badge {
+  position:absolute; top:6px; left:8px;
+  font-size:9px; font-weight:700;
+  padding:1px 6px;
+  background:rgba(0,255,136,0.14);
+  border:1px solid rgba(0,255,136,0.35);
+  color:#00ff88;
+  letter-spacing:.06em;
+  display:none;
+}
+.lgr-card.done .lgr-done-badge { display:block; }
+
+/* ── SIDEBAR ── */
+#lgr-sidebar {
+  overflow-y:auto;
+  border-left:1px solid rgba(0,255,136,0.12);
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  background:rgba(0,6,14,0.96);
+}
+#lgr-sidebar::-webkit-scrollbar { width:3px; }
+#lgr-sidebar::-webkit-scrollbar-thumb { background:rgba(0,255,136,0.2); }
+
+.lgr-sidebar-section {
+  border-bottom:1px solid rgba(0,255,136,0.08);
+  flex-shrink:0;
+}
+.lgr-sidebar-title {
+  padding:10px 14px 8px;
+  font-size:8px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.16em;
+  color:rgba(0,255,136,0.6);
+  display:flex; align-items:center; gap:6px;
+}
+.lgr-sidebar-title i { color:rgba(0,255,136,0.8); }
+
+/* Completados lista */
+.lgr-completado-item {
+  display:flex; align-items:center; gap:10px;
+  padding:9px 14px;
+  border-bottom:1px solid rgba(0,255,136,0.05);
+  transition:background .12s;
+  cursor:default;
+}
+.lgr-completado-item:hover { background:rgba(0,255,136,0.03); }
+.lgr-completado-nombre { flex:1; font-size:11px; font-weight:600; color:rgba(255,255,255,0.8); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lgr-completado-monto  { font-size:11px; font-weight:700; color:#00ff88; text-shadow:0 0 6px rgba(0,255,136,0.3); flex-shrink:0; font-variant-numeric:tabular-nums; }
+.lgr-completado-meta   { font-size:9px; color:rgba(255,255,255,0.3); }
+.lgr-completado-btn {
+  font-size:9px; padding:2px 8px;
+  background:rgba(0,255,136,0.06); border:1px solid rgba(0,255,136,0.2);
+  color:rgba(0,255,136,0.7); cursor:pointer; font-family:inherit; font-weight:600;
+  border-radius:0; letter-spacing:.04em; transition:all .12s; flex-shrink:0;
+}
+.lgr-completado-btn:hover { background:rgba(0,255,136,0.14); color:#fff; }
+/* Navegación completados */
+.lgr-nav-btns { display:flex; gap:4px; margin-left:auto; }
+.lgr-nav-btn {
+  width:22px; height:22px;
+  background:rgba(0,0,0,0.5); border:1px solid rgba(0,255,136,0.18);
+  color:rgba(0,255,136,0.6); cursor:pointer; font-size:10px;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .12s;
+}
+.lgr-nav-btn:hover { background:rgba(0,255,136,0.1); color:#fff; }
+
+/* Categorías */
+.lgr-cat-item {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 14px;
+  border-bottom:1px solid rgba(0,255,136,0.04);
+  cursor:pointer; transition:background .12s;
+}
+.lgr-cat-item:hover { background:rgba(0,255,136,0.03); }
+.lgr-cat-item.on    { background:rgba(0,255,136,0.06); }
+.lgr-cat-ico { font-size:12px; width:16px; text-align:center; flex-shrink:0; }
+.lgr-cat-nombre { flex:1; font-size:11px; font-weight:600; color:rgba(255,255,255,0.65); }
+.lgr-cat-item.on .lgr-cat-nombre { color:#fff; }
+.lgr-cat-prog-wrap { width:52px; height:2px; background:rgba(255,255,255,0.06); flex-shrink:0; }
+.lgr-cat-prog-fill { height:100%; background:var(--cat-color,rgba(255,255,255,0.3)); box-shadow:0 0 4px var(--cat-color,rgba(255,255,255,0.3)); }
+.lgr-cat-frac { font-size:9px; font-weight:700; color:rgba(255,255,255,0.3); flex-shrink:0; min-width:24px; text-align:right; }
+
+/* Recompensa por nivel */
+.lgr-recompensa {
+  padding:12px 14px 16px;
+  display:flex; flex-direction:column; gap:8px;
+}
+.lgr-recompensa-nivel { font-size:10px; font-weight:700; color:rgba(255,255,255,0.4); letter-spacing:.04em; }
+.lgr-recompensa-items { display:flex; gap:8px; align-items:center; }
+.lgr-recompensa-chip {
+  display:flex; align-items:center; gap:5px;
+  padding:5px 10px;
+  background:rgba(251,191,36,0.08);
+  border:1px solid rgba(251,191,36,0.25);
+  font-size:12px; font-weight:700; color:#fbbf24;
+  text-shadow:0 0 6px rgba(251,191,36,0.3);
+}
+.lgr-recompensa-chip.verde {
+  background:rgba(0,255,136,0.08);
+  border-color:rgba(0,255,136,0.25);
+  color:#00ff88;
+  text-shadow:0 0 6px rgba(0,255,136,0.3);
+}
+.lgr-recompensa-bar-wrap {
+  height:3px; background:rgba(251,191,36,0.10); overflow:hidden;
+}
+.lgr-recompensa-bar {
+  height:100%;
+  background:linear-gradient(90deg,rgba(251,191,36,0.6),#fbbf24);
+  box-shadow:0 0 6px rgba(251,191,36,0.5);
+  transition:width .8s ease;
+}
+
+/* Tip bar */
+#lgr-tip {
+  position:sticky; bottom:0;
+  display:flex; align-items:center; gap:10px;
+  padding:8px 20px;
+  background:rgba(0,4,12,0.97);
+  border-top:1px solid rgba(0,255,136,0.12);
+  font-size:11px; color:rgba(255,255,255,0.4);
+  flex-shrink:0;
+}
+#lgr-tip .lgr-tip-badge {
+  background:rgba(0,255,136,0.10); border:1px solid rgba(0,255,136,0.25);
+  color:#00ff88; font-size:9px; font-weight:800; padding:2px 8px;
+  letter-spacing:.12em; flex-shrink:0;
+}
+#lgr-tip-txt { flex:1; }
+.lgr-tip-nav { display:flex; gap:3px; flex-shrink:0; }
+.lgr-tip-nav-btn {
+  width:20px; height:20px;
+  background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.10);
+  color:rgba(255,255,255,0.4); cursor:pointer; font-size:9px;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .12s;
+}
+.lgr-tip-nav-btn:hover { border-color:rgba(0,255,136,0.3); color:#00ff88; }
+
+/* Responsive */
+@media(max-width:899px){
+  #lgr-body { grid-template-columns:1fr !important; }
+  #lgr-sidebar { border-left:none; border-top:1px solid rgba(0,255,136,0.12); max-height:320px; }
+  #lgr-header { padding:10px 14px 8px; gap:10px; }
+  #lgr-nivel-badge { width:52px; height:52px; }
+  #lgr-nivel-num { font-size:17px; }
+  #inv-grid-full { grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:6px; }
+  #lgr-grid-wrap { padding:10px 12px 16px; }
+}
+  `;
+  document.head.appendChild(s);
 })();
 
-// ══════════════════════════════════════════
-//  LOGROS
-// ══════════════════════════════════════════
-let _logrosRaw = [];
-let _mostrarDone = false;
-
-const LOGROS_ICON_MAP = {
-  'Salud':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`,
-  'Casa':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
-  'Hogar':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
-  'Ropa':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/></svg>`,
-  'Educación':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`,
-  'Futuro':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>`,
-  'Movies':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>`,
-  'Accesorios':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`,
-  'Work':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,
-  'Foodies':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>`,
-  'Servicios':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M20 12h-2M17.66 17.66l-1.41-1.41M12 20v-2M6.34 17.66l1.41-1.41M4 12h2M6.34 6.34l1.41 1.41"/></svg>`,
-  '∴':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>`,
-  'Lectura':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
-  'Audio':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
-  'Computación':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/><polyline points="9 8 12 11 15 8"/></svg>`,
-  'Consumible':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`,
-  'Ejercicio':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 5v14M3 9h3M18 9h3M3 15h3M18 15h3M9 5h6M9 19h6"/></svg>`,
-  'default':`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+/* ── Estado global del panel ── */
+var _lgr = {
+  items:       [],
+  orden:       'az',
+  mostrarDone: true,
+  filProy:     '',
+  filGrupo:    '',
+  filCat:      '',
+  nivel:       1,
+  xpActual:    0,
+  xpNivel:     500,
+  pagComp:     0,
+  perPagComp:  4,
+  tipIdx:      0,
+  tips: [
+    'Completa logros para ganar XP y subir de nivel. ¡Cada nivel desbloquea mejores recompensas!',
+    'Los logros activos tienen un proyecto o fecha asignada. ¡Priorízalos!',
+    'Filtra por categoría para enfocarte en un área a la vez.',
+    'Revisa la sección de recompensas para saber qué ganas en el próximo nivel.',
+  ],
 };
 
-function getLogroIcon(it) {
-  const keys  = Object.keys(LOGROS_ICON_MAP);
-  const conc  = String(it.concepto||'').toLowerCase();
-  const grupo = String(it.grupo||'').toLowerCase();
-  const proj  = String(it.proyecto||'').toLowerCase();
-  for(const k of keys){
-    if(k==='default') continue;
-    const kl = k.toLowerCase();
-    if(conc.includes(kl)||grupo.includes(kl)||proj.includes(kl)) return LOGROS_ICON_MAP[k];
-  }
-  if(conc.includes('serie')||conc.includes('anime')) return LOGROS_ICON_MAP['Movies'];
-  if(conc.includes('leer')||conc.includes('lectura')) return LOGROS_ICON_MAP['Lectura'];
-  if(grupo.includes('audio')) return LOGROS_ICON_MAP['Audio'];
-  if(grupo.includes('computación')||grupo.includes('computacion')) return LOGROS_ICON_MAP['Computación'];
-  if(grupo.includes('consumible')) return LOGROS_ICON_MAP['Consumible'];
-  if(grupo.includes('ejercicio')) return LOGROS_ICON_MAP['Ejercicio'];
-  return LOGROS_ICON_MAP[proj] || LOGROS_ICON_MAP['default'];
-}
-
-function renderLogros(data) {
-  window._logrosData = data;
-  const fromSheet = (data && data.items) ? data.items : [];
-  const normalizados = fromSheet.map((it, i) => {
-    const proyecto   = (it.proyecto && it.proyecto.trim()) ? it.proyecto.trim() : 'Sin Proyecto';
-    const grupo      = (it.contacto && it.contacto.trim()) ? it.contacto.trim() : 'Sin Contacto';
-    const concepto   = (it.concepto && it.concepto.trim()) ? it.concepto.trim() : 'Sin Concepto';
-    const monto      = (typeof it.ie === 'number') ? it.ie : null;
-    const fecha      = (it.recurrencia && it.recurrencia !== '-' && it.recurrencia !== 'null') ? it.recurrencia : '';
-    const completado = (it.completado === 'Sí' || it.completado === 'Si' || it.completado === 'sí');
-    const incompleto = concepto === 'Sin Concepto';
-    const fechaCompletado = it.fecha || '';
-    return { proyecto, grupo, concepto, monto, fecha, completado, incompleto, fila: it.fila, fechaCompletado };
-  });
-  _logrosRaw = normalizados;
-  poblarFiltrosReverso();
-  pintarInventario([]);
-}
-
-function pintarInventario(items){
-  const total = _logrosRaw.length;
-  const done  = _logrosRaw.filter(it=>it.completado).length;
-  const btnFlip = document.getElementById('btn-logros');
-  if(btnFlip && _pantalla==='anverso'){
-    btnFlip.innerHTML = `<i class="fas fa-trophy"></i> Logros <span style="font-size:10px;opacity:.7">${done}/${total}</span>`;
-  }
-  if(_boardFlipped) pintarReverso();
-}
-
-// ══════════════════════════════════════════
-//  MASLOW
-// ══════════════════════════════════════════
-let _necData  = null;
-let _necVista = 'piramide';
-let _radarChart = null;
-let _pctAhorro = 20;
-
-const NEC_NIVELES = [
-  { key:'1', label:'Fisiológicas',    sub:'Comer, dormir, agua',     color:'#EF4444', emoji:'🔴' },
-  { key:'2', label:'Seguridad',       sub:'Estabilidad y vivienda',  color:'#F97316', emoji:'🟠' },
-  { key:'3', label:'Afiliación',      sub:'Relaciones y pertenencia',color:'#EAB308', emoji:'🟡' },
-  { key:'4', label:'Reconocimiento',  sub:'Logros y autoestima',     color:'#22C55E', emoji:'🟢' },
-  { key:'5', label:'Autorrealización',sub:'Propósito y potencial',   color:'#8B5CF6', emoji:'🟣' },
+var _CATEGORIAS_LOGROS = [
+  { key:'Salud',          ico:'❤️',  color:'#f87171' },
+  { key:'Educación',      ico:'📚',  color:'#60a5fa' },
+  { key:'Tecnología',     ico:'💻',  color:'#22d3ee' },
+  { key:'Hogar',          ico:'🏠',  color:'#a78bfa' },
+  { key:'Personal',       ico:'✨',  color:'#f0abfc' },
+  { key:'Entretenimiento',ico:'🎮',  color:'#fb923c' },
+  { key:'Misceláneos',    ico:'📦',  color:'#94a3b8' },
 ];
 
-let _necMesesSeleccionados = new Set();
-
-function renderNecesidades(data){ _necData = data; if(_pantalla==='bitacora'){ poblarFiltrosMes(); dibujarNecesidades(); } }
-
-function poblarFiltrosMes(){
-  const cont = document.getElementById('nec-filtros-mes');
-  if(!cont || !_necData || !_necData.mesesDisponibles) return;
-  cont.innerHTML = _necData.mesesDisponibles.map(m=>{
-    const on = _necMesesSeleccionados.has(m);
-    return `<button onclick="toggleFiltroMes('${m}')" id="nec-fil-${m.replace(' ','_')}"
-      style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;
-      background:${on?'rgba(139,92,246,.25)':'rgba(255,255,255,.04)'};
-      border:1px solid ${on?'rgba(139,92,246,.5)':'var(--border)'};
-      color:${on?'#C4B5FD':'var(--m)'};cursor:pointer;font-family:inherit;transition:all .15s">${m}</button>`;
-  }).join('');
+/* ── Color por categoría ── */
+function _lgrColor(cat){
+  var found = _CATEGORIAS_LOGROS.find(function(c){ return c.key===cat; });
+  if(found) return found.color;
+  // Fallback hue desde nombre
+  var h = 0; for(var i=0;i<(cat||'').length;i++) h = (h+cat.charCodeAt(i)*37)%360;
+  return 'hsl('+h+',70%,60%)';
 }
 
-function toggleFiltroMes(mes){
-  if(_necMesesSeleccionados.has(mes)) _necMesesSeleccionados.delete(mes);
-  else _necMesesSeleccionados.add(mes);
-  poblarFiltrosMes(); dibujarNecesidades();
+/* ── XP/Nivel desde datos ── */
+function _lgrCalcularNivel(items){
+  var completados = (items||[]).filter(function(l){ return _lgrIsDone(l); });
+  var xpTotal = completados.reduce(function(acc,l){ return acc+(parseInt(l.xp)||50); }, 0);
+  // 500 XP por nivel, escalando
+  var nivel=1, xpAcc=0;
+  while(xpAcc+nivel*500<=xpTotal){ xpAcc+=nivel*500; nivel++; }
+  _lgr.nivel    = nivel;
+  _lgr.xpActual = xpTotal - xpAcc;
+  _lgr.xpNivel  = nivel*500;
 }
 
-function resetFiltrosMes(){ _necMesesSeleccionados.clear(); poblarFiltrosMes(); dibujarNecesidades(); }
+function _lgrIsDone(l){ return l.completado==='Sí'||l.completado==='Si'||l.completado===true; }
 
-function calcularNivelesFiltrados(){
-  if(!_necData) return [];
-  if(!_necData.rawPorMes || _necMesesSeleccionados.size === 0) return _necData.niveles || [];
-  const sumas = {};
-  [..._necMesesSeleccionados].forEach(mes=>{
-    (_necData.rawPorMes[mes]||[]).forEach(({key,monto,concepto})=>{
-      if(!sumas[key]) sumas[key]={total:0,conceptos:[]};
-      sumas[key].total += monto;
-      if(concepto && !sumas[key].conceptos.includes(concepto)) sumas[key].conceptos.push(concepto);
-    });
-  });
-  return ['1','2','3','4','5'].map(key=>({ key, total: sumas[key]?sumas[key].total:0, conceptos: sumas[key]?sumas[key].conceptos:[] }));
+/* ── RENDER PRINCIPAL ── */
+function renderLogros(data){
+  _lgr.items = (data&&data.items) ? data.items : (Array.isArray(data)?data:[]);
+  window._logrosData = { items:_lgr.items };
+  _lgrCalcularNivel(_lgr.items);
+  _lgrMontarShell();
+  _lgrPintarHeader();
+  _lgrPintarGrid();
+  _lgrPintarSidebar();
+  _lgrPintarTip();
+  _lgrPoblarFiltros();
 }
 
-function switchVistaNec(vista){
-  _necVista = vista;
-  ['piramide','radar'].forEach(v=>{
-    const btn = document.getElementById('nec-btn-'+v);
-    if(!btn) return;
-    const on = v===vista;
-    btn.style.background  = on?'rgba(139,92,246,.25)':'rgba(255,255,255,.04)';
-    btn.style.borderColor = on?'rgba(139,92,246,.6)':'var(--border)';
-    btn.style.color       = on?'#C4B5FD':'var(--m)';
-    btn.style.fontWeight  = on?'700':'500';
-  });
-  if(_radarChart){ try{_radarChart.destroy();}catch(e){} _radarChart=null; }
-  dibujarNecesidades();
-}
+/* ── MONTAR ESTRUCTURA DEL PANEL ── */
+function _lgrMontarShell(){
+  var board = document.getElementById('board-logros');
+  if(!board) return;
 
-function dibujarNecesidades(){
-  const cont = document.getElementById('nec-container');
-  if(!cont) return;
-  if(!_necData || (!_necData.niveles && !_necData.rawPorMes)){
-    cont.innerHTML='<div style="padding:40px;text-align:center;color:var(--m);font-size:13px">Cargando…</div>';return;
-  }
-  const nivelesFiltrados = calcularNivelesFiltrados();
-  const per = document.getElementById('nec-periodo');
-  if(per){ if(_necMesesSeleccionados.size>0) per.textContent=[..._necMesesSeleccionados].join(', '); else per.textContent=_necData.periodo||''; }
-  if(_necVista==='piramide') dibujarPiramide(cont, nivelesFiltrados);
-  else if(_necVista==='radar') dibujarRadar(cont, nivelesFiltrados);
-  dibujarTablaAnalisis(nivelesFiltrados);
-}
+  // Limpiar contenido previo excepto el div original
+  board.innerHTML = '';
 
-function dataNivel(key, nivelesArr){
-  const arr = nivelesArr || (_necData ? _necData.niveles : []);
-  return arr.find(n=>n.key===key)||{key,total:0,conceptos:[]};
-}
-function fmtK(v){ const a=Math.abs(v); return a>=1000?'$'+Math.round(a/1000)+'k':'$'+a.toLocaleString('es-MX',{maximumFractionDigits:0}); }
-
-function dibujarPiramide(cont, niveles){
-  niveles = niveles || (_necData ? _necData.niveles : []);
-  const maxAbs  = Math.max(...NEC_NIVELES.map(n=>Math.abs(dataNivel(n.key,niveles).total||0)),1);
-  const totalSum= NEC_NIVELES.reduce((s,n)=>s+Math.abs(dataNivel(n.key,niveles).total||0),0);
-  const pisos   = [...NEC_NIVELES].reverse();
-  const html = pisos.map((niv)=>{
-    const d    = dataNivel(niv.key, niveles);
-    const abs  = Math.abs(d.total||0);
-    const pct  = totalSum>0 ? (abs/totalSum*100) : 0;
-    const barW = maxAbs>0 ? (abs/maxAbs*100) : 0;
-    const vacio = abs===0;
-    const tops  = (d.conceptos||[]).slice(0,3).join(', ');
-    return `<div style="margin-bottom:14px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="width:8px;height:8px;border-radius:50%;background:${vacio?'var(--dim)':niv.color};flex-shrink:0"></div>
-          <span style="font-size:12px;font-weight:600;color:${vacio?'var(--m)':'var(--t)'}">${niv.label}</span>
-          ${vacio?'<span style="font-size:10px;color:var(--warn)">⚠ descuidado</span>':''}
-        </div>
-        <div>
-          <span style="font-size:13px;font-weight:700;color:${vacio?'var(--dim)':'var(--t)'};font-variant-numeric:tabular-nums">
-            ${vacio?'—':'$ '+abs.toLocaleString('es-MX',{minimumFractionDigits:0})}
-          </span>
-          <span style="font-size:10px;color:var(--m);margin-left:6px">${vacio?'':Math.round(pct)+'%'}</span>
+  // Header
+  board.insertAdjacentHTML('beforeend', `
+    <div id="lgr-header">
+      <div id="lgr-nivel-badge">
+        <div id="lgr-nivel-num">${_lgr.nivel}</div>
+        <div id="lgr-nivel-lbl">Nivel</div>
+      </div>
+      <div id="lgr-progreso-wrap">
+        <div id="lgr-progreso-titulo">Progreso general</div>
+        <div id="lgr-progreso-bar-wrap"><div id="lgr-progreso-bar" style="width:0%"></div></div>
+        <div id="lgr-progreso-txt">
+          <span id="lgr-progreso-frac">—</span>
+          <span id="lgr-prox-recompensa">Próxima recompensa: <span id="lgr-prox-xp"></span> <span id="lgr-prox-dinero"></span></span>
         </div>
       </div>
-      <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
-        <div style="height:100%;width:${barW.toFixed(1)}%;background:${niv.color};border-radius:2px;opacity:${vacio?.25:.8}"></div>
+      <div id="lgr-filtros">
+        <select class="lgr-select" id="reverso-fil-proyecto" onchange="pintarReverso()">
+          <option value="">Proyecto</option>
+        </select>
+        <select class="lgr-select" id="reverso-fil-grupo" onchange="pintarReverso()">
+          <option value="">Contacto</option>
+        </select>
+        <div class="lgr-pill-group">
+          <button class="lgr-pill on" id="lord-az"   onclick="setOrdenLogros('az')">A–Z</button>
+          <button class="lgr-pill"    id="lord-desc" onclick="setOrdenLogros('monto-desc')">$ ↓</button>
+          <button class="lgr-pill"    id="lord-asc"  onclick="setOrdenLogros('monto')">$ ↑</button>
+        </div>
+        <button class="lgr-btn-done on" id="reverso-tog-done" onclick="toggleReversoMostrarDone()">
+          <i class="fas fa-check-circle" style="font-size:10px"></i> Completados
+        </button>
+        <button class="lgr-btn-volver" onclick="volverAlAnverso()">
+          <i class="fas fa-chevron-left" style="font-size:10px"></i> Volver
+        </button>
       </div>
-      ${tops?`<div style="font-size:10px;color:var(--m);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">↳ ${tops}</div>`:''}
-    </div>`;
-  }).join('');
-  cont.innerHTML=`<div style="padding:4px 0">${html}</div>`;
-}
-
-function dibujarRadar(cont, niveles){
-  niveles = niveles || (_necData ? _necData.niveles : []);
-  cont.innerHTML=`<canvas id="radar-canvas" style="max-height:320px"></canvas>`;
-  const canvas = document.getElementById('radar-canvas');
-  if(!canvas||!window.Chart) return;
-  const labels  = NEC_NIVELES.map(n=>n.label);
-  const valores  = NEC_NIVELES.map(n=>Math.abs(dataNivel(n.key,niveles).total||0));
-  const colors   = NEC_NIVELES.map(n=>n.color);
-  const maxVal   = Math.max(...valores,1);
-  const norm     = valores.map(v=>(v/maxVal*100));
-  if(_radarChart){ try{_radarChart.destroy();}catch(e){} _radarChart=null; }
-  _radarChart = new Chart(canvas,{
-    type:'radar',
-    data:{ labels, datasets:[{ label:'Gasto por necesidad', data:norm,
-      backgroundColor:'rgba(139,92,246,.12)', borderColor:'rgba(139,92,246,.6)',
-      borderWidth:1.5, pointBackgroundColor:colors, pointBorderColor:'#111',
-      pointBorderWidth:2, pointRadius:5, pointHoverRadius:7, fill:true }]},
-    options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.3,
-      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(15,23,42,.95)',
-        borderColor:'rgba(139,92,246,.3)', borderWidth:1, titleColor:'#fff', bodyColor:'#94A3B8', padding:10,
-        callbacks:{ label:ctx=>{ const i=ctx.dataIndex; return ' '+NEC_NIVELES[i].emoji+' $ '+valores[i].toLocaleString('es-MX',{minimumFractionDigits:0}); }}}},
-      scales:{ r:{ min:0, max:100, backgroundColor:'rgba(0,0,0,.15)',
-        angleLines:{color:'rgba(255,255,255,.06)',lineWidth:1}, grid:{color:'rgba(255,255,255,.06)'},
-        ticks:{display:false,stepSize:25},
-        pointLabels:{ font:{size:11,weight:'600',family:'system-ui'}, color:ctx=>colors[ctx.index]||'#94A3B8',
-          callback:(label,i)=>[label,fmtK(valores[i])] }}}}
-  });
-}
-
-function dibujarTablaAnalisis(niveles){
-  niveles = niveles || (_necData ? _necData.niveles : []);
-  const cont = document.getElementById('nec-tabla');
-  if(!cont||!_necData||!_necData.niveles) return;
-  const total  = NEC_NIVELES.reduce((s,n)=>s+Math.abs(dataNivel(n.key,niveles).total||0),0);
-  const sorted = [...NEC_NIVELES].map(n=>({...n,...dataNivel(n.key,niveles)})).sort((a,b)=>Math.abs(b.total||0)-Math.abs(a.total||0));
-  const rows = sorted.map(n=>{
-    const abs  = Math.abs(n.total||0);
-    const pct  = total>0?(abs/total*100).toFixed(1):0;
-    const tops = (n.conceptos||[]).join(', ')||'—';
-    const vacio= abs===0;
-    const status = vacio
-      ? `<span style="font-size:10px;color:var(--warn);background:rgba(245,158,11,.08);padding:2px 8px;border-radius:10px;border:1px solid rgba(245,158,11,.15)">⚠ Descuidado</span>`
-      : pct>40
-        ? `<span style="font-size:10px;color:var(--err);background:rgba(239,68,68,.08);padding:2px 8px;border-radius:10px;border:1px solid rgba(239,68,68,.15)">Alto</span>`
-        : `<span style="font-size:10px;color:var(--ok);background:rgba(74,222,128,.08);padding:2px 8px;border-radius:10px;border:1px solid rgba(74,222,128,.15)">✓ OK</span>`;
-    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-      <div style="width:8px;height:8px;border-radius:50%;background:${n.color};flex-shrink:0"></div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:600;color:${vacio?'var(--m)':'var(--t)'}">${n.label}</div>
-        <div style="font-size:10px;color:var(--m);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tops}</div>
-      </div>
-      <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:13px;font-weight:700;color:${vacio?'var(--dim)':'var(--t)'};font-variant-numeric:tabular-nums">${vacio?'—':'$ '+abs.toLocaleString('es-MX',{minimumFractionDigits:0})}</div>
-        <div style="font-size:10px;color:var(--m)">${pct}%</div>
-      </div>
-      <div style="flex-shrink:0">${status}</div>
-    </div>`;
-  }).join('');
-  cont.innerHTML=`<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--m);margin-bottom:10px">Resumen · <span style="color:var(--t);font-variant-numeric:tabular-nums">$ ${total.toLocaleString('es-MX',{minimumFractionDigits:0})}</span></div>${rows}`;
-}
-
-// ══════════════════════════════════════════
-//  TAB BAR MÓVIL
-// ══════════════════════════════════════════
-let _mobTabActivo = 'entrada';
-
-function mobTab(tab){
-  _mobTabActivo = tab;
-  document.querySelectorAll('.mob-tab').forEach(b=>{ b.classList.toggle('active', b.dataset.tab===tab); });
-  if(tab==='logros'){ irALogros(); return; }
-  if(tab==='bitacora'){ irAMaslowLegacy(); return; }
-  if(tab==='activity'){ irAActivity(); return; }
-  if(tab==='score'){ irAScore(); return; }
-  if(tab==='sheets'){ irASheets('raw'); return; }
-  if(_pantalla!=='anverso') volverAlAnverso();
-  const ids = { entrada:'col1-wrap', flujo:'sec-flujo' };
-  const targetId = ids[tab];
-  if(targetId){
-    setTimeout(()=>{
-      const el = document.getElementById(targetId);
-      if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
-    }, _pantalla!=='anverso' ? 560 : 0);
-  }
-}
-
-function _syncMobTab(p){
-  const map = {anverso:'entrada', logros:'logros', maslow:'bitacora', activity:'activity', score:'score', nutricion:'nutricion'};
-  const t = p.startsWith('sheets_') ? 'sheets' : (map[p]||'entrada');
-  document.querySelectorAll('.mob-tab').forEach(b=>{ b.classList.toggle('active', b.dataset.tab===t); });
-}
-
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-
-// ══════════════════════════════════════════
-//  ACTIVITY CHECK — 5 COLUMNAS SIMULTÁNEAS
-// ══════════════════════════════════════════
-let _actData    = null;
-let _actChecks  = {};
-
-var _DIAS_LABELS = ['Lu','Ma','W','Ju','Vi','Sa','Do'];
-var _DIAS_ELEC   = ['Lu','Ma','W','Ju','Vi']; // Trabajo solo L-V
-
-function _getDiasEstaSemanaMX(){
-  var hoy = new Date();
-  var dow = hoy.getDay();
-  var lunes = new Date(hoy);
-  lunes.setDate(hoy.getDate() - (dow === 0 ? 6 : dow - 1));
-  var dias = [];
-  for(var i = 0; i < 7; i++){
-    var d = new Date(lunes);
-    d.setDate(lunes.getDate() + i);
-    var iso = d.toISOString().slice(0,10);
-    var hoyIso = hoy.toISOString().slice(0,10);
-    dias.push({ date: iso, label: _DIAS_LABELS[i], isPast: iso <= hoyIso, isHoy: iso === hoyIso });
-  }
-  return dias;
-}
-
-function _getSemanaKey(){
-  var d = new Date();
-  var jan1 = new Date(d.getFullYear(), 0, 1);
-  var week = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
-  return d.getFullYear() + '-W' + String(week).padStart(2,'0');
-}
-
-function renderActivity(){
-  if(!_actData) return;
-  var semana = _getSemanaKey();
-  var lbl = document.getElementById('act-semana-lbl');
-  if(lbl) lbl.textContent = 'Semana ' + semana;
-  var cont = document.getElementById('act-container');
-  if(!cont) return;
-  var dias    = _getDiasEstaSemanaMX();
-  var hoyIso  = new Date().toISOString().slice(0,10);
-  var habPers = _actData.habitosPersonal || _actData.habitos || [];
-  var habElec = _actData.habitosElectronics || [];
-
-  // Resetear y poblar _actChecks desde los datos frescos del sheet
-  _actChecks = {};
-  var DIAS_KEYS = {L:'1',M:'2',W:'3',J:'4',V:'5',S:'6',D:'0'};
-  habPers.forEach(function(hab){
-    if(!hab.checks) return;
-    dias.forEach(function(d){
-      var dow = String(new Date(d.date+'T12:00:00').getDay());
-      var letra = Object.keys(DIAS_KEYS).find(function(k){ return DIAS_KEYS[k]===dow; });
-      if(letra && hab.checks[letra]){
-        _actChecks[hab.nombre+'_'+semana+'_'+d.date] = true;
-      }
-    });
-  });
-  habElec.forEach(function(hab){
-    if(!hab.checks) return;
-    dias.forEach(function(d){
-      var dow = String(new Date(d.date+'T12:00:00').getDay());
-      var letra = Object.keys(DIAS_KEYS).find(function(k){ return DIAS_KEYS[k]===dow; });
-      if(letra && hab.checks[letra]){
-        _actChecks[hab.nombre+'_'+semana+'_'+d.date] = true;
-      }
-    });
-  });
-  var libros  = _actData.libros  || [];
-  var movies  = _actData.movies  || [];
-  var noRut   = _actData.noRutinarias || [];
-
-  var diasElec = dias.filter(function(d){ return _DIAS_ELEC.indexOf(d.label) >= 0; });
-
-  var haySetimo = _hayAlgunSetimo(habPers, semana, dias) || _hayAlgunSetimo(habElec, semana, diasElec);
-  var btnMasivo = haySetimo
-    ? '<button onclick="_limpiarTodosSetimo()" style="padding:5px 14px;border-radius:var(--rad-pill);background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#FCA5A5;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px"><i class="fas fa-broom"></i> Limpiar todos los 7°</button>'
-    : '';
-
-  cont.innerHTML =
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">' +
-      '<div style="font-size:11px;color:var(--m)">Marca tu 7° día para ver opciones de limpieza</div>' +
-      btnMasivo +
-    '</div>' +
-    '<div style="display:grid;grid-template-columns:0.65fr 0.55fr 1fr 1fr 1fr;gap:12px;align-items:start;' +
-      (window.innerWidth < 700 ? 'grid-template-columns:1fr;' : '') + '">' +
-      _colActividad('Personal',   '#4ADE80', 'pers', _htmlHabitosCol(habPers, semana, dias,     hoyIso, '#4ADE80', 'pers')) +
-      _colActividad('Trabajo',    '#22D3EE', 'elec', _htmlHabitosCol(habElec, semana, diasElec, hoyIso, '#22D3EE', 'elec')) +
-      _colActividad('Libros',     '#EC4899', null, _htmlMediaCol(libros, 'libro', '#EC4899'),
-        {done:libros.filter(function(l){return l.completado;}).length, total:libros.length}) +
-      _colActividad('Movies',     '#F59E0B', null, _htmlMediaCol(movies, 'movie', '#F59E0B'),
-        {done:movies.filter(function(m){return m.completado;}).length, total:movies.length}) +
-      _colActividad('Pendientes', '#8B5CF6', null, _htmlNoRutCol(noRut),
-        {done:noRut.filter(function(n){return n.completado;}).length, total:noRut.length}) +
-    '</div>';
-}
-
-function _hayAlgunSetimo(habitos, semana, dias){
-  var ultimo = dias[dias.length-1];
-  return habitos.some(function(hab){
-    return !!_actChecks[hab.nombre+'_'+semana+'_'+ultimo.date];
-  });
-}
-
-function _colActividad(titulo, color, colId, innerHtml, counter){
-  var cntHtml = '';
-  if(counter !== undefined){
-    var pct = counter.total > 0 ? Math.round(counter.done/counter.total*100) : 0;
-    var cColor = pct===100 ? '#4ADE80' : pct>=50 ? color : 'rgba(255,255,255,.3)';
-    cntHtml = '<span style="font-size:11px;font-weight:700;color:'+cColor+';margin-left:5px">'+counter.done+'/'+counter.total+'</span>';
-  }
-  var limpiarBtn = colId
-    ? '<button id="act-limpiar-'+colId+'" onclick="_limpiarSetimoCol(\''+colId+'\')" style="display:none;padding:3px 10px;border-radius:var(--rad-pill);background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#FCA5A5;font-size:11px;cursor:pointer;font-family:inherit"><i class="fas fa-broom"></i> Limpiar</button>'
-    : '';
-  return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden" id="actcol-'+(colId||titulo)+'">' +
-    '<div style="padding:10px 14px 9px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between">' +
-      '<div style="display:flex;align-items:center;gap:7px">' +
-        '<div style="width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0"></div>' +
-        '<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.8)">'+titulo+'</span>' +
-        cntHtml +
-      '</div>' +
-      limpiarBtn +
-    '</div>' +
-    '<div style="padding:8px 0" id="actbody-'+(colId||titulo)+'">'+innerHtml+'</div>' +
-  '</div>';
-}
-
-function _htmlHabitosCol(habitos, semana, dias, hoyIso, color, colId){
-  if(!habitos || !habitos.length)
-    return '<div style="padding:14px;font-size:13px;color:var(--m);text-align:center">Sin hábitos</div>';
-
-  var pendientes = [], completados = [];
-  habitos.forEach(function(hab){
-    var ultimo = dias[dias.length-1];
-    var key7 = hab.nombre+'_'+semana+'_'+ultimo.date;
-    var setimo = !!_actChecks[key7];
-    var ultimaFecha = '';
-    for(var di=dias.length-1;di>=0;di--){
-      if(_actChecks[hab.nombre+'_'+semana+'_'+dias[di].date]){ ultimaFecha=dias[di].date; break; }
-    }
-    var obj = {hab:hab, setimo:setimo, ultimaFecha:ultimaFecha};
-    if(setimo) completados.push(obj); else pendientes.push(obj);
-  });
-
-  // Mostrar/ocultar botón limpiar de esta columna
-  setTimeout(function(){
-    var btn = document.getElementById('act-limpiar-'+colId);
-    if(btn) btn.style.display = completados.length ? 'inline-block' : 'none';
-  }, 0);
-
-  function renderHabRow(obj){
-    var hab=obj.hab, setimo=obj.setimo, pct=0;
-    var habIdx = habitos.indexOf(hab);
-
-    var diasHeader = '<div style="display:flex;gap:3px;margin-bottom:3px">' +
-      dias.map(function(d){
-        var esHoy = d.date === hoyIso;
-        return '<div style="width:22px;text-align:center;font-size:10px;font-weight:'+(esHoy?'800':'500')+';'+
-          'color:'+(esHoy?color:'rgba(255,255,255,.25)')+';line-height:18px;'+
-          (esHoy?'background:'+color+'22;border-radius:4px;':'')+'">'+d.label+'</div>';
-      }).join('')+'</div>';
-
-    var checks = dias.map(function(d){
-      var key  = hab.nombre+'_'+semana+'_'+d.date;
-      var done = !!_actChecks[key];
-      if(done) pct++;
-      return '<button data-idx="'+habIdx+'" data-src="'+(colId||'pers')+'" data-sem="'+semana+'" data-dat="'+d.date+'" onclick="_toggleHabitoKey(this)" '+
-        'style="width:'+(window.innerWidth<700?'28':'22')+'px;height:'+(window.innerWidth<700?'28':'22')+'px;border-radius:5px;border:1px solid '+(done?color+'88':'rgba(255,255,255,.12)')+';'+
-        'background:'+(done?color+'33':'rgba(255,255,255,.03)')+';cursor:pointer;'+
-        'display:flex;align-items:center;justify-content:center;font-size:11px;'+
-        'transition:all .2s;opacity:1;color:'+color+';flex-shrink:0;font-family:inherit"'+
-        '>'+(done?'✓':'')+'</button>';
-    }).join('');
-
-    var pctNum = Math.round(pct/dias.length*100);
-
-    return '<div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04);background:'+(setimo?'rgba(74,222,128,.04)':'transparent')+';transition:background .3s">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">' +
-        '<div style="font-size:13px;font-weight:600;color:'+(setimo?'rgba(255,255,255,.35)':'rgba(255,255,255,.9)')+';'+
-          'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72%;text-decoration:'+(setimo?'line-through':'none')+'" title="'+hab.nombre+'">'+hab.nombre+'</div>' +
-        (setimo
-          ? '<span style="font-size:10px;color:var(--ok);font-weight:700">✓ '+obj.ultimaFecha.slice(5)+'</span>'
-          : '<span style="font-size:10px;color:var(--m)">'+pctNum+'%</span>') +
-      '</div>' +
-      diasHeader +
-      '<div style="display:flex;gap:3px;flex-wrap:nowrap;margin-bottom:5px">'+checks+'</div>' +
-      '<div style="height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden">' +
-        '<div style="height:100%;width:'+pctNum+'%;background:'+color+';border-radius:1px;opacity:'+(setimo?.25:.7)+';transition:width .3s"></div>' +
-      '</div>' +
-    '</div>';
-  }
-
-  var html = '';
-  pendientes.forEach(function(obj){ html += renderHabRow(obj); });
-  if(completados.length){
-    html += '<div style="padding:6px 12px 3px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(74,222,128,.5);border-top:1px solid rgba(74,222,128,.1);margin-top:4px">✓ Completados</div>';
-    completados.forEach(function(obj){ html += renderHabRow(obj); });
-  }
-  return html;
-}
-
-function _toggleHabitoKey(btn){
-  var idx = parseInt(btn.getAttribute('data-idx'));
-  var src = btn.getAttribute('data-src');
-  var sem = btn.getAttribute('data-sem');
-  var dat = btn.getAttribute('data-dat');
-  var lista = (src==='elec') ? (_actData&&_actData.habitosElectronics||[]) : (_actData&&_actData.habitosPersonal||[]);
-  var hab = lista[idx];
-  if(!hab) return;
-  var key = hab.nombre+'_'+sem+'_'+dat;
-  _actChecks[key] = !_actChecks[key];
-  var nuevoValor = _actChecks[key];
-
-  // Mapear fecha ISO → día de la semana para la columna correcta
-  var DIAS_MAP = {'1':'L','2':'M','3':'W','4':'J','5':'V','6':'S','0':'D'};
-  var diasSemana = new Date(dat+'T12:00:00');
-  var diaLetra = DIAS_MAP[String(diasSemana.getDay())];
-
-  // Actualizar hab.checks localmente para que renderActivity lo refleje sin recargar
-  if(hab.checks && diaLetra) hab.checks[diaLetra] = nuevoValor;
-
-  // Escribir directamente en la hoja Activity Check
-  var tipo = (src==='elec') ? 'electronics' : 'personal';
-  if(hab.fila && diaLetra){
-    api.setActivityCheck(tipo, hab.fila, diaLetra, nuevoValor).catch(function(){});
-  }
-
-  renderActivity();
-}
-
-function _limpiarSetimoCol(colId){
-  var semana = _getSemanaKey();
-  var dias   = _getDiasEstaSemanaMX();
-  var diasCol = (colId==='elec') ? dias.filter(function(d){ return _DIAS_ELEC.indexOf(d.label)>=0; }) : dias;
-  var habitos = colId==='pers' ? (_actData&&_actData.habitosPersonal||[]) : (_actData&&_actData.habitosElectronics||[]);
-  var ultimo  = diasCol[diasCol.length-1];
-  habitos.forEach(function(hab){
-    var key7 = hab.nombre+'_'+semana+'_'+ultimo.date;
-    if(_actChecks[key7]){
-      diasCol.forEach(function(d){ delete _actChecks[hab.nombre+'_'+semana+'_'+d.date]; });
-    }
-  });
-  renderActivity();
-  showToast('7° limpiado — '+(colId==='pers'?'Personal':'Trabajo'));
-}
-
-function _limpiarTodosSetimo(){
-  _limpiarSetimoCol('pers');
-  _limpiarSetimoCol('elec');
-  showToast('7° limpiado en todas las columnas');
-}
-
-function _htmlMediaCol(items, tipo, color){
-  if(!items||!items.length) return '<div style="padding:14px;font-size:13px;color:var(--m);text-align:center">Sin elementos</div>';
-  var emoji = tipo==='libro' ? '📚' : '🎬';
-  var pend = items.filter(function(it){return !it.completado;});
-  var done = items.filter(function(it){return it.completado;});
-  return pend.concat(done).map(function(item){
-    var idx=items.indexOf(item), nombre=item.nombre||item, isDone=item.completado, fila=idx+2;
-    return '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.04)">' +
-      '<button data-tipo="'+tipo+'" data-fila="'+fila+'" data-val="'+(!isDone)+'" onclick="_toggleActivityItem(this,this.dataset.tipo,this.dataset.fila,this.dataset.val===\'true\')" '+
-      'style="width:20px;height:20px;border-radius:5px;flex-shrink:0;border:1px solid '+(isDone?color+'66':'rgba(255,255,255,.15)')+';'+
-      'background:'+(isDone?color+'22':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:'+color+';transition:all .2s;font-family:inherit">'+(isDone?'✓':'')+'</button>' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:13px;color:'+(isDone?'var(--m)':'rgba(255,255,255,.9)')+';text-decoration:'+(isDone?'line-through':'none')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+nombre+'">'+nombre+'</div>' +
-        (isDone && item.fechaCompletado ? '<div style="font-size:10px;color:var(--ok);margin-top:1px">✓ '+item.fechaCompletado+'</div>' : '') +
-      '</div>' +
-      '<span style="font-size:13px;flex-shrink:0;opacity:'+(isDone?.3:1)+'">'+emoji+'</span>' +
-    '</div>';
-  }).join('');
-}
-
-function _htmlNoRutCol(items){
-  if(!items||!items.length) return '<div style="padding:14px;font-size:13px;color:var(--m);text-align:center">Sin pendientes</div>';
-  var pend=items.filter(function(it){return !it.completado;});
-  var done=items.filter(function(it){return it.completado;});
-  return pend.concat(done).map(function(item){
-    var idx=items.indexOf(item), nombre=item.nombre||item, isDone=item.completado, fila=idx+2;
-    return '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.04)">' +
-      '<button data-tipo="norut" data-fila="'+fila+'" data-val="'+(!isDone)+'" onclick="_toggleActivityItem(this,this.dataset.tipo,this.dataset.fila,this.dataset.val===\'true\')" '+
-      'style="width:20px;height:20px;border-radius:5px;flex-shrink:0;border:1px solid '+(isDone?'rgba(74,222,128,.4)':'rgba(139,92,246,.3)')+';'+
-      'background:'+(isDone?'rgba(74,222,128,.15)':'rgba(139,92,246,.08)')+';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ok);transition:all .2s;font-family:inherit">'+(isDone?'✓':'')+'</button>' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:13px;color:'+(isDone?'var(--m)':'rgba(255,255,255,.9)')+';text-decoration:'+(isDone?'line-through':'none')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+nombre+'">'+nombre+'</div>' +
-        (isDone && item.fechaCompletado ? '<div style="font-size:10px;color:var(--ok);margin-top:1px">✓ '+item.fechaCompletado+'</div>' : '') +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-
-function guardarChecks(){
-  showToast('✓ Semana guardada');
-}
-
-
-
-function _toggleActivityItem(btn, tipo, fila, nuevoValor){
-  btn.disabled = true;
-  api.marcarActivityItem(tipo, fila, nuevoValor)
-    .then(function(r){
-      if(r.ok){
-        var lista = tipo==='libro'?_actData.libros:tipo==='movie'?_actData.movies:_actData.noRutinarias;
-        if(lista && lista[fila-2]){
-          lista[fila-2].completado = nuevoValor;
-          if(nuevoValor===true||nuevoValor==='true'){
-            lista[fila-2].fechaCompletado = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'});
-          } else { lista[fila-2].fechaCompletado = ''; }
-        }
-        renderActivity();
-      } else {
-        btn.disabled = false;
-        showToast('Error al marcar', false);
-      }
-    })
-    .catch(function(){ btn.disabled=false; showToast('Error',false); });
-}
-
-function cargarScore(){
-  const body = document.getElementById('score-body');
-  if(body) body.innerHTML='<div style="padding:40px;text-align:center;color:var(--m)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px"></i></div>';
-  api.getScoreVida ? api.getScoreVida().then(renderScore).catch(()=>{}) : null;
-}
-
-function renderScore(data){
-  const body = document.getElementById('score-body');
-  if(!body) return;
-  if(!data||!data.ok){ body.innerHTML='<div style="padding:20px;text-align:center;color:var(--m)">Sin datos de score</div>'; return; }
-  const sc    = data.score || {};
-  const score = sc.total || 0;
-  const maximos = sc.maximos || { dinero:25, habitos:25, salud:20, relaciones:15, mental:15 };
-  const desglose = sc.desglose || {};
-  const areas = [
-    { emoji:'💰', label:'Dinero',     score: Math.round((desglose.dinero||0)   / maximos.dinero   * 100), color:'#4ADE80' },
-    { emoji:'⚡', label:'Hábitos',    score: Math.round((desglose.habitos||0)  / maximos.habitos  * 100), color:'#3B82F6' },
-    { emoji:'🏥', label:'Salud',      score: Math.round((desglose.salud||0)    / maximos.salud    * 100), color:'#EC4899' },
-    { emoji:'👥', label:'Relaciones', score: Math.round((desglose.relaciones||0)/ maximos.relaciones*100), color:'#F59E0B' },
-    { emoji:'🧠', label:'Mental',     score: Math.round((desglose.mental||0)   / maximos.mental   * 100), color:'#8B5CF6' },
-  ];
-  const circumference = 2 * Math.PI * 54;
-  const dashOffset = circumference - (score / 100) * circumference;
-  const color = score >= 70 ? '#4ADE80' : score >= 40 ? '#FBBF24' : '#EF4444';
-  body.innerHTML = `
-    <div style="display:flex;flex-direction:column;align-items:center;padding:24px 20px 16px">
-      <svg width="140" height="140" viewBox="0 0 120 120">
-        <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
-        <circle cx="60" cy="60" r="54" fill="none" stroke="${color}" stroke-width="10"
-          stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}"
-          stroke-linecap="round" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset .8s ease"/>
-        <text x="60" y="58" text-anchor="middle" font-size="26" font-weight="700" fill="${color}" font-family="system-ui">${score}</text>
-        <text x="60" y="74" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.4)" font-family="system-ui">/ 100</text>
-      </svg>
-      <div style="font-size:11px;color:var(--m);margin-top:4px">Score de Vida</div>
     </div>
-    <div style="padding:0 20px 20px">
-      ${(data.alertas||[]).slice(0,3).map(a=>`
-      <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-        <div style="font-size:13px;flex-shrink:0">${a.area}</div>
-        <div style="font-size:12px;color:var(--err);flex:1">${a.msg}</div>
-      </div>`).join('')}
-    ${(data.positivos||[]).slice(0,2).map(a=>`
-      <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-        <div style="font-size:13px;flex-shrink:0">${a.area}</div>
-        <div style="font-size:12px;color:var(--ok);flex:1">${a.msg}</div>
-      </div>`).join('')}
-    <div style="font-size:10px;color:var(--m);padding:8px 0;text-align:center">${sc.estado||''}</div>
-    ${areas.map(a=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-          <div style="font-size:13px;flex-shrink:0">${a.emoji||'●'}</div>
-          <div style="flex:1">
-            <div style="font-size:12px;font-weight:600;color:var(--t)">${a.label}</div>
-            <div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:4px;overflow:hidden">
-              <div style="height:100%;width:${a.score}%;background:${a.color||color};border-radius:2px"></div>
-            </div>
-          </div>
-          <div style="font-size:13px;font-weight:700;color:${a.color||color};font-variant-numeric:tabular-nums">${a.score}</div>
-        </div>`).join('')}
-    </div>`;
+  `);
+
+  // Body
+  board.insertAdjacentHTML('beforeend', `
+    <div id="lgr-body">
+      <div id="lgr-grid-wrap">
+        <div id="inv-grid-full"></div>
+      </div>
+      <div id="lgr-sidebar"></div>
+    </div>
+  `);
+
+  // Tip bar
+  board.insertAdjacentHTML('beforeend', `
+    <div id="lgr-tip">
+      <span class="lgr-tip-badge">TIP</span>
+      <i class="fas fa-rotate-right" style="font-size:10px;color:rgba(0,255,136,0.5)"></i>
+      <span id="lgr-tip-txt"></span>
+      <div class="lgr-tip-nav">
+        <button class="lgr-tip-nav-btn" onclick="_lgrTipPrev()">‹</button>
+        <button class="lgr-tip-nav-btn" onclick="_lgrTipNext()">›</button>
+      </div>
+    </div>
+  `);
 }
+
+/* ── HEADER ── */
+function _lgrPintarHeader(){
+  var items    = _lgr.items;
+  var total    = items.length;
+  var hechos   = items.filter(_lgrIsDone).length;
+  var pct      = total>0 ? Math.round(hechos/total*100) : 0;
+  var bar      = document.getElementById('lgr-progreso-bar');
+  var frac     = document.getElementById('lgr-progreso-frac');
+  var xpEl     = document.getElementById('lgr-prox-xp');
+  var dinEl    = document.getElementById('lgr-prox-dinero');
+  var nivEl    = document.getElementById('lgr-nivel-num');
+  if(bar)  setTimeout(function(){ bar.style.width=pct+'%'; },80);
+  if(frac) frac.textContent = hechos+' / '+total;
+  if(xpEl) xpEl.textContent = '+500 XP';
+  if(dinEl){ dinEl.textContent = '+ $250'; }
+  if(nivEl) nivEl.textContent = _lgr.nivel;
+}
+
+/* ── FILTROS — poblar opciones ── */
+function _lgrPoblarFiltros(){
+  var items = _lgr.items;
+  var proyEl   = document.getElementById('reverso-fil-proyecto');
+  var grupoEl  = document.getElementById('reverso-fil-grupo');
+  if(!proyEl||!grupoEl) return;
+  var proyectos = [...new Set(items.map(function(l){return l.proyecto||'';}).filter(Boolean))].sort();
+  var grupos    = [...new Set(items.map(function(l){return l.grupo||l.contacto||'';}).filter(Boolean))].sort();
+  proyectos.forEach(function(p){ var o=document.createElement('option');o.value=p;o.textContent=p;proyEl.appendChild(o); });
+  grupos.forEach(function(g){ var o=document.createElement('option');o.value=g;o.textContent=g;grupoEl.appendChild(o); });
+}
+
+/* ── GRID ── */
+function pintarReverso(){ _lgrPintarGrid(); _lgrPintarSidebar(); }
+
+function _lgrPintarGrid(){
+  var grid = document.getElementById('inv-grid-full');
+  if(!grid) return;
+
+  var filProy  = (document.getElementById('reverso-fil-proyecto')||{}).value||'';
+  var filGrupo = (document.getElementById('reverso-fil-grupo')||{}).value||'';
+  var filCat   = _lgr.filCat;
+
+  var items = _lgr.items.slice();
+
+  // Filtros
+  if(filProy)  items = items.filter(function(l){ return (l.proyecto||'')==filProy; });
+  if(filGrupo) items = items.filter(function(l){ return (l.grupo||l.contacto||'')==filGrupo; });
+  if(filCat)   items = items.filter(function(l){ return (l.categoria||'')==filCat; });
+  if(!_lgr.mostrarDone) items = items.filter(function(l){ return !_lgrIsDone(l); });
+
+  // Orden
+  items.sort(function(a,b){
+    if(_lgr.orden==='az') return (a.nombre||'').localeCompare(b.nombre||'','es');
+    var ma=parseFloat((a.precio||a.monto||'0').toString().replace(/[^0-9.]/g,''))||0;
+    var mb=parseFloat((b.precio||b.monto||'0').toString().replace(/[^0-9.]/g,''))||0;
+    return _lgr.orden==='monto-desc' ? mb-ma : ma-mb;
+  });
+
+  grid.innerHTML = '';
+  if(!items.length){
+    grid.innerHTML='<div style="grid-column:1/-1;padding:40px;text-align:center;color:rgba(0,255,136,0.3);font-size:12px;letter-spacing:.08em">SIN RESULTADOS</div>';
+    return;
+  }
+
+  items.forEach(function(l){
+    var done   = _lgrIsDone(l);
+    var cat    = l.categoria||'Misceláneos';
+    var color  = _lgrColor(cat);
+    var precio = l.precio||l.monto||'';
+    var precioFmt = precio ? '$ '+parseFloat(precio.toString().replace(/[^0-9.]/g,'')).toLocaleString('es-MX') : '';
+    var prog   = done ? 1 : 0;
+    var activo = l.proyecto||l.activo;
+    var ico    = l.emoji||l.icono||'🎯';
+
+    var card = document.createElement('div');
+    card.className = 'lgr-card' + (done?' done':'') + (activo?' activo':'');
+    card.style.setProperty('--lgr-color', color);
+    card.setAttribute('data-id', l.id||l.nombre||'');
+
+    card.innerHTML =
+      '<div class="lgr-lock"><i class="fas fa-lock"></i></div>' +
+      (done?'<div class="lgr-done-badge">✓</div>':'') +
+      '<div class="lgr-ico">'+ico+'</div>' +
+      '<div class="lgr-nombre">'+escH(l.nombre||'—')+'</div>' +
+      (precioFmt?'<div class="lgr-precio">'+escH(precioFmt)+'</div>':'') +
+      (activo&&!done?'<div class="lgr-badge">'+escH(l.proyecto||'ACTIVO')+'</div>':'') +
+      '<div class="lgr-progress-row">' +
+        '<div class="lgr-progress-bar"><div class="lgr-progress-fill" style="width:'+(prog*100)+'%;background:'+color+';box-shadow:0 0 4px '+color+'"></div></div>' +
+        '<div class="lgr-progress-txt">'+(done?'1':'0')+'/1</div>' +
+      '</div>';
+
+    card.addEventListener('click', function(){ _lgrCardClick(l); });
+    grid.appendChild(card);
+  });
+}
+
+function _lgrCardClick(l){
+  if(_lgrIsDone(l)) return; // Ya completado
+  // Si tiene función de completar logro, llamarla
+  if(typeof completarLogro==='function') completarLogro(l.id||l.nombre);
+}
+
+/* ── SIDEBAR ── */
+function _lgrPintarSidebar(){
+  var sb = document.getElementById('lgr-sidebar');
+  if(!sb) return;
+  sb.innerHTML='';
+
+  // Sección completados
+  var done = _lgr.items.filter(_lgrIsDone);
+  var inicio= _lgr.pagComp * _lgr.perPagComp;
+  var pag   = done.slice(inicio, inicio+_lgr.perPagComp);
+  var totalPags = Math.ceil(done.length/_lgr.perPagComp);
+
+  var secComp = document.createElement('div');
+  secComp.className='lgr-sidebar-section';
+  var titComp='<div class="lgr-sidebar-title"><i class="fas fa-trophy"></i> Completados'
+    +(totalPags>1?'<div class="lgr-nav-btns"><button class="lgr-nav-btn" onclick="_lgrCompPrev()">‹</button><button class="lgr-nav-btn" onclick="_lgrCompNext()">›</button></div>':'')
+    +'</div>';
+  var itemsComp = pag.map(function(l){
+    var precio = l.precio||l.monto||'';
+    var fmt = precio?'$ '+parseFloat(precio.toString().replace(/[^0-9.]/g,'')).toLocaleString('es-MX'):'';
+    var fecha = l.fechaCompletado||l.fecha||'';
+    var cat = l.categoria||'';
+    return '<div class="lgr-completado-item">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div class="lgr-completado-nombre">'+escH(l.nombre||'—')+'</div>' +
+        '<div class="lgr-completado-meta">'+escH(cat+(fecha?' · '+fecha:''))+'</div>' +
+      '</div>' +
+      (fmt?'<div class="lgr-completado-monto">'+escH(fmt)+'</div>':'') +
+      (typeof revertirLogro==='function'?'<button class="lgr-completado-btn" onclick="revertirLogro(\''+escH(l.id||l.nombre||'')+'\')">Revertir</button>':'') +
+    '</div>';
+  }).join('');
+  if(!pag.length) itemsComp='<div style="padding:12px 14px;font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:.06em">Sin completados</div>';
+  secComp.innerHTML = titComp+itemsComp;
+  sb.appendChild(secComp);
+
+  // Sección categorías
+  var secCat = document.createElement('div');
+  secCat.className='lgr-sidebar-section';
+  secCat.innerHTML='<div class="lgr-sidebar-title"><i class="fas fa-layer-group"></i> Categorías</div>';
+
+  _CATEGORIAS_LOGROS.forEach(function(c){
+    var todos    = _lgr.items.filter(function(l){ return (l.categoria||'Misceláneos')===c.key; });
+    var hechos   = todos.filter(_lgrIsDone).length;
+    if(!todos.length) return;
+    var pctCat   = todos.length>0 ? Math.round(hechos/todos.length*100) : 0;
+    var isOn     = _lgr.filCat===c.key;
+    var el = document.createElement('div');
+    el.className = 'lgr-cat-item'+(isOn?' on':'');
+    el.style.setProperty('--cat-color', c.color);
+    el.innerHTML =
+      '<span class="lgr-cat-ico">'+c.ico+'</span>'+
+      '<span class="lgr-cat-nombre">'+escH(c.key)+'</span>'+
+      '<div class="lgr-cat-prog-wrap"><div class="lgr-cat-prog-fill" style="width:'+pctCat+'%;background:'+c.color+';box-shadow:0 0 4px '+c.color+'"></div></div>'+
+      '<span class="lgr-cat-frac">'+hechos+'/'+todos.length+'</span>';
+    el.addEventListener('click', function(){
+      _lgr.filCat = isOn?'':c.key;
+      _lgrPintarGrid(); _lgrPintarSidebar();
+    });
+    secCat.appendChild(el);
+  });
+  sb.appendChild(secCat);
+
+  // Sección recompensa por nivel
+  var proxNivel = _lgr.nivel+1;
+  var pctXP = _lgr.xpNivel>0 ? Math.round(_lgr.xpActual/_lgr.xpNivel*100) : 0;
+  var secRec = document.createElement('div');
+  secRec.className='lgr-sidebar-section';
+  secRec.innerHTML =
+    '<div class="lgr-sidebar-title"><i class="fas fa-gift"></i> Recompensa por nivel</div>'+
+    '<div class="lgr-recompensa">'+
+      '<div class="lgr-recompensa-nivel">Nivel '+proxNivel+' · '+_lgr.xpActual+' / '+_lgr.xpNivel+' XP</div>'+
+      '<div class="lgr-recompensa-items">'+
+        '<div class="lgr-recompensa-chip"><i class="fas fa-bolt" style="font-size:10px"></i> +500 XP</div>'+
+        '<div class="lgr-recompensa-chip verde"><i class="fas fa-dollar-sign" style="font-size:10px"></i> +$250</div>'+
+        '<div style="margin-left:auto;font-size:18px">📦</div>'+
+      '</div>'+
+      '<div class="lgr-recompensa-bar-wrap"><div class="lgr-recompensa-bar" style="width:'+pctXP+'%"></div></div>'+
+    '</div>';
+  sb.appendChild(secRec);
+}
+
+/* ── TIP BAR ── */
+function _lgrPintarTip(){
+  var el = document.getElementById('lgr-tip-txt');
+  if(el) el.textContent = _lgr.tips[_lgr.tipIdx % _lgr.tips.length];
+}
+function _lgrTipPrev(){ _lgr.tipIdx=(_lgr.tipIdx-1+_lgr.tips.length)%_lgr.tips.length; _lgrPintarTip(); }
+function _lgrTipNext(){ _lgr.tipIdx=(_lgr.tipIdx+1)%_lgr.tips.length; _lgrPintarTip(); }
+
+/* ── CONTROLES ── */
+function setOrdenLogros(o){
+  _lgr.orden=o;
+  ['az','desc','asc'].forEach(function(k){
+    var el=document.getElementById('lord-'+k);
+    if(el) el.classList.remove('on');
+  });
+  var mapa={'az':'az','monto-desc':'desc','monto':'asc'};
+  var el=document.getElementById('lord-'+mapa[o]);
+  if(el) el.classList.add('on');
+  _lgrPintarGrid();
+}
+function toggleReversoMostrarDone(){
+  _lgr.mostrarDone=!_lgr.mostrarDone;
+  var btn=document.getElementById('reverso-tog-done');
+  if(btn) btn.classList.toggle('on',_lgr.mostrarDone);
+  _lgrPintarGrid();
+}
+function resetReverso(){
+  _lgr.filCat=''; _lgr.mostrarDone=true; _lgr.orden='az';
+  var pEl=document.getElementById('reverso-fil-proyecto');
+  var gEl=document.getElementById('reverso-fil-grupo');
+  if(pEl) pEl.value=''; if(gEl) gEl.value='';
+  setOrdenLogros('az');
+  _lgrPintarGrid(); _lgrPintarSidebar();
+}
+function _lgrCompPrev(){ _lgr.pagComp=Math.max(0,_lgr.pagComp-1); _lgrPintarSidebar(); }
+function _lgrCompNext(){
+  var done=_lgr.items.filter(_lgrIsDone).length;
+  var maxPag=Math.ceil(done/_lgr.perPagComp)-1;
+  _lgr.pagComp=Math.min(maxPag,_lgr.pagComp+1); _lgrPintarSidebar();
+}
+
+/* ── NAVEGACIÓN ── */
+function irALogros(){
+  if(typeof _syncMobTab==='function') _syncMobTab('logros');
+  document.querySelectorAll('.board-face').forEach(function(f){ f.classList.remove('active'); });
+  var board=document.getElementById('board-logros');
+  if(board){ board.classList.add('active'); board.scrollTop=0; }
+  if(_lgr.items.length===0 && window._logrosData){
+    renderLogros(window._logrosData);
+  }
+}
+
+/* ── HELPER ── */
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
