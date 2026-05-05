@@ -1960,13 +1960,23 @@ document.addEventListener('DOMContentLoaded', function(){
         }
         var it = e.target.closest('._act-item');
         if(it){
-          var ok = !!it.querySelector('.fa-check');
-          it.style.borderColor = ok?'rgba(255,255,255,.28)':'rgba(74,222,128,.9)';
-          it.style.background  = ok?'transparent':'rgba(74,222,128,.20)';
-          it.innerHTML = ok?'':'<i class="fas fa-check" style="font-size:10px;color:#4ADE80;pointer-events:none"></i>';
-          var sp = it.parentElement.querySelector('span');
-          if(sp) sp.style.color = ok?'#fff':'rgba(255,255,255,.35)';
-          if(typeof api!=='undefined') api.setActivityCheck(it.dataset.tipo, parseInt(it.dataset.fila), null, !ok);
+          var row = it.parentElement;  // el div row completo
+          var ok  = !!it.querySelector('.fa-check');
+          var nowDone = !ok;
+          // Actualizar círculo
+          it.style.borderColor = nowDone?'rgba(74,222,128,.9)':'rgba(255,255,255,.28)';
+          it.style.background  = nowDone?'rgba(74,222,128,.20)':'transparent';
+          it.innerHTML = nowDone?'<i class="fas fa-check" style="font-size:10px;color:#4ADE80;pointer-events:none"></i>':'';
+          // Tachar texto
+          var sp = row.querySelector('span');
+          if(sp) sp.style.color = nowDone?'rgba(255,255,255,.35)':'#fff';
+          if(sp) sp.style.textDecoration = nowDone?'line-through':'none';
+          // Mover al fondo si se completa
+          if(nowDone){
+            var parent = row.parentElement;
+            if(parent){ parent.appendChild(row); }
+          }
+          if(typeof api!=='undefined') api.setActivityCheck(it.dataset.tipo, parseInt(it.dataset.fila), null, nowDone);
         }
       });
     };
