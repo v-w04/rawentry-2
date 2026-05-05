@@ -1174,3 +1174,233 @@ select{
   0%,100%{ transform:scale(1);   opacity:.7; }
   50%    { transform:scale(1.4); opacity:1; }
 }
+
+/* ════════════════════════════════════════════════════════
+   BRIEF — Identidad fuerte + feedback + jerarquía + progreso
+   Solo CSS, cero riesgo a lógica existente
+════════════════════════════════════════════════════════ */
+
+/* ── 1. RIPPLE — feedback táctil inmediato en cualquier elemento interactivo ── */
+.field,
+.ente-row,
+.sec-hdr,
+.rev-pill,
+.btn-flip,
+.lgr-card,
+.mob-tab,
+.opt,
+.pop-item,
+.apartado-item,
+.rel-item,
+.salud-item {
+  position: relative;
+  overflow: hidden;
+}
+.field::after,
+.ente-row::after,
+.sec-hdr::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--rx,50%) var(--ry,50%), rgba(255,255,255,0.07) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity .4s ease;
+  pointer-events: none;
+}
+.field:active::after,
+.ente-row:active::after,
+.sec-hdr:active::after {
+  opacity: 1;
+  transition: opacity 0s;
+}
+
+/* ── 2. PRESS SCALE — respuesta física a cada tap/click ── */
+.field:active          { transform: scale(0.995); }
+.ente-row:active       { transform: scale(0.997); }
+.opt:active            { transform: scale(0.94) !important; }
+.rev-pill:active       { transform: scale(0.93) !important; }
+.mob-tab:active        { transform: scale(0.88) !important; }
+.pop-item:active       { transform: scale(0.97); }
+.lgr-card:active       { transform: scale(0.97) !important; }
+.btn-save:active       { transform: scale(0.98) !important; }
+
+/* ── 3. TAB ACTIVO — jerarquía visual más fuerte, usuario sabe siempre dónde está ── */
+.btn-flip.active {
+  color: #fff !important;
+  border-bottom: 2px solid #fff !important;
+  background: rgba(255,255,255,0.07) !important;
+  text-shadow: 0 0 12px rgba(255,255,255,0.5);
+  animation: tabActivePulse 3s ease-in-out infinite;
+}
+@keyframes tabActivePulse {
+  0%,100% { text-shadow: 0 0 8px rgba(255,255,255,0.35); border-bottom-color: rgba(255,255,255,0.75); }
+  50%     { text-shadow: 0 0 16px rgba(255,255,255,0.7); border-bottom-color: #fff; }
+}
+
+/* ── 4. TRANSICIÓN DE PANELES — navegación fluida, sin corte ── */
+.board-face {
+  transition: opacity .18s ease, transform .18s ease;
+  will-change: opacity, transform;
+}
+.board-face:not(.active):not(.anverso) {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+}
+.board-face.active,
+.board-face.anverso:not(.slide-right):not(.slide-left) {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0);
+}
+
+/* ── 5. SECCIÓN HOVER — borde izquierdo de acento, indica acción disponible ── */
+.sec-hdr:hover .sec-hdr-title {
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255,255,255,0.2);
+  transition: all .15s;
+}
+.sec-hdr:hover .sec-hdr-icon {
+  border-color: rgba(255,255,255,0.25) !important;
+  box-shadow: 0 0 10px rgba(255,255,255,0.08) !important;
+}
+
+/* ── 6. FILA BANCO/DATO — hover más pronunciado ── */
+.ente-row:hover {
+  background: rgba(255,255,255,0.04) !important;
+  border-bottom-color: rgba(255,255,255,0.09) !important;
+}
+.field:hover {
+  background: rgba(255,255,255,0.025) !important;
+}
+
+/* ── 7. BTN-SAVE — estado loading visible, éxito animado ── */
+.btn-save {
+  transition: all .15s cubic-bezier(.4,0,.2,1) !important;
+}
+.btn-save:not(:disabled):hover {
+  background: rgba(255,255,255,0.92) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(255,255,255,0.15) !important;
+}
+.btn-save.saved {
+  background: rgba(74,222,128,0.15) !important;
+  border: 1px solid rgba(74,222,128,0.4) !important;
+  color: #4ADE80 !important;
+  animation: savedFlash .4s ease forwards;
+}
+@keyframes savedFlash {
+  0%  { box-shadow: 0 0 0   rgba(74,222,128,0); }
+  50% { box-shadow: 0 0 24px rgba(74,222,128,0.4); }
+  100%{ box-shadow: 0 0 12px rgba(74,222,128,0.1); }
+}
+
+/* ── 8. OPT SELECCIONADO — feedback de selección más claro ── */
+.opt {
+  transition: all .1s cubic-bezier(.4,0,.2,1) !important;
+}
+.opt.on {
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.6), 0 0 12px rgba(255,255,255,0.1) !important;
+  transform: scale(1.02);
+}
+.opt:hover:not(.on) {
+  background: rgba(255,255,255,0.09) !important;
+  border-color: rgba(255,255,255,0.2) !important;
+}
+
+/* ── 9. PROGRESO CARGA — barra de progreso más prominente ── */
+.prog-wrap {
+  height: 2px !important;
+}
+.prog-bar {
+  background: #fff !important;
+  box-shadow: 0 0 8px rgba(255,255,255,0.6) !important;
+}
+
+/* ── 10. CHEVRON de sección — animación más fluida ── */
+.sec-chevron {
+  transition: transform .22s cubic-bezier(.4,0,.2,1) !important;
+}
+.sec-hdr.open .sec-chevron {
+  transform: rotate(180deg) !important;
+}
+
+/* ── 11. MOB TAB ACTIVO — indicador más visible en móvil ── */
+.mob-tab.active .mob-tab-icon {
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.5));
+}
+.mob-tab.active .mob-tab-label {
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255,255,255,0.4);
+}
+
+/* ── 12. SALDO — animación al cambiar de valor ── */
+.saldo-val {
+  transition: color .3s ease, transform .15s ease !important;
+}
+.saldo-val.updated {
+  animation: saldoUpdate .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes saldoUpdate {
+  0%  { transform: scale(1); }
+  40% { transform: scale(1.04); }
+  100%{ transform: scale(1); }
+}
+
+/* ── 13. HERO CHIP OK — glow más visible para comunicar estado ── */
+.hero-chip.ok {
+  box-shadow: 0 0 12px rgba(74,222,128,0.2), inset 0 0 6px rgba(74,222,128,0.06) !important;
+  animation: chipGlow 3s ease-in-out infinite;
+}
+@keyframes chipGlow {
+  0%,100% { box-shadow: 0 0 8px rgba(74,222,128,0.15); }
+  50%     { box-shadow: 0 0 18px rgba(74,222,128,0.3); }
+}
+
+/* ── 14. TOAST — slide-up con más carácter ── */
+.toast {
+  transition: all .22s cubic-bezier(.34,1.56,.64,1) !important;
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0) !important;
+  opacity: 1 !important;
+}
+
+/* ── 15. SEC-HDR-ICON — feedback visual en hover de sección ── */
+.sec-hdr-icon {
+  transition: all .15s ease !important;
+}
+
+/* ── 16. POPUP/PANEL ENTRADA — slide desde abajo en móvil ── */
+@media(max-width:899px){
+  .entrada-dropdown.show #sec-entrada {
+    animation: slideUp .22s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0.7; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+}
+
+/* ── 17. SKELETON LOADER — comunica progreso mientras carga ── */
+.sec-body-loading {
+  padding: 16px;
+}
+.skel {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.09) 50%,
+    rgba(255,255,255,0.04) 100%);
+  background-size: 200% 100%;
+  animation: skelShimmer 1.4s ease-in-out infinite;
+  border-radius: 0;
+  height: 14px;
+  margin-bottom: 10px;
+}
+.skel.wide  { width: 80%; }
+.skel.mid   { width: 55%; }
+.skel.short { width: 35%; }
+@keyframes skelShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
