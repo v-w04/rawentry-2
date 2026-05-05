@@ -1386,6 +1386,9 @@ const SHEETS_CONFIG=[{id:'raw',label:'RAW',emoji:'📄',gid:'0',spreadsheetId:'1
    NAVEGACIÓN — funciones de nav robustas
 ═══════════════════════════════════════════════════════ */
 
+// Panel activo actualmente
+var _panelActual = 'anverso';
+
 function _irAPanel(boardId, tabKey){
   var anverso = document.getElementById('board-anverso');
   var destino = document.getElementById(boardId);
@@ -1393,7 +1396,15 @@ function _irAPanel(boardId, tabKey){
 
   var esAnverso = (boardId === 'board-anverso');
 
-  // Ocultar anverso o mostrarlo según destino
+  // Toggle: si ya estás en este panel, vuelve al anverso
+  if(!esAnverso && _panelActual === boardId){
+    volverAlAnverso();
+    return;
+  }
+
+  _panelActual = esAnverso ? 'anverso' : boardId;
+
+  // Anverso: quitar slide / poner slide
   if(anverso){
     if(esAnverso){
       anverso.classList.remove('slide-right','slide-left');
@@ -1402,7 +1413,7 @@ function _irAPanel(boardId, tabKey){
     }
   }
 
-  // Quitar active de todos los paneles que NO son el anverso
+  // Quitar active de todos los paneles secundarios
   document.querySelectorAll('.board-face:not(.anverso)').forEach(function(f){
     f.classList.remove('active');
   });
@@ -1415,8 +1426,11 @@ function _irAPanel(boardId, tabKey){
     t.classList.toggle('active', t.dataset.tab === tabKey);
   });
 
-  // Marcar btn-flip activo — btn-maslow es el de bitácora
+  // Marcar btn-flip activo
   document.querySelectorAll('.btn-flip').forEach(function(b){ b.classList.remove('active'); });
+  // Quitar highlight del HOME cuando vas a otro panel
+  var bh = document.getElementById('btn-home');
+  if(bh) bh.classList.toggle('on', esAnverso);
   var ids = { 'logros':'btn-logros', 'bitacora':'btn-maslow',
                'activity':'btn-activity', 'nutricion':'btn-nutricion' };
   var btnId = ids[tabKey] || ('btn-'+tabKey);
@@ -1425,9 +1439,18 @@ function _irAPanel(boardId, tabKey){
 }
 
 function volverAlAnverso(){
+  _panelActual = 'anverso';
   _irAPanel('board-anverso','entrada');
   var dd = document.getElementById('entrada-dropdown');
   if(dd){ dd.classList.remove('show'); dd.style.display='none'; }
+  // Quitar active de todos los btn-flip nav (no el de nueva entrada)
+  ['btn-logros','btn-maslow','btn-activity','btn-nutricion','btn-sheets'].forEach(function(id){
+    var b = document.getElementById(id);
+    if(b) b.classList.remove('active');
+  });
+  // Marcar HOME como activo
+  var bh = document.getElementById('btn-home');
+  if(bh) bh.classList.add('on');
 }
 
 function irALogros(){
@@ -1446,7 +1469,45 @@ function irABitacora(){
 
 function irAActivity(){
   _irAPanel('board-activity','activity');
-  if(typeof renderActivity==='function' && window._actData) renderActivity();
+  // Si renderActivity existe (GAS), usarla
+  if(typeof renderActivity==='function' && window._actData){
+    renderActivity();
+    return;
+  }
+  // Si no hay datos, cargarlos primero
+  if(!window._actData){
+    var cont = document.getElementById('act-container');
+    if(cont) cont.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,.3)"><i class="fas fa-circle-notch fa-spin" style="font-size:20px;color:#22d3ee"></i></div>';
+    api.getActivityCheck().then(function(d){
+      window._actData = d;
+      if(typeof renderActivity==='function') renderActivity();
+      else _renderActivityFallback(d);
+    }).catch(function(){
+      var c = document.getElementById('act-container');
+      if(c) c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(239,68,68,.5);font-size:12px">Sin conexión — regresa al dashboard principal</div>';
+    });
+  }
+}
+
+function _renderActivityFallback(d){
+  // Render básico cuando renderActivity del GAS no está disponible
+  var cont = document.getElementById('act-container');
+  if(!cont || !d) return;
+  var habs = (d.habitosPersonal||[]).concat(d.habitosElectronics||[]);
+  if(!habs.length){
+    cont.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,.3);font-size:12px">Sin hábitos configurados</div>';
+    return;
+  }
+  var html = '<div style="display:flex;flex-direction:column;gap:1px">';
+  habs.forEach(function(h){
+    html += '<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04)">';
+    html += '<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);flex-shrink:0;cursor:pointer"></div>';
+    html += '<div style="flex:1;font-size:13px;font-weight:600;color:#fff">'+(h.nombre||'—')+'</div>';
+    if(h.sims) html += '<div style="font-size:9px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.06em">'+h.sims+'</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  cont.innerHTML = html;
 }
 
 function irANutricion(){
