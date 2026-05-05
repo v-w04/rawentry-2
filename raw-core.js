@@ -227,11 +227,11 @@ var _dialVisible   = false;
 // Geometría — canvas 800 para que el subanillo (hasta ~390px) quepa
 var _DC = {
   W:920, H:920, CX:460, CY:460,
-  R_IN:80,
-  R_OUT:280,
-  R_SI:296,
-  R_SO:380,
-  GAP:0.032,
+  R_IN:55,   // agujero más chico → más espacio en gajos
+  R_OUT:290, // anillo principal más profundo
+  R_SI:306,  // subanillo empieza justo afuera
+  R_SO:400,  // subanillo profundo pero cabe (460-60=400)
+  GAP:0.028, // gap un poco más fino
 };
 
 function _crearDialOverlay(){
@@ -375,6 +375,12 @@ function _dialDraw(){
 
   ctx.clearRect(0,0,dc.W,dc.H);
 
+  // Borde exterior del dial — línea fina que unifica el círculo
+  ctx.beginPath();
+  ctx.arc(dc.CX,dc.CY,dc.R_OUT+2,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,255,255,0.12)';
+  ctx.lineWidth=1.5; ctx.stroke();
+
   // ── Anillo principal ──
   for(var i=0; i<N; i++){
     var item   = _DIAL_ITEMS[i];
@@ -383,121 +389,121 @@ function _dialDraw(){
     var midA   = (startA+endA)/2;
     var isHov  = (i===_dialHovered);
     var isAct  = (i===_dialActiveSub);
-    var rOut   = (isHov||isAct) ? dc.R_OUT+12 : dc.R_OUT;
+    var rOut   = (isHov||isAct) ? dc.R_OUT+10 : dc.R_OUT;
 
-    var fill   = (isHov||isAct) ? _DIAL_HOVER : _DIAL_BASE;
-    var bdrClr = (isHov||isAct) ? item.accent+'88' : 'rgba(255,255,255,0.18)';
-    var bdrW   = (isHov||isAct) ? 2 : 1.5;
+    // Hover: iluminar con tinte del acento
+    var fill = _DIAL_BASE;
+    if(isAct) fill = 'rgba(22,22,36,0.98)';
+    else if(isHov) fill = 'rgba(28,28,42,0.96)';
+
+    var bdrClr = (isHov||isAct) ? item.accent+'70' : 'rgba(255,255,255,0.14)';
+    var bdrW   = (isHov||isAct) ? 1.8 : 1.2;
 
     _dialDrawSector(ctx, startA, endA, rOut, fill, bdrClr, bdrW);
 
-    // ── Ícono + label centrados juntos en el sector ──
-    // Centroide radial del sector
-    var rMid  = dc.R_IN + (rOut - dc.R_IN)*0.5;
-    var cx    = dc.CX + rMid * Math.cos(midA);
-    var cy    = dc.CY + rMid * Math.sin(midA);
-    var icoS  = isHov||isAct ? 30 : 26;
+    // Centroide radial — ligeramente desplazado hacia afuera (0.52 en vez de 0.5)
+    // para que el contenido esté más cerca del centro visual del gajo
+    var rMid = dc.R_IN + (rOut - dc.R_IN) * 0.52;
+    var cx   = dc.CX + rMid * Math.cos(midA);
+    var cy   = dc.CY + rMid * Math.sin(midA);
 
-    // Fondo circular del ícono (como en la imagen de referencia)
+    // ── ÍCONO — grande, sin fondo, protagonista ──
+    var icoS = isHov||isAct ? 38 : 34;
+    // Ícono con sombra suave de color para legibilidad
     ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy - 9, (isHov||isAct?20:17), 0, Math.PI*2);
-    ctx.fillStyle = item.accent + '18';
-    ctx.fill();
-    ctx.strokeStyle = item.accent + '40';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    ctx.shadowColor = item.accent;
+    ctx.shadowBlur  = isHov||isAct ? 14 : 6;
+    item.draw(ctx, cx, cy - 10, icoS, item.accent);
     ctx.restore();
 
-    // Ícono
+    // ── LABEL — directamente pegado debajo del ícono ──
+    // Fuente grande, bold, blanco puro con sombra
     ctx.save();
-    item.draw(ctx, cx, cy - 9, icoS, item.accent);
-    ctx.restore();
-
-    // Label debajo del ícono, pequeño
-    ctx.font      = '700 11px -apple-system,BlinkMacSystemFont,sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center';
+    ctx.font         = '700 12px -apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif';
+    ctx.fillStyle    = '#ffffff';
+    ctx.textAlign    = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText(item.label, cx, cy + 14);
+    ctx.shadowColor  = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur   = 4;
+    ctx.fillText(item.label, cx, cy + 10);
+    ctx.restore();
 
-    // Punto indicador de sub en borde exterior
+    // Indicador de sub — línea de acento en el borde exterior del sector
     if(item.subs){
-      var dotR = rOut - 7;
+      var arcR = rOut + (isAct ? 0 : 0);
+      ctx.save();
       ctx.beginPath();
-      ctx.arc(dc.CX+dotR*Math.cos(midA), dc.CY+dotR*Math.sin(midA), isAct?4:2.5, 0, Math.PI*2);
-      ctx.fillStyle = isAct ? item.accent : item.accent+'66';
-      ctx.fill();
+      ctx.arc(dc.CX, dc.CY, rOut - 3, midA - 0.12, midA + 0.12);
+      ctx.strokeStyle = isAct ? item.accent : item.accent+'88';
+      ctx.lineWidth   = isAct ? 4 : 2.5;
+      ctx.lineCap     = 'round';
+      ctx.stroke();
+      ctx.restore();
     }
   }
 
   // ── Subanillo ──
   if(_dialActiveSub >= 0){
-    var parent  = _DIAL_ITEMS[_dialActiveSub];
-    var nSub    = parent.subs ? parent.subs.length : 0;
+    var parent = _DIAL_ITEMS[_dialActiveSub];
+    var nSub   = parent.subs ? parent.subs.length : 0;
     if(nSub > 0){
-      var pmidA  = Math.PI*2*(_dialActiveSub+0.5)/N - Math.PI/2;
-      var spread = Math.PI*0.52;
-      var subSlice = spread/nSub;
-      var subGap   = 0.016;
+      var pmidA    = Math.PI*2*(_dialActiveSub+0.5)/N - Math.PI/2;
+      var spread   = Math.PI * 0.50;
+      var subSlice = spread / nSub;
+      var subGap   = 0.018;
       var subStart = pmidA - spread/2;
 
       for(var j=0; j<nSub; j++){
-        var sub   = parent.subs[j];
-        var sA    = subStart + j*subSlice + subGap/2;
-        var eA    = subStart + (j+1)*subSlice - subGap/2;
-        var smA   = (sA+eA)/2;
+        var sub    = parent.subs[j];
+        var sA     = subStart + j*subSlice + subGap/2;
+        var eA     = subStart + (j+1)*subSlice - subGap/2;
+        var smA    = (sA+eA)/2;
         var isShov = (j===_dialSubHov);
-        var rso    = isShov ? dc.R_SO+12 : dc.R_SO;
+        var rso    = isShov ? dc.R_SO+8 : dc.R_SO;
 
-        var sfill = isShov ? _DIAL_SHOV : _DIAL_SBASE;
-        var sbdr  = isShov ? sub.accent+'88' : 'rgba(255,255,255,0.15)';
+        var sfill = isShov ? 'rgba(28,28,42,0.98)' : _DIAL_SBASE;
+        var sbdr  = isShov ? sub.accent+'80' : 'rgba(255,255,255,0.14)';
 
-        _dialDrawSubSector(ctx, sA, eA, rso, dc.R_SI, sfill, sbdr, isShov?1.5:0.7);
+        _dialDrawSubSector(ctx, sA, eA, rso, dc.R_SI, sfill, sbdr, isShov?1.8:1.2);
 
-        // Centroide sub-sector
-        var srMid = dc.R_SI + (rso-dc.R_SI)*0.5;
+        var srMid = dc.R_SI + (rso - dc.R_SI)*0.50;
         var scx   = dc.CX + srMid*Math.cos(smA);
         var scy   = dc.CY + srMid*Math.sin(smA);
-        var sicoS = isShov ? 26 : 22;
+        var sicoS = isShov ? 30 : 26;
 
-        // Fondo circular ícono sub
         ctx.save();
-        ctx.beginPath();
-        ctx.arc(scx, scy - 8, isShov?17:14, 0, Math.PI*2);
-        ctx.fillStyle = sub.accent+'18';
-        ctx.fill();
-        ctx.strokeStyle = sub.accent+'40';
-        ctx.lineWidth = 1;
-        ctx.stroke();
+        ctx.shadowColor = sub.accent;
+        ctx.shadowBlur  = isShov ? 12 : 5;
+        sub.draw(ctx, scx, scy - 9, sicoS, sub.accent);
         ctx.restore();
 
-        // Ícono sub
         ctx.save();
-        sub.draw(ctx, scx, scy - 8, sicoS, sub.accent);
-        ctx.restore();
-
-        // Label sub
-        ctx.font      = '700 10px -apple-system,BlinkMacSystemFont,sans-serif';
-        ctx.fillStyle = '#ffffff';
-        ctx.textAlign = 'center';
+        ctx.font         = '700 11px -apple-system,BlinkMacSystemFont,sans-serif';
+        ctx.fillStyle    = '#ffffff';
+        ctx.textAlign    = 'center';
         ctx.textBaseline = 'top';
-        ctx.fillText(sub.label, scx, scy + 11);
+        ctx.shadowColor  = 'rgba(0,0,0,0.8)';
+        ctx.shadowBlur   = 4;
+        ctx.fillText(sub.label, scx, scy + 8);
+        ctx.restore();
       }
     }
   }
 
   // ── Centro ──
+  // Gradiente radial para dar profundidad
+  var grad = ctx.createRadialGradient(dc.CX,dc.CY,0,dc.CX,dc.CY,dc.R_IN-1);
+  grad.addColorStop(0,'rgba(20,20,40,0.98)');
+  grad.addColorStop(1,'rgba(8,8,18,0.98)');
   ctx.beginPath();
-  ctx.arc(dc.CX, dc.CY, dc.R_IN-1, 0, Math.PI*2);
-  ctx.fillStyle = 'rgba(10,10,18,0.92)';
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(99,102,241,0.45)';
-  ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.arc(dc.CX,dc.CY,dc.R_IN-1,0,Math.PI*2);
+  ctx.fillStyle = grad; ctx.fill();
+  ctx.strokeStyle='rgba(99,102,241,0.5)';
+  ctx.lineWidth=1.5; ctx.stroke();
   ctx.beginPath();
-  ctx.arc(dc.CX, dc.CY, dc.R_IN-9, 0, Math.PI*2);
-  ctx.strokeStyle = 'rgba(99,102,241,0.15)';
-  ctx.lineWidth = 1; ctx.stroke();
+  ctx.arc(dc.CX,dc.CY,dc.R_IN-8,0,Math.PI*2);
+  ctx.strokeStyle='rgba(99,102,241,0.15)';
+  ctx.lineWidth=1; ctx.stroke();
 
   ctx.font = '500 20px -apple-system,sans-serif';
   ctx.fillStyle = 'rgba(130,130,190,0.65)';
