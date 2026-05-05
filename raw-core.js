@@ -1439,49 +1439,38 @@ function _irAPanel(boardId, tabKey){
 }
 
 // Cada función solo se define si el GAS no la definió primero
-if(typeof volverAlAnverso === 'undefined'){
-  function volverAlAnverso(){
-    _panelActual = 'anverso';
-    var anv = document.getElementById('board-anverso');
-    if(anv) anv.classList.remove('slide-right','slide-left');
-    document.querySelectorAll('.board-face:not(.anverso)').forEach(function(f){ f.classList.remove('active'); });
-    var bh = document.getElementById('btn-home'); if(bh) bh.classList.add('on');
-    document.querySelectorAll('.btn-flip').forEach(function(b){ b.classList.remove('active'); });
-    document.querySelectorAll('.mob-tab').forEach(function(t){ t.classList.toggle('active', t.dataset.tab==='entrada'); });
-    var dd = document.getElementById('entrada-dropdown');
-    if(dd){ dd.classList.remove('show'); dd.style.display='none'; }
-  }
-}
-if(typeof irALogros === 'undefined'){
-  function irALogros(){
-    _irAPanel('board-logros','logros');
-    if(window._logrosData && typeof renderLogros==='function' && !document.getElementById('lgr-hdr'))
-      renderLogros(window._logrosData);
-  }
-}
-if(typeof irABitacora === 'undefined'){
-  function irABitacora(){
-    _irAPanel('board-bitacora','bitacora');
-  }
-}
-if(typeof irAActivity === 'undefined'){
-  function irAActivity(){
-    _irAPanel('board-activity','activity');
-    if(typeof renderActivity==='function' && window._actData) renderActivity();
-  }
-}
-if(typeof irANutricion === 'undefined'){
-  function irANutricion(){
-    _irAPanel('board-nutricion','nutricion');
-  }
-}
-if(typeof _syncMobTab === 'undefined'){
-  function _syncMobTab(tabKey){
-    document.querySelectorAll('.mob-tab').forEach(function(t){
-      t.classList.toggle('active', t.dataset.tab===tabKey);
-    });
-  }
-}
+// Stubs como window assignments — el GAS puede sobreescribirlos en cualquier momento
+// (function declarations quedan hoisted y no se pueden pisar)
+window.volverAlAnverso = window.volverAlAnverso || function(){
+  _panelActual = 'anverso';
+  var anv = document.getElementById('board-anverso');
+  if(anv) anv.classList.remove('slide-right','slide-left');
+  document.querySelectorAll('.board-face:not(.anverso)').forEach(function(f){ f.classList.remove('active'); });
+  var bh = document.getElementById('btn-home'); if(bh) bh.classList.add('on');
+  document.querySelectorAll('.btn-flip').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.mob-tab').forEach(function(t){ t.classList.toggle('active', t.dataset.tab==='entrada'); });
+  var dd = document.getElementById('entrada-dropdown');
+  if(dd){ dd.classList.remove('show'); dd.style.display='none'; }
+};
+
+window.irABitacora = window.irABitacora || function(){
+  _irAPanel('board-bitacora','bitacora');
+};
+
+window.irAActivity = window.irAActivity || function(){
+  _irAPanel('board-activity','activity');
+  if(typeof renderActivity==='function' && window._actData) renderActivity();
+};
+
+window.irANutricion = window.irANutricion || function(){
+  _irAPanel('board-nutricion','nutricion');
+};
+
+window._syncMobTab = window._syncMobTab || function(tabKey){
+  document.querySelectorAll('.mob-tab').forEach(function(t){
+    t.classList.toggle('active', t.dataset.tab===tabKey);
+  });
+};
 
 
 function irASheets(sheetId){
