@@ -980,13 +980,23 @@ function _lgrVolver(){
 }
 
 function irALogros(){
-  if(typeof _syncMobTab==='function') _syncMobTab('logros');
-  document.querySelectorAll('.board-face').forEach(function(f){ f.classList.remove('active'); });
-  var board=document.getElementById('board-logros');
-  if(board){ board.classList.add('active'); board.scrollTop=0; }
-  if(_lgr.items.length===0 && window._logrosData){
-    renderLogros(window._logrosData);
+  // Toggle: si ya estás en logros, vuelve al anverso
+  var board = document.getElementById('board-logros');
+  if(board && board.classList.contains('active')){
+    if(typeof volverAlAnverso==='function') volverAlAnverso();
+    return;
   }
+  if(typeof _syncMobTab==='function') _syncMobTab('logros');
+  document.querySelectorAll('.board-face:not(.anverso)').forEach(function(f){ f.classList.remove('active'); });
+  // Ocultar anverso
+  var anv = document.getElementById('board-anverso');
+  if(anv) anv.classList.add('slide-right');
+  if(board){ board.classList.add('active'); board.scrollTop=0; }
+  // Marcar btn activo
+  document.querySelectorAll('.btn-flip').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.getElementById('btn-logros'); if(btn) btn.classList.add('active');
+  var bh  = document.getElementById('btn-home');   if(bh)  bh.classList.remove('on');
+  if(_lgr.items.length===0 && window._logrosData) renderLogros(window._logrosData);
 }
 
 /* ── HELPER ── */
