@@ -1842,56 +1842,148 @@ document.addEventListener('DOMContentLoaded', function(){
   if(typeof window.renderActivity !== 'function'){
     window.renderActivity = function(){
       var d = window._actData; if(!d) return;
-      var cont = document.getElementById('act-container'); if(!cont) return;
+      var WRAP = document.getElementById('act-wrapper') || document.getElementById('board-activity');
+      if(!WRAP) return;
 
-      var DIAS_P=['L','M','W','J','V','S','D'], DIAS_E=['L','M','W','J','V'];
-      var DLBL={L:'Lun',M:'Mar',W:'Mié',J:'Jue',V:'Vie',S:'Sáb',D:'Dom'};
-      var diaKey = DIAS_P[(new Date().getDay()+6)%7];
+      // ── Configuración ──
+      var CAT = {
+        personal:    { color:'#A855F7', glow:'rgba(168,85,247,0.4)',  icon:'fa-user',      label:'PERSONAL',    dias:['L','M','W','J','V','S','D'] },
+        electronics: { color:'#06B6D4', glow:'rgba(6,182,212,0.4)',   icon:'fa-bolt',      label:'ELECTRONICS', dias:['L','M','W','J','V'] },
+        libro:       { color:'#22D3EE', glow:'rgba(34,211,238,0.4)',   icon:'fa-book-open', label:'LIBROS' },
+        movie:       { color:'#F97316', glow:'rgba(249,115,22,0.4)',   icon:'fa-film',      label:'MOVIES' },
+        norut:       { color:'#EC4899', glow:'rgba(236,72,153,0.4)',   icon:'fa-star',      label:'PENDIENTES' },
+      };
+      var DLBL = {L:'Lun',M:'Mar',W:'Mié',J:'Jue',V:'Vie',S:'Sáb',D:'Dom'};
+      var diaKey = ['L','M','W','J','V','S','D'][(new Date().getDay()+6)%7];
 
-      // Círculo de check diario
-      function chk(fila, dia, checked, tipo){
-        var esH = (dia===diaKey);
+      // ── Conteos ──
+      function countDone(items){ return (items||[]).filter(function(it){ return it.completado===true||it.completado==='Sí'||it.completado==='Si'; }).length; }
+      function countHabDone(habs){ return (habs||[]).filter(function(h){ return h.checks && Object.values(h.checks).some(Boolean); }).length; }
+
+      var totales = {
+        personal:    (d.habitosPersonal||[]).length,    doneP: countHabDone(d.habitosPersonal),
+        electronics: (d.habitosElectronics||[]).length, doneE: countHabDone(d.habitosElectronics),
+        libro:       (d.libros||[]).length,             doneL: countDone(d.libros),
+        movie:       (d.movies||[]).length,             doneM: countDone(d.movies),
+        norut:       (d.noRutinarias||[]).length,       doneN: countDone(d.noRutinarias),
+      };
+      var totalAll  = totales.personal+totales.electronics+totales.libro+totales.movie+totales.norut;
+      var doneAll   = totales.doneP+totales.doneE+totales.doneL+totales.doneM+totales.doneN;
+      var pctGeneral= totalAll>0?Math.round(doneAll/totalAll*100):0;
+      var circ = 2*Math.PI*28;
+
+      // ── HTML helpers ──
+      function chkCircle(fila, dia, checked, tipo){
+        var c = CAT[tipo]; var esH=(dia===diaKey);
         return '<div class="_act-chk" data-fila="'+fila+'" data-dia="'+dia+'" data-tipo="'+tipo+'"'+
-          ' style="width:28px;height:28px;border-radius:50%;cursor:pointer;margin:auto;transition:all .12s;'+
-          'border:'+(esH?'2.5':'1.5')+'px solid '+(checked?'rgba(74,222,128,.9)':esH?'rgba(255,255,255,.5)':'rgba(255,255,255,.25)')+';'+
-          'background:'+(checked?'rgba(74,222,128,.22)':esH?'rgba(255,255,255,.04)':'transparent')+';'+
+          ' style="width:22px;height:22px;min-width:22px;border-radius:50%;cursor:pointer;transition:all 200ms;'+
+          'border:1.5px solid '+(checked?c.color:esH?'rgba(255,255,255,.35)':'#26304A')+';'+
+          'background:'+(checked?c.color:'transparent')+';'+
+          'box-shadow:'+(checked?'0 0 8px '+c.glow+',0 0 4px '+c.glow:'none')+';'+
           'display:flex;align-items:center;justify-content:center">'+
-          (checked?'<i class="fas fa-check" style="font-size:10px;color:#4ADE80;pointer-events:none"></i>':'')+
+          (checked?'<i class="fas fa-check" style="font-size:9px;color:#fff;pointer-events:none"></i>':'')+
         '</div>';
       }
 
-      // Círculo check simple (libros/movies/pendientes)
-      function chkItem(fila, tipo, checked){
+      function chkItem(fila, tipo, done){
+        var c = CAT[tipo];
         return '<div class="_act-item" data-fila="'+fila+'" data-tipo="'+tipo+'"'+
-          ' style="width:26px;height:26px;border-radius:50%;flex-shrink:0;cursor:pointer;transition:all .12s;'+
-          'border:1.5px solid '+(checked?'rgba(74,222,128,.9)':'rgba(255,255,255,.28)')+';'+
-          'background:'+(checked?'rgba(74,222,128,.20)':'transparent')+';'+
+          ' style="width:20px;height:20px;min-width:20px;border-radius:50%;cursor:pointer;transition:all 200ms;flex-shrink:0;'+
+          'border:1.5px solid '+(done?c.color:'#26304A')+';'+
+          'background:'+(done?c.color:'transparent')+';'+
+          'box-shadow:'+(done?'0 0 8px '+c.glow:'none')+';'+
           'display:flex;align-items:center;justify-content:center">'+
-          (checked?'<i class="fas fa-check" style="font-size:10px;color:#4ADE80;pointer-events:none"></i>':'')+
+          (done?'<i class="fas fa-check" style="font-size:8px;color:#fff;pointer-events:none"></i>':'')+
         '</div>';
       }
 
-      // Tabla de hábitos con días
-      function habTable(items, dias){
-        if(!items||!items.length) return '<div style="padding:16px 0;color:rgba(255,255,255,.3);font-size:12px">Sin registros</div>';
-        var h = '<table style="border-collapse:collapse;width:100%">';
-        h += '<tr><th style="text-align:left;padding:6px 10px;font-size:10px;color:rgba(255,255,255,.4);font-weight:700;'+
-             'text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid rgba(255,255,255,.10);white-space:nowrap">Hábito</th>';
+      function kpiPill(tipo, done, total){
+        var c = CAT[tipo];
+        return '<div style="display:flex;align-items:center;gap:8px;padding:0 20px;border-right:1px solid #1E2740">'+
+          '<i class="fas '+c.icon+'" style="font-size:16px;color:'+c.color+';filter:drop-shadow(0 0 6px '+c.glow+')"></i>'+
+          '<div><div style="font-size:10px;font-weight:700;letter-spacing:.10em;color:#7A8499">'+c.label+'</div>'+
+          '<div style="font-size:13px;font-weight:600;font-variant-numeric:tabular-nums">'+
+            '<span style="color:'+c.color+'">'+done+'</span>'+
+            '<span style="color:#4A5266"> / '+total+'</span>'+
+          '</div></div>'+
+        '</div>';
+      }
+
+      // ── HEADER BAR ──
+      var header =
+        '<div style="display:flex;align-items:center;background:#141B2D;border-bottom:1px solid #1E2740;'+
+             'height:72px;padding:0 20px;gap:0;flex-shrink:0;overflow:hidden">'+
+          // Volver
+          '<div onclick="_lgrVolver ? _lgrVolver() : (typeof volverAlAnverso===\'function\'&&volverAlAnverso())"'+
+               ' style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;'+
+               'background:#0F1524;border:1px solid #26304A;border-radius:8px;cursor:pointer;'+
+               'margin-right:16px;flex-shrink:0;transition:all .15s"'+
+               ' onmouseover="this.style.borderColor=\'#3B82F6\'" onmouseout="this.style.borderColor=\'#26304A\'">'+
+            '<i class="fas fa-arrow-left" style="color:#22D3EE;font-size:14px"></i>'+
+          '</div>'+
+          // Título
+          '<div style="margin-right:32px;flex-shrink:0">'+
+            '<div style="font-size:18px;font-weight:700;letter-spacing:.05em;color:#fff">ACTIVITY CHECK</div>'+
+            '<div style="font-size:11px;color:#7A8499;margin-top:1px">Tu progreso, tu recompensa</div>'+
+          '</div>'+
+          // KPIs
+          '<div style="display:flex;align-items:center;flex:1;overflow:hidden">'+
+            kpiPill('personal',    totales.doneP, totales.personal)+
+            kpiPill('electronics', totales.doneE, totales.electronics)+
+            kpiPill('libro',       totales.doneL, totales.libro)+
+            kpiPill('movie',       totales.doneM, totales.movie)+
+            '<div style="display:flex;align-items:center;gap:8px;padding:0 20px">'+
+              '<i class="fas fa-star" style="font-size:16px;color:#EC4899;filter:drop-shadow(0 0 6px rgba(236,72,153,0.4))"></i>'+
+              '<div><div style="font-size:10px;font-weight:700;letter-spacing:.10em;color:#7A8499">PENDIENTES</div>'+
+              '<div style="font-size:13px;font-weight:600;font-variant-numeric:tabular-nums">'+
+                '<span style="color:#EC4899">'+totales.doneN+'</span>'+
+                '<span style="color:#4A5266"> / '+totales.norut+'</span>'+
+              '</div></div>'+
+            '</div>'+
+          '</div>'+
+          // Anillo progreso
+          '<div style="display:flex;align-items:center;gap:14px;flex-shrink:0;padding-left:20px;border-left:1px solid #1E2740">'+
+            '<svg width="64" height="64" viewBox="0 0 64 64">'+
+              '<circle cx="32" cy="32" r="28" fill="none" stroke="#26304A" stroke-width="4"/>'+
+              '<circle cx="32" cy="32" r="28" fill="none" stroke="#3B82F6" stroke-width="4"'+
+                ' stroke-dasharray="'+circ.toFixed(1)+'" stroke-dashoffset="'+(circ*(1-pctGeneral/100)).toFixed(1)+'"'+
+                ' stroke-linecap="round" transform="rotate(-90 32 32)"'+
+                ' style="filter:drop-shadow(0 0 6px rgba(59,130,246,0.6));transition:stroke-dashoffset .8s"/>'+
+              '<text x="32" y="37" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" font-family="system-ui">'+pctGeneral+'%</text>'+
+            '</svg>'+
+            '<div><div style="font-size:9px;font-weight:700;letter-spacing:.10em;color:#7A8499;margin-bottom:2px">PROGRESO GENERAL</div>'+
+            '<div style="font-size:16px;font-weight:700;font-variant-numeric:tabular-nums">'+
+              '<span style="color:#3B82F6">'+doneAll+'</span>'+
+              '<span style="color:#4A5266"> / '+totalAll+'</span>'+
+            '</div></div>'+
+          '</div>'+
+        '</div>';
+
+      // ── TABLA HÁBITOS ──
+      function habTable(items, tipo){
+        var c = CAT[tipo]; var dias = c.dias;
+        if(!items||!items.length) return '<div style="padding:24px;text-align:center;color:#4A5266;font-size:12px">Sin hábitos</div>';
+        var h = '<table style="width:100%;border-collapse:collapse">';
+        h += '<tr><th style="text-align:left;padding:6px 16px;font-size:10px;font-weight:600;letter-spacing:.10em;color:#7A8499;border-bottom:1px solid #1E2740">HÁBITO</th>';
         dias.forEach(function(d){
-          var esH = (d===diaKey);
-          h += '<th style="text-align:center;padding:6px 4px;font-size:10px;font-weight:'+(esH?800:600)+';'+
-               'color:'+(esH?'#fff':'rgba(255,255,255,.4)')+';'+
-               'border-bottom:1px solid rgba(255,255,255,.10);min-width:34px">'+DLBL[d]+'</th>';
+          var esH=(d===diaKey);
+          h += '<th style="text-align:center;padding:6px 4px;font-size:10px;font-weight:'+(esH?700:600)+';'+
+               'color:'+(esH?c.color:'#7A8499')+';border-bottom:1px solid #1E2740;min-width:36px;'+
+               (esH?'text-shadow:0 0 8px '+c.glow:'')+'">'+DLBL[d]+'</th>';
         });
         h += '</tr>';
         items.forEach(function(hab){
-          h += '<tr><td style="padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.06)">';
-          if(hab.sims||hab.bw) h += '<div style="font-size:9px;color:rgba(255,255,255,.38);text-transform:uppercase;'+
-                                    'letter-spacing:.08em;margin-bottom:2px">'+(hab.sims||hab.bw)+'</div>';
-          h += '<div style="font-size:13px;font-weight:600;color:#fff">'+hab.nombre+'</div></td>';
+          var allDone = dias.every(function(dia){ return hab.checks&&hab.checks[dia]; });
+          h += '<tr class="_hab-row" style="transition:background .15s;cursor:default"'+
+               ' onmouseover="this.style.background=\'#1A2238\'" onmouseout="this.style.background=\'transparent\'">'+
+               '<td style="padding:8px 16px;border-bottom:1px solid #1E2740">'+
+                 (hab.sims||hab.bw?'<div style="font-size:10px;font-weight:600;letter-spacing:.10em;color:#4A5266;text-transform:uppercase;margin-bottom:1px">'+(hab.sims||hab.bw)+'</div>':'')+
+                 '<div style="font-size:13px;font-weight:500;color:'+(allDone?c.color:'#C8D0E0')+';'+
+                 (allDone?'text-shadow:0 0 8px '+c.glow:'')+'">'+hab.nombre+'</div>'+
+               '</td>';
           dias.forEach(function(dia){
-            h += '<td style="text-align:center;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.06)">'+
-                 chk(hab.fila, dia, hab.checks&&hab.checks[dia], hab.sims?'personal':'electronics')+'</td>';
+            h += '<td style="text-align:center;padding:6px 4px;border-bottom:1px solid #1E2740">'+
+                 chkCircle(hab.fila, dia, hab.checks&&hab.checks[dia], tipo)+'</td>';
           });
           h += '</tr>';
         });
@@ -1899,110 +1991,220 @@ document.addEventListener('DOMContentLoaded', function(){
         return h;
       }
 
-      // Lista de items (libros/movies/pendientes)
+      // ── LISTA ITEMS ──
       function itemList(items, tipo){
-        if(!items||!items.length) return '<div style="padding:16px 0;color:rgba(255,255,255,.3);font-size:12px">Sin registros</div>';
-        // Pendientes primero, completados al fondo
+        if(!items||!items.length) return '<div style="padding:24px;text-align:center;color:#4A5266;font-size:12px">Sin registros</div>';
         var sorted = items.slice().sort(function(a,b){
           var ad=a.completado===true||a.completado==='Sí'||a.completado==='Si'?1:0;
           var bd=b.completado===true||b.completado==='Sí'||b.completado==='Si'?1:0;
           return ad-bd;
         });
-        return '<div style="display:flex;flex-direction:column;gap:1px">'+
+        return '<div style="display:flex;flex-direction:column">'+
           sorted.map(function(it){
             var done=it.completado===true||it.completado==='Sí'||it.completado==='Si';
-            return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)">'+
+            return '<div class="_item-row" style="display:flex;align-items:center;gap:10px;padding:8px 16px;'+
+              'transition:background .15s;border-bottom:1px solid #1E2740"'+
+              ' onmouseover="this.style.background=\'#1A2238\'" onmouseout="this.style.background=\'transparent\'">'+
               chkItem(it.fila, tipo, done)+
-              '<span style="font-size:13px;font-weight:600;'+
-              'color:'+(done?'rgba(255,255,255,.35)':'#fff')+';'+
-              'text-decoration:'+(done?'line-through':'none')+';'+
-              'word-break:break-word;overflow-wrap:anywhere;min-width:0">'+
-              it.nombre+'</span></div>';
+              '<span style="font-size:13px;font-weight:500;color:'+(done?'#4A5266':'#C8D0E0')+';'+
+              'word-break:break-word;overflow-wrap:anywhere;min-width:0">'+it.nombre+'</span>'+
+            '</div>';
           }).join('')+'</div>';
       }
 
-      // Columna
-      function col(title, inner, isLast){
-        return '<div style="flex:0 0 auto;padding:0 '+(isLast?'0':'20px')+' 0 0;'+
-               (isLast?'':'border-right:1px solid rgba(255,255,255,.08);margin-right:20px')+'">'+
-          '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.10em;'+
-               'color:rgba(255,255,255,.55);margin-bottom:14px;padding-bottom:4px;'+
-               'border-bottom:2px solid rgba(255,255,255,.08)">'+title+'</div>'+
-          inner+'</div>';
+      // ── SIDEBAR ──
+      function sidebarBar(tipo, done, total){
+        var c = CAT[tipo];
+        var pct = total>0?Math.round(done/total*100):0;
+        return '<div style="margin-bottom:12px">'+
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">'+
+            '<div style="display:flex;align-items:center;gap:7px">'+
+              '<i class="fas '+c.icon+'" style="font-size:11px;color:'+c.color+'"></i>'+
+              '<span style="font-size:12px;font-weight:500;color:#C8D0E0">'+c.label.charAt(0)+c.label.slice(1).toLowerCase()+'</span>'+
+            '</div>'+
+            '<span style="font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;color:#C8D0E0">'+done+' / '+total+'</span>'+
+          '</div>'+
+          '<div style="height:4px;background:#0A0E1A;border-radius:2px;overflow:hidden">'+
+            '<div style="height:100%;width:'+pct+'%;background:'+c.color+';border-radius:2px;'+
+            'box-shadow:0 0 6px '+c.glow+';transition:width .4s"></div>'+
+          '</div>'+
+        '</div>';
       }
 
-      // Anchos: Personal y Electronics fijos, las otras 3 dinámicas con máximo
-      function colFixed(title, inner, width){
-        return '<div style="flex:0 0 '+width+'px;width:'+width+'px;padding-right:20px;margin-right:4px;border-right:1px solid rgba(255,255,255,.08)">'+
-          '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.10em;'+
-               'color:rgba(255,255,255,.55);margin-bottom:14px;padding-bottom:4px;'+
-               'border-bottom:2px solid rgba(255,255,255,.08)">'+title+'</div>'+
-          inner+'</div>';
-      }
-      function colDynamic(title, inner, isLast){
-        return '<div style="flex:0 0 auto;min-width:180px;max-width:280px;padding-left:20px;'+
-               (isLast?'':'padding-right:20px;border-right:1px solid rgba(255,255,255,.08)')+'">' +
-          '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.10em;'+
-               'color:rgba(255,255,255,.55);margin-bottom:14px;padding-bottom:4px;'+
-               'border-bottom:2px solid rgba(255,255,255,.08)">'+title+'</div>'+
-          inner+'</div>';
-      }
-      cont.innerHTML =
-        '<div style="display:flex;gap:0;overflow-x:auto;padding:16px 20px 24px;align-items:flex-start;-webkit-overflow-scrolling:touch">'+
-          colFixed('🧘 Personal <span style="opacity:.4;font-size:10px">'+(d.habitosPersonal||[]).length+'</span>',    habTable(d.habitosPersonal||[], DIAS_P), 390)+
-          colFixed('⚡ Electronics <span style="opacity:.4;font-size:10px">'+(d.habitosElectronics||[]).length+'</span>', habTable(d.habitosElectronics||[], DIAS_E), 310)+
-          colDynamic('📚 Libros <span style="opacity:.4;font-size:10px">'+(d.libros||[]).length+'</span>',      itemList(d.libros||[],'libro'))+
-          colDynamic('🎬 Movies <span style="opacity:.4;font-size:10px">'+(d.movies||[]).length+'</span>',      itemList(d.movies||[],'movie'))+
-          colDynamic('✨ Pendientes <span style="opacity:.4;font-size:10px">'+(d.noRutinarias||[]).length+'</span>', itemList(d.noRutinarias||[],'norut'), true)+
+      var sidebar =
+        '<div style="width:260px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;padding:16px">'+
+          // Recompensa
+          '<div style="background:#0F1524;border:1px solid #26304A;border-radius:12px;padding:16px;'+
+               'box-shadow:0 0 0 1px rgba(120,160,255,0.04),0 4px 24px rgba(0,0,0,0.4)">'+
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+              '<i class="fas fa-cube" style="font-size:14px;color:#3B82F6"></i>'+
+              '<span style="font-size:10px;font-weight:700;letter-spacing:.12em;color:#7A8499">RECOMPENSA ACTUAL</span>'+
+            '</div>'+
+            '<div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:4px">Maestro del progreso</div>'+
+            '<div style="font-size:11px;color:#7A8499;margin-bottom:10px">Completa '+totalAll+' actividades para desbloquear</div>'+
+            '<div style="height:4px;background:#0A0E1A;border-radius:2px;overflow:hidden;margin-bottom:5px">'+
+              '<div style="height:100%;width:'+pctGeneral+'%;background:#3B82F6;border-radius:2px;box-shadow:0 0 6px rgba(59,130,246,0.5);transition:width .8s"></div>'+
+            '</div>'+
+            '<div style="display:flex;justify-content:flex-end;font-size:11px;font-weight:600;color:#3B82F6;font-variant-numeric:tabular-nums">'+doneAll+' / '+totalAll+'</div>'+
+          '</div>'+
+          // Categorías
+          '<div style="background:#0F1524;border:1px solid #26304A;border-radius:12px;padding:16px;'+
+               'box-shadow:0 0 0 1px rgba(120,160,255,0.04),0 4px 24px rgba(0,0,0,0.4)">'+
+            '<div style="font-size:10px;font-weight:700;letter-spacing:.12em;color:#7A8499;margin-bottom:14px">CATEGORÍAS</div>'+
+            sidebarBar('personal',    totales.doneP, totales.personal)+
+            sidebarBar('electronics', totales.doneE, totales.electronics)+
+            sidebarBar('libro',       totales.doneL, totales.libro)+
+            sidebarBar('movie',       totales.doneM, totales.movie)+
+            sidebarBar('norut',       totales.doneN, totales.norut)+
+          '</div>'+
+          // Sigue así
+          '<div style="background:linear-gradient(135deg,rgba(59,130,246,0.12),rgba(168,85,247,0.08));'+
+               'border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:14px">'+
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+              '<i class="fas fa-chart-line" style="font-size:13px;color:#3B82F6"></i>'+
+              '<span style="font-size:12px;font-weight:700;color:#fff">SIGUE ASÍ</span>'+
+            '</div>'+
+            '<div style="font-size:11px;color:#7A8499;line-height:1.5">'+
+              (pctGeneral>=70?'¡Llevas un excelente ritmo! Cada hábito completado te acerca a tu mejor versión.':
+               pctGeneral>=40?'Vas bien. Mantén el ritmo y cierra tus anillos hoy.':
+               'Empieza pequeño. Un hábito a la vez hace la diferencia.')+
+            '</div>'+
+          '</div>'+
         '</div>';
 
-      // Event delegation — checks
-      cont.addEventListener('click', function(e){
+      // ── PANEL WRAPPER ──
+      function panelCol(tipo, inner){
+        var c = CAT[tipo];
+        return '<div style="flex:1;min-width:0;background:#0F1524;border:1px solid #26304A;border-radius:12px;'+
+               'display:flex;flex-direction:column;overflow:hidden;'+
+               'box-shadow:0 0 0 1px rgba(120,160,255,0.04),0 4px 24px rgba(0,0,0,0.4)">'+
+          '<div style="padding:14px 16px 12px;border-bottom:1px solid #1E2740;display:flex;align-items:center;gap:8px">'+
+            '<i class="fas '+c.icon+'" style="font-size:14px;color:'+c.color+';filter:drop-shadow(0 0 6px '+c.glow+')"></i>'+
+            '<span style="font-size:13px;font-weight:700;letter-spacing:.08em;color:'+c.color+'">'+c.label+'</span>'+
+          '</div>'+
+          '<div style="flex:1;overflow-y:auto">'+inner+'</div>'+
+        '</div>';
+      }
+
+      // ── FOOTER BAR ──
+      var xpActual = (window._lgr&&window._lgr.xpActual)||0;
+      var xpMax    = (window._lgr&&window._lgr.xpNivel)||500;
+      var nivel    = (window._lgr&&window._lgr.nivel)||1;
+      var xpPct    = xpMax>0?Math.round(xpActual/xpMax*100):0;
+
+      var footer =
+        '<div style="display:flex;align-items:center;background:#141B2D;border-top:1px solid #1E2740;'+
+             'height:64px;padding:0;flex-shrink:0">'+
+          // Nivel + XP
+          '<div style="display:flex;align-items:center;gap:12px;flex:1;padding:0 24px;border-right:1px solid #1E2740">'+
+            '<div style="width:36px;height:36px;border-radius:8px;background:#0A0E1A;border:1px solid #26304A;'+
+                 'display:flex;align-items:center;justify-content:center;flex-shrink:0">'+
+              '<span style="font-size:13px;font-weight:800;color:#3B82F6">'+nivel+'</span>'+
+            '</div>'+
+            '<div style="flex:1">'+
+              '<div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:3px">NIVEL '+nivel+
+                ' <span style="font-size:10px;color:#7A8499;font-weight:500;font-variant-numeric:tabular-nums">'+xpActual+' / '+xpMax+' XP</span></div>'+
+              '<div style="height:4px;background:#0A0E1A;border-radius:2px;overflow:hidden">'+
+                '<div style="height:100%;width:'+xpPct+'%;background:#3B82F6;border-radius:2px;box-shadow:0 0 6px rgba(59,130,246,0.5)"></div>'+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+          // Racha
+          '<div style="display:flex;align-items:center;gap:10px;flex:1;padding:0 24px;border-right:1px solid #1E2740">'+
+            '<i class="fas fa-fire" style="font-size:20px;color:#FB923C;filter:drop-shadow(0 0 8px rgba(251,146,60,0.6))"></i>'+
+            '<div><div style="font-size:10px;font-weight:600;letter-spacing:.08em;color:#7A8499">RACHA ACTUAL</div>'+
+            '<div style="font-size:16px;font-weight:700;color:#FB923C">'+doneAll+' actividades</div></div>'+
+          '</div>'+
+          // Misión diaria
+          '<div style="display:flex;align-items:center;gap:10px;flex:1;padding:0 24px;border-right:1px solid #1E2740">'+
+            '<i class="fas fa-bullseye" style="font-size:16px;color:#A855F7"></i>'+
+            '<div><div style="font-size:10px;font-weight:600;letter-spacing:.08em;color:#7A8499">PROGRESO HOY</div>'+
+            '<div style="font-size:13px;font-weight:600;color:#fff;margin-top:1px">'+
+              doneAll+' / '+totalAll+' <span style="color:#A855F7;font-size:11px;font-weight:700">+50 XP</span>'+
+            '</div></div>'+
+          '</div>'+
+          // Próximo nivel
+          '<div style="display:flex;align-items:center;gap:10px;flex:1;padding:0 24px">'+
+            '<div style="width:36px;height:36px;border-radius:8px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);'+
+                 'display:flex;align-items:center;justify-content:center;flex-shrink:0">'+
+              '<span style="font-size:13px;font-weight:800;color:#A855F7">'+(nivel+1)+'</span>'+
+            '</div>'+
+            '<div><div style="font-size:10px;font-weight:600;letter-spacing:.08em;color:#7A8499">PRÓXIMO NIVEL</div>'+
+            '<div style="font-size:12px;font-weight:600;color:#C8D0E0;margin-top:1px">'+
+              '<span style="color:#A855F7">+500 XP</span> <span style="color:#4A5266">|</span> <span style="color:#22D3EE">+$250</span>'+
+            '</div></div>'+
+            '<i class="fas fa-box" style="font-size:18px;color:#7A8499;margin-left:auto"></i>'+
+          '</div>'+
+        '</div>';
+
+      // ── RENDER COMPLETO ──
+      // Buscar el contenedor correcto
+      var board = document.getElementById('board-activity');
+      if(!board) return;
+      board.style.display = 'flex';
+      board.style.flexDirection = 'column';
+      board.style.background = '#0A0E1A';
+      board.style.overflow = 'hidden';
+
+      board.innerHTML =
+        header +
+        '<div style="display:flex;gap:12px;padding:12px;flex:1;overflow:hidden;min-height:0">'+
+          '<div style="display:flex;gap:12px;flex:1;overflow-x:auto;min-width:0">'+
+            panelCol('personal',    habTable(d.habitosPersonal||[],    'personal'))+
+            panelCol('electronics', habTable(d.habitosElectronics||[], 'electronics'))+
+            panelCol('libro',       itemList(d.libros||[],   'libro'))+
+            panelCol('movie',       itemList(d.movies||[],   'movie'))+
+            panelCol('norut',       itemList(d.noRutinarias||[],'norut'))+
+          '</div>'+
+          sidebar+
+        '</div>'+
+        footer;
+
+      // ── Event delegation ──
+      board.addEventListener('click', function(e){
+        // Check día (hábitos)
         var c = e.target.closest('._act-chk');
         if(c){
           var ok = !!c.querySelector('.fa-check');
           var nowChk = !ok;
-          c.style.borderColor = nowChk?'rgba(74,222,128,.9)':'rgba(255,255,255,.28)';
-          c.style.background  = nowChk?'rgba(74,222,128,.22)':'transparent';
-          c.innerHTML = nowChk?'<i class="fas fa-check" style="font-size:10px;color:#4ADE80;pointer-events:none"></i>':'';
-          // Revisar si todos los días de esa fila están marcados
+          var tipo = c.dataset.tipo;
+          var cat  = CAT[tipo];
+          c.style.borderColor = nowChk?cat.color:'#26304A';
+          c.style.background  = nowChk?cat.color:'transparent';
+          c.style.boxShadow   = nowChk?'0 0 8px '+cat.glow+',0 0 4px '+cat.glow:'none';
+          c.innerHTML = nowChk?'<i class="fas fa-check" style="font-size:9px;color:#fff;pointer-events:none"></i>':'';
+          // Highlight fila si todos marcados
           var row = c.closest('tr');
           if(row){
             var allChks = row.querySelectorAll('._act-chk');
             var allDone = Array.prototype.every.call(allChks, function(ch){ return !!ch.querySelector('.fa-check'); });
-            var nameCell = row.querySelector('td:first-child');
-            if(nameCell){
-              nameCell.style.background = allDone?'rgba(74,222,128,0.06)':'';
-              var nameDiv = nameCell.querySelector('div:last-child');
-              if(nameDiv) nameDiv.style.color = allDone?'#4ADE80':'rgba(255,255,255,.82)';
-            }
+            var td = row.querySelector('td:first-child div:last-child');
+            if(td) td.style.color = allDone?cat.color:'#C8D0E0';
+            if(td) td.style.textShadow = allDone?'0 0 8px '+cat.glow:'none';
           }
-          if(typeof api!=='undefined') api.setActivityCheck(c.dataset.tipo, parseInt(c.dataset.fila), c.dataset.dia, nowChk);
+          if(typeof api!=='undefined') api.setActivityCheck(tipo, parseInt(c.dataset.fila), c.dataset.dia, nowChk);
           return;
         }
+        // Check item (lista)
         var it = e.target.closest('._act-item');
         if(it){
-          var row = it.parentElement;  // el div row completo
-          var ok  = !!it.querySelector('.fa-check');
+          var ok = !!it.querySelector('.fa-check');
           var nowDone = !ok;
-          // Actualizar círculo
-          it.style.borderColor = nowDone?'rgba(74,222,128,.9)':'rgba(255,255,255,.28)';
-          it.style.background  = nowDone?'rgba(74,222,128,.20)':'transparent';
-          it.innerHTML = nowDone?'<i class="fas fa-check" style="font-size:10px;color:#4ADE80;pointer-events:none"></i>':'';
-          // Tachar texto
-          var sp = row.querySelector('span');
-          if(sp) sp.style.color = nowDone?'rgba(255,255,255,.35)':'#fff';
-          if(sp) sp.style.textDecoration = nowDone?'line-through':'none';
-          // Si se completa → mover al fondo; si se desmarca → mover arriba
-          var parent = row.parentElement;
-          if(parent){
-            if(nowDone){
-              parent.appendChild(row);  // appendChild = al fondo
-            } else {
-              parent.insertBefore(row, parent.firstChild);  // desmarcar = arriba
-            }
+          var tipo = it.dataset.tipo;
+          var cat  = CAT[tipo];
+          it.style.borderColor = nowDone?cat.color:'#26304A';
+          it.style.background  = nowDone?cat.color:'transparent';
+          it.style.boxShadow   = nowDone?'0 0 8px '+cat.glow:'none';
+          it.innerHTML = nowDone?'<i class="fas fa-check" style="font-size:8px;color:#fff;pointer-events:none"></i>':'';
+          var row = it.parentElement;
+          var sp  = row&&row.querySelector('span');
+          if(sp) sp.style.color = nowDone?'#4A5266':'#C8D0E0';
+          // Mover al fondo si completa, arriba si desmarca
+          if(row&&row.parentElement){
+            if(nowDone) row.parentElement.appendChild(row);
+            else        row.parentElement.insertBefore(row, row.parentElement.firstChild);
           }
-          if(typeof api!=='undefined') api.setActivityCheck(it.dataset.tipo, parseInt(it.dataset.fila), null, nowDone);
+          if(typeof api!=='undefined') api.setActivityCheck(tipo, parseInt(it.dataset.fila), null, nowDone);
         }
       });
     };
@@ -2010,33 +2212,25 @@ document.addEventListener('DOMContentLoaded', function(){
 
   if(typeof window.renderNutricion !== 'function'){
     window.renderNutricion = function(data){
-      var body = document.getElementById('nut-panel-body'); if(!body) return;
-      if(!data||!data.ok){
-        body.innerHTML='<div style="padding:40px;text-align:center;color:rgba(255,255,255,.25);font-size:13px">Sin registros</div>';
-        return;
-      }
-      var dias = data.semana || Object.values(data.dias||{});
-      if(!dias.length){
-        body.innerHTML='<div style="padding:40px;text-align:center;color:rgba(255,255,255,.25);font-size:13px">Sin registros esta semana</div>';
-        return;
-      }
-      var html = '<div style="padding:0 20px 24px;display:flex;flex-direction:column;gap:14px">';
+      var body=document.getElementById('nut-panel-body'); if(!body) return;
+      if(!data||!data.ok){body.innerHTML='<div style="padding:40px;text-align:center;color:#4A5266;font-size:13px">Sin registros</div>';return;}
+      var dias=data.semana||Object.values(data.dias||{});
+      if(!dias.length){body.innerHTML='<div style="padding:40px;text-align:center;color:#4A5266;font-size:13px">Sin registros</div>';return;}
+      var html='<div style="padding:0 20px 24px;display:flex;flex-direction:column;gap:12px">';
       dias.forEach(function(dia){
         if(!dia.items||!dia.items.length) return;
-        html += '<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;'+
-                'color:rgba(255,255,255,.45);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.08)">'+dia.fecha+'</div>';
+        html+='<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7A8499;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #1E2740">'+dia.fecha+'</div>';
         dia.items.forEach(function(it){
-          html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">'+
-            '<span style="font-size:10px;font-weight:700;padding:3px 8px;border:1px solid rgba(255,255,255,.12);'+
-            'color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;white-space:nowrap">'+(it.momento||'—')+'</span>'+
-            '<span style="flex:1;font-size:13px;font-weight:500;color:#fff">'+it.alimento+'</span>'+
-            (it.cal?'<span style="font-size:12px;font-weight:700;color:#fbbf24;flex-shrink:0">'+Math.round(it.cal)+' kcal</span>':'')+
+          html+='<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1E2740">'+
+            '<span style="font-size:10px;font-weight:600;padding:2px 7px;border:1px solid #26304A;color:#7A8499;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;border-radius:4px">'+(it.momento||'—')+'</span>'+
+            '<span style="flex:1;font-size:13px;color:#C8D0E0">'+it.alimento+'</span>'+
+            (it.cal?'<span style="font-size:11px;font-weight:700;color:#F97316;flex-shrink:0">'+Math.round(it.cal)+' kcal</span>':'')+
           '</div>';
         });
-        html += '</div>';
+        html+='</div>';
       });
-      html += '</div>';
-      body.innerHTML = html;
+      html+='</div>';
+      body.innerHTML=html;
     };
   }
 
