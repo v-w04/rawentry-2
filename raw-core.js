@@ -1472,38 +1472,32 @@ window._syncMobTab = window._syncMobTab || function(tabKey){
   });
 };
 
-/* ── FALLBACKS para Activity y Nutrición
-   Solo se activan si el GAS no inyectó renderActivity / renderNutricion
-   Se registran en DOMContentLoaded para dar tiempo al GAS de definir las suyas
-── */
+/* ── FALLBACKS Activity y Nutrición ── */
 document.addEventListener('DOMContentLoaded', function(){
 
-  // ── ACTIVITY fallback ──
+  // Solo crear fallback si el GAS no definió renderActivity
   if(typeof window.renderActivity !== 'function'){
     window.renderActivity = function(){
-      var d = window._actData;
-      if(!d) return;
-      var cont = document.getElementById('act-container');
+      var d = window._actData; if(!d) return;
       var tabsEl = document.getElementById('act-tabs');
+      var cont   = document.getElementById('act-container');
       if(!cont) return;
 
-      var DIAS = ['L','M','W','J','V','S','D'];
-      var DLBL = {L:'Lun',M:'Mar',W:'Mié',J:'Jue',V:'Vie',S:'Sáb',D:'Dom'};
-      var hoy = new Date();
-      var diaKey = DIAS[(hoy.getDay()+6)%7];
+      var TABS = [
+        {k:'personal',    l:'Personal',      ico:'🧘', items: d.habitosPersonal||[]},
+        {k:'electronics', l:'Electronics',   ico:'⚡', items: d.habitosElectronics||[]},
+        {k:'libros',      l:'Libros',        ico:'📚', items: d.libros||[]},
+        {k:'movies',      l:'Movies',        ico:'🎬', items: d.movies||[]},
+        {k:'norut',       l:'No Rutinarias', ico:'✨', items: d.noRutinarias||[]},
+      ];
 
-      // Tabs
-      if(tabsEl && !tabsEl.children.length){
-        var tabs = [
-          {k:'personal',    l:'Personal',    n:(d.habitosPersonal||[]).length},
-          {k:'electronics', l:'Electronics', n:(d.habitosElectronics||[]).length},
-          {k:'libros',      l:'Libros',      n:(d.libros||[]).length},
-          {k:'movies',      l:'Movies',      n:(d.movies||[]).length},
-          {k:'norut',       l:'No Rutinarias',n:(d.noRutinarias||[]).length},
-        ];
-        tabsEl.innerHTML = tabs.map(function(t){
-          return '<button class="act-tab-btn rev-pill" data-tab="'+t.k+'" onclick="window._actShowTab(\'' +t.k+ '\')" style="font-size:10px">'+t.l+' <span style="opacity:.5">'+t.n+'</span></button>';
+      if(tabsEl){
+        tabsEl.innerHTML = TABS.map(function(t,i){
+          return '<button class="rev-pill act-tab-btn" data-tab-key="'+t.k+'" style="opacity:'+(i===0?'1':'0.4')+'">'+t.ico+' '+t.l+' <span style="font-size:9px;opacity:.5">'+t.items.length+'</span></button>';
         }).join('');
+        tabsEl.addEventListener('click',function(e){
+          var b=e.target.closest('.act-tab-btn'); if(b) window._actShowTab(b.dataset.tabKey);
+        });
       }
       window._actShowTab('personal');
     };
@@ -1511,119 +1505,109 @@ document.addEventListener('DOMContentLoaded', function(){
     window._actShowTab = function(key){
       var d = window._actData; if(!d) return;
       var cont = document.getElementById('act-container'); if(!cont) return;
+
+      // Highlight tab
       document.querySelectorAll('.act-tab-btn').forEach(function(b){
-        b.style.opacity = b.dataset.tab===key ? '1' : '0.4';
+        b.style.opacity = (b.dataset.tabKey === key) ? '1' : '0.4';
       });
+
       var DIAS = ['L','M','W','J','V','S','D'];
       var DLBL = {L:'Lun',M:'Mar',W:'Mié',J:'Jue',V:'Vie',S:'Sáb',D:'Dom'};
       var diaKey = DIAS[(new Date().getDay()+6)%7];
 
-      function renderGrid(items, diasKeys){
-        if(!items||!items.length) return '<div style="padding:32px;text-align:center;color:rgba(255,255,255,.25);font-size:12px">Sin registros</div>';
-        var h = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:400px">';
-        h += '<tr><th style="text-align:left;padding:6px 8px;font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.3);border-bottom:1px solid rgba(255,255,255,.06)">Hábito</th>';
+      var items;
+      var tipo = 'habito';
+      if(key==='personal')     { items = d.habitosPersonal||[];    tipo='habito'; }
+      else if(key==='electronics'){ items = d.habitosElectronics||[]; tipo='habito'; diasKeys=['L','M','W','J','V']; }
+      else if(key==='libros')  { items = d.libros||[];             tipo='lista'; }
+      else if(key==='movies')  { items = d.movies||[];             tipo='lista'; }
+      else if(key==='norut')   { items = d.noRutinarias||[];       tipo='lista'; }
+
+      var diasKeys = (key==='electronics') ? ['L','M','W','J','V'] : DIAS;
+
+      if(!items.length){
+        cont.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,.25);font-size:12px">Sin registros</div>';
+        return;
+      }
+
+      if(tipo==='habito'){
+        var h = '<table style="width:100%;border-collapse:collapse">';
+        // Header
+        h += '<tr><th style="text-align:left;padding:7px 20px;font-size:9px;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.28);border-bottom:1px solid rgba(255,255,255,.07);font-weight:700">Hábito</th>';
         diasKeys.forEach(function(dia){
-          var esH = dia===diaKey;
-          h += '<th style="text-align:center;padding:6px 4px;font-size:9px;font-weight:'+(esH?800:600)+';color:'+(esH?'#fff':'rgba(255,255,255,.3)')+';border-bottom:1px solid rgba(255,255,255,.06);min-width:36px">'+DLBL[dia]+'</th>';
+          var esH = (dia===diaKey);
+          h += '<th style="text-align:center;padding:7px 4px;font-size:9px;font-weight:'+(esH?800:600)+';color:'+(esH?'#fff':'rgba(255,255,255,.28)')+';border-bottom:1px solid rgba(255,255,255,.07);min-width:48px">'+DLBL[dia]+'</th>';
         });
         h += '</tr>';
+        // Filas
         items.forEach(function(hab){
           h += '<tr>';
-          h += '<td style="padding:9px 8px;font-size:12px;font-weight:600;color:rgba(255,255,255,.8);border-bottom:1px solid rgba(255,255,255,.04)">';
-          if(hab.sims||hab.bw) h += '<div style="font-size:8px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1px">'+(hab.sims||hab.bw)+'</div>';
-          h += hab.nombre+'</td>';
+          h += '<td style="padding:10px 20px;border-bottom:1px solid rgba(255,255,255,.04)">';
+          if(hab.sims||hab.bw) h += '<div style="font-size:8px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1px">'+(hab.sims||hab.bw)+'</div>';
+          h += '<div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.82)">'+hab.nombre+'</div></td>';
           diasKeys.forEach(function(dia){
-            var checked = hab.checks && hab.checks[dia];
-            var esH = dia===diaKey;
-            h += '<td style="text-align:center;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.04)">';
-            h += '<div class="_act-chk" data-fila="'+hab.fila+'" data-dia="'+dia+'" style="width:26px;height:26px;border-radius:50%;border:'+(esH?'2':'1.5')+'px solid '+(checked?'rgba(74,222,128,.7)':'rgba(255,255,255,'+(esH?.3:.15)+')')+';background:'+(checked?'rgba(74,222,128,.18)':'transparent')+';display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;transition:all .12s">';
-            if(checked) h += '<i class="fas fa-check" style="font-size:9px;color:#4ADE80;pointer-events:none"></i>';
+            var chk = hab.checks && hab.checks[dia];
+            var esH = (dia===diaKey);
+            h += '<td style="text-align:center;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.04)">';
+            h += '<div class="_act-chk" data-fila="'+hab.fila+'" data-dia="'+dia+'" style="width:28px;height:28px;border-radius:50%;border:'+(esH?2:1.5)+'px solid '+(chk?'rgba(74,222,128,.7)':'rgba(255,255,255,'+(esH?.28:.14)+')')+';background:'+(chk?'rgba(74,222,128,.18)':'transparent')+';display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;transition:all .12s">';
+            if(chk) h += '<i class="fas fa-check" style="font-size:9px;color:#4ADE80;pointer-events:none"></i>';
             h += '</div></td>';
           });
           h += '</tr>';
         });
-        h += '</table></div>';
-        return h;
-      }
-
-      function renderList(items){
-        if(!items||!items.length) return '<div style="padding:32px;text-align:center;color:rgba(255,255,255,.25);font-size:12px">Sin registros</div>';
-        return '<div style="display:flex;flex-direction:column;gap:4px;padding:4px 0">'+
+        h += '</table>';
+        cont.innerHTML = h;
+        cont.querySelectorAll('._act-chk').forEach(function(el){
+          el.addEventListener('click', function(){
+            var circle = this;
+            var checked = !!circle.querySelector('.fa-check');
+            circle.style.borderColor = checked ? 'rgba(255,255,255,.14)' : 'rgba(74,222,128,.7)';
+            circle.style.background  = checked ? 'transparent' : 'rgba(74,222,128,.18)';
+            circle.innerHTML = checked ? '' : '<i class="fas fa-check" style="font-size:9px;color:#4ADE80;pointer-events:none"></i>';
+            if(typeof api!=='undefined') api.setActivityCheck('personal', parseInt(this.dataset.fila), this.dataset.dia, !checked);
+          });
+        });
+      } else {
+        // Lista (libros, movies, noRutinarias)
+        cont.innerHTML = '<div style="padding:0 20px;display:flex;flex-direction:column;gap:2px">'+
           items.map(function(it){
-            return '<div onclick="window._actToggleItem('+it.fila+',this)" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer">'+
-              '<div style="width:22px;height:22px;border-radius:50%;border:1.5px solid '+(it.completado?'rgba(74,222,128,.6)':'rgba(255,255,255,.2)')+';background:'+(it.completado?'rgba(74,222,128,.15)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+
+            return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)">'+
+              '<div style="width:24px;height:24px;border-radius:50%;border:1.5px solid '+(it.completado?'rgba(74,222,128,.6)':'rgba(255,255,255,.2)')+';background:'+(it.completado?'rgba(74,222,128,.15)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+
               (it.completado?'<i class="fas fa-check" style="font-size:9px;color:#4ADE80"></i>':'')+
               '</div>'+
-              '<span style="font-size:13px;font-weight:600;color:'+(it.completado?'rgba(255,255,255,.4)':'rgba(255,255,255,.85)')+'">'+it.nombre+'</span>'+
+              '<span style="font-size:13px;font-weight:600;color:'+(it.completado?'rgba(255,255,255,.35)':'rgba(255,255,255,.82)')+'">'+it.nombre+'</span>'+
             '</div>';
           }).join('')+
         '</div>';
       }
-
-      var html = '';
-      if(key==='personal')     html = renderGrid(d.habitosPersonal, DIAS);
-      else if(key==='electronics') html = renderGrid(d.habitosElectronics, ['L','M','W','J','V']);
-      else if(key==='libros')  html = renderList(d.libros);
-      else if(key==='movies')  html = renderList(d.movies);
-      else if(key==='norut')   html = renderList(d.noRutinarias);
-      cont.innerHTML = html;
-      // Event delegation para los círculos de check
-      cont.querySelectorAll('._act-chk').forEach(function(el){
-        el.addEventListener('click', function(){ window._actToggle(this.dataset.fila, this.dataset.dia, this); });
-      });
-    };
-
-    window._actToggle = function(fila, dia, el){
-      var circle = el;
-      var checked = circle.querySelector('.fa-check');
-      if(checked){ circle.style.borderColor='rgba(255,255,255,.2)'; circle.style.background='transparent'; circle.innerHTML=''; }
-      else { circle.style.borderColor='rgba(74,222,128,.7)'; circle.style.background='rgba(74,222,128,.18)'; circle.innerHTML='<i class="fas fa-check" style="font-size:9px;color:#4ADE80;pointer-events:none"></i>'; }
-      if(typeof api!=='undefined') api.setActivityCheck('personal', fila, dia, !checked);
-    };
-    window._actToggleItem = function(fila, el){
-      var circle = el.querySelector('div');
-      var name   = el.querySelector('span');
-      var checked = circle && circle.querySelector('.fa-check');
-      if(circle){
-        if(checked){ circle.style.borderColor='rgba(255,255,255,.2)'; circle.style.background='transparent'; circle.innerHTML=''; if(name) name.style.color='rgba(255,255,255,.85)'; }
-        else { circle.style.borderColor='rgba(74,222,128,.6)'; circle.style.background='rgba(74,222,128,.15)'; circle.innerHTML='<i class="fas fa-check" style="font-size:9px;color:#4ADE80"></i>'; if(name) name.style.color='rgba(255,255,255,.4)'; }
-      }
-      if(typeof api!=='undefined') api.setActivityCheck('noRutinarias', fila, null, !checked);
     };
   }
 
-  // ── NUTRICIÓN fallback ──
+  // NUTRICIÓN fallback
   if(typeof window.renderNutricion !== 'function'){
     window.renderNutricion = function(data){
-      var body = document.getElementById('nut-panel-body');
-      if(!body) return;
-      if(!data||!data.ok){ body.innerHTML='<div style="padding:32px;text-align:center;color:rgba(255,255,255,.25);font-size:12px">Sin registros</div>'; return; }
+      var body = document.getElementById('nut-panel-body'); if(!body) return;
+      if(!data||!data.ok){ body.innerHTML='<div style="padding:40px;text-align:center;color:rgba(255,255,255,.25);font-size:12px">Sin registros</div>'; return; }
       var dias = data.semana || Object.values(data.dias||{});
-      if(!dias.length){ body.innerHTML='<div style="padding:32px;text-align:center;color:rgba(255,255,255,.25);font-size:12px">Sin registros esta semana</div>'; return; }
-      var html = '<div style="padding:0 20px 24px;display:flex;flex-direction:column;gap:12px">';
-      // HOY
+      if(!dias.length){ body.innerHTML='<div style="padding:40px;text-align:center;color:rgba(255,255,255,.25);font-size:12px">Sin registros esta semana</div>'; return; }
       var hoy = data.hoy||{};
-      if(hoy.cal||hoy.prot||hoy.agua){
-        html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)">';
-        [{l:'Calorías',v:Math.round(hoy.cal||0),u:'kcal',c:'#fbbf24'},
-         {l:'Proteína',v:Math.round(hoy.prot||0),u:'g',c:'#4ADE80'},
-         {l:'Carbos',v:Math.round(hoy.carbos||0),u:'g',c:'#60a5fa'},
-         {l:'Agua',v:(hoy.agua||0).toFixed(1),u:'L',c:'#22d3ee'}
-        ].forEach(function(m){
-          html += '<div style="text-align:center"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.3);margin-bottom:3px">'+m.l+'</div><div style="font-size:18px;font-weight:800;color:'+m.c+';letter-spacing:-.02em">'+m.v+'<span style="font-size:10px;font-weight:500;color:rgba(255,255,255,.3);margin-left:2px">'+m.u+'</span></div></div>';
+      var html = '<div style="padding:0 20px 24px;display:flex;flex-direction:column;gap:12px">';
+      if(hoy.cal||hoy.prot){
+        html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)">';
+        [{l:'Calorías',v:Math.round(hoy.cal||0),u:'kcal',c:'#fbbf24'},{l:'Proteína',v:Math.round(hoy.prot||0),u:'g',c:'#4ADE80'},{l:'Carbos',v:Math.round(hoy.carbos||0),u:'g',c:'#60a5fa'},{l:'Agua',v:(hoy.agua||0).toFixed(1),u:'L',c:'#22d3ee'}].forEach(function(m){
+          html += '<div style="text-align:center"><div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.28);margin-bottom:3px">'+m.l+'</div><div style="font-size:18px;font-weight:800;color:'+m.c+';letter-spacing:-.02em">'+m.v+'<span style="font-size:9px;color:rgba(255,255,255,.28);margin-left:2px">'+m.u+'</span></div></div>';
         });
         html += '</div>';
       }
-      // Días de la semana
       dias.forEach(function(dia){
         if(!dia.items||!dia.items.length) return;
-        html += '<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.4);margin-bottom:6px">'+dia.fecha+'</div>';
+        html += '<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:6px">'+dia.fecha+'</div>';
         dia.items.forEach(function(it){
-          html += '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">';
-          html += '<span style="font-size:9px;font-weight:700;padding:2px 7px;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0">'+( it.momento||'—')+'</span>';
-          html += '<span style="flex:1;font-size:13px;color:rgba(255,255,255,.8)">'+it.alimento+'</span>';
-          if(it.cal) html += '<span style="font-size:11px;font-weight:700;color:#fbbf24;flex-shrink:0">'+Math.round(it.cal)+' kcal</span>';
-          html += '</div>';
+          html += '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">'+
+            '<span style="font-size:9px;font-weight:700;padding:2px 7px;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.35);text-transform:uppercase;flex-shrink:0">'+(it.momento||'—')+'</span>'+
+            '<span style="flex:1;font-size:13px;color:rgba(255,255,255,.8)">'+it.alimento+'</span>'+
+            (it.cal?'<span style="font-size:11px;font-weight:700;color:#fbbf24;flex-shrink:0">'+Math.round(it.cal)+' kcal</span>':'')+
+          '</div>';
         });
         html += '</div>';
       });
@@ -1632,31 +1616,27 @@ document.addEventListener('DOMContentLoaded', function(){
     };
   }
 
-  // ── Actualizar irAActivity e irANutricion con los fallbacks recién definidos ──
-  var _origActivity  = window.irAActivity;
-  var _origNutricion = window.irANutricion;
-
+  // irAActivity — siempre actualizado para usar los fallbacks si aplica
   window.irAActivity = function(){
     _irAPanel('board-activity','activity');
     if(window._actData){
-      window.renderActivity();
+      if(typeof window.renderActivity==='function') window.renderActivity();
     } else {
       var cont = document.getElementById('act-container');
       if(cont) cont.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,.25)"><i class="fas fa-circle-notch fa-spin" style="font-size:18px;color:#22d3ee"></i></div>';
       if(typeof api!=='undefined') api.getActivityCheck().then(function(d){
         window._actData = d;
-        window.renderActivity();
-      }).catch(function(){ var c=document.getElementById('act-container'); if(c) c.innerHTML='<div style="padding:40px;text-align:center;color:rgba(239,68,68,.4);font-size:12px">Error al cargar</div>'; });
+        if(typeof window.renderActivity==='function') window.renderActivity();
+      }).catch(function(){ var c=document.getElementById('act-container'); if(c) c.innerHTML='<div style="padding:32px;text-align:center;color:rgba(239,68,68,.4);font-size:12px">Error al cargar Activity</div>'; });
     }
   };
 
   window.irANutricion = function(){
     _irAPanel('board-nutricion','nutricion');
     var body = document.getElementById('nut-panel-body');
-    if(body && body.querySelector('.fa-spin')) {
-      if(typeof api!=='undefined') api.getNutricion().then(function(d){
-        window.renderNutricion(d);
-      }).catch(function(){ if(body) body.innerHTML='<div style="padding:40px;text-align:center;color:rgba(239,68,68,.4);font-size:12px">Error al cargar</div>'; });
+    if(body && body.querySelector('.fa-spin')){
+      if(typeof api!=='undefined') api.getNutricion().then(function(d){ window.renderNutricion(d); })
+        .catch(function(){ if(body) body.innerHTML='<div style="padding:32px;text-align:center;color:rgba(239,68,68,.4);font-size:12px">Error al cargar Nutrición</div>'; });
     }
   };
 
