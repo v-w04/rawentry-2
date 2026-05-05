@@ -1940,8 +1940,8 @@ document.addEventListener('DOMContentLoaded', function(){
       }
       cont.innerHTML =
         '<div style="display:flex;gap:0;overflow-x:auto;padding:16px 20px 24px;align-items:flex-start;-webkit-overflow-scrolling:touch">'+
-          colFixed('🧘 Personal <span style="opacity:.4;font-size:10px">'+(d.habitosPersonal||[]).length+'</span>',    habTable(d.habitosPersonal||[], DIAS_P), 320)+
-          colFixed('⚡ Electronics <span style="opacity:.4;font-size:10px">'+(d.habitosElectronics||[]).length+'</span>', habTable(d.habitosElectronics||[], DIAS_E), 280)+
+          colFixed('🧘 Personal <span style="opacity:.4;font-size:10px">'+(d.habitosPersonal||[]).length+'</span>',    habTable(d.habitosPersonal||[], DIAS_P), 390)+
+          colFixed('⚡ Electronics <span style="opacity:.4;font-size:10px">'+(d.habitosElectronics||[]).length+'</span>', habTable(d.habitosElectronics||[], DIAS_E), 310)+
           colDynamic('📚 Libros <span style="opacity:.4;font-size:10px">'+(d.libros||[]).length+'</span>',      itemList(d.libros||[],'libros'))+
           colDynamic('🎬 Movies <span style="opacity:.4;font-size:10px">'+(d.movies||[]).length+'</span>',      itemList(d.movies||[],'movies'))+
           colDynamic('✨ Pendientes <span style="opacity:.4;font-size:10px">'+(d.noRutinarias||[]).length+'</span>', itemList(d.noRutinarias||[],'norut'), true)+
