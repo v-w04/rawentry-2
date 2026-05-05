@@ -1803,3 +1803,89 @@ function initTooltip(){
   document.addEventListener('mouseover',function(e){var t=e.target.closest('[data-tip]');if(!t){tip.classList.remove('show');return;}tip.textContent=t.getAttribute('data-tip');var r=t.getBoundingClientRect();tip.style.left=(r.left+r.width/2-tip.offsetWidth/2)+'px';tip.style.top=(r.top-tip.offsetHeight-6+window.scrollY)+'px';tip.classList.add('show');});
   document.addEventListener('mouseout',function(e){if(!e.target.closest('[data-tip]'))tip.classList.remove('show');});
 }
+
+/* ── FALLBACKS Activity y Nutrición ── */
+document.addEventListener('DOMContentLoaded', function(){
+
+  if(typeof window.renderActivity !== 'function'){
+    window.renderActivity = function(){
+      var d = window._actData; if(!d) return;
+      var cont = document.getElementById('act-container'); if(!cont) return;
+      var DIAS_P=['L','M','W','J','V','S','D'], DIAS_E=['L','M','W','J','V'];
+      var DLBL={L:'Lun',M:'Mar',W:'Mié',J:'Jue',V:'Vie',S:'Sáb',D:'Dom'};
+      var diaKey=DIAS_P[(new Date().getDay()+6)%7];
+      function chk(fila,dia,checked,tipo){
+        var esH=(dia===diaKey);
+        return '<div class="_act-chk" data-fila="'+fila+'" data-dia="'+dia+'" data-tipo="'+tipo+'"'+
+          ' style="width:24px;height:24px;border-radius:50%;cursor:pointer;margin:auto;transition:all .12s;'+
+          'border:'+(esH?2:1.5)+'px solid '+(checked?'rgba(74,222,128,.75)':'rgba(255,255,255,'+(esH?.28:.12)+')')+';'+
+          'background:'+(checked?'rgba(74,222,128,.18)':'transparent')+';'+
+          'display:flex;align-items:center;justify-content:center">'+
+          (checked?'<i class="fas fa-check" style="font-size:9px;color:#4ADE80;pointer-events:none"></i>':'')+
+        '</div>';
+      }
+      function chkItem(fila,tipo,checked){
+        return '<div class="_act-item" data-fila="'+fila+'" data-tipo="'+tipo+'"'+
+          ' style="width:22px;height:22px;border-radius:50%;flex-shrink:0;cursor:pointer;transition:all .12s;'+
+          'border:1.5px solid '+(checked?'rgba(74,222,128,.75)':'rgba(255,255,255,.14)')+';'+
+          'background:'+(checked?'rgba(74,222,128,.18)':'transparent')+';'+
+          'display:flex;align-items:center;justify-content:center">'+
+          (checked?'<i class="fas fa-check" style="font-size:9px;color:#4ADE80;pointer-events:none"></i>':'')+
+        '</div>';
+      }
+      function habTable(items, dias){
+        var h='<table style="border-collapse:collapse"><tr><th style="text-align:left;padding:5px 8px;font-size:8px;color:rgba(255,255,255,.25);font-weight:700;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.07)">Hábito</th>';
+        dias.forEach(function(d){h+='<th style="text-align:center;padding:5px 3px;font-size:8px;font-weight:'+(d===diaKey?800:600)+';color:'+(d===diaKey?'#fff':'rgba(255,255,255,.25)')+';border-bottom:1px solid rgba(255,255,255,.07);min-width:28px">'+DLBL[d]+'</th>';});
+        h+='</tr>';
+        items.forEach(function(hab){
+          h+='<tr><td style="padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px;white-space:nowrap">';
+          if(hab.sims||hab.bw)h+='<div style="font-size:7px;color:rgba(255,255,255,.22);text-transform:uppercase;letter-spacing:.07em">'+(hab.sims||hab.bw)+'</div>';
+          h+='<div style="font-weight:600;color:rgba(255,255,255,.82)">'+hab.nombre+'</div></td>';
+          dias.forEach(function(dia){h+='<td style="text-align:center;padding:5px 2px;border-bottom:1px solid rgba(255,255,255,.04)">'+chk(hab.fila,dia,hab.checks&&hab.checks[dia],hab.sims?'personal':'electronics')+'</td>';});
+          h+='</tr>';
+        });
+        return h+'</table>';
+      }
+      function itemList(items,tipo){
+        return items.map(function(it){
+          return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">'+chkItem(it.fila,tipo,it.completado)+'<span style="font-size:11px;font-weight:600;color:'+(it.completado?'rgba(255,255,255,.35)':'rgba(255,255,255,.8)')+'">'+it.nombre+'</span></div>';
+        }).join('');
+      }
+      function col(title, inner){
+        return '<div style="flex:0 0 auto;padding:0 16px;border-right:1px solid rgba(255,255,255,.06)">'+
+          '<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.10em;color:rgba(255,255,255,.4);margin-bottom:10px">'+title+'</div>'+inner+'</div>';
+      }
+      cont.innerHTML='<div style="display:flex;gap:0;overflow-x:auto;padding:4px 4px 20px;align-items:flex-start;-webkit-overflow-scrolling:touch">'+
+        col('🧘 Personal',    habTable(d.habitosPersonal||[],    DIAS_P))+
+        col('⚡ Electronics', habTable(d.habitosElectronics||[], DIAS_E))+
+        col('📚 Libros',      '<div>'+itemList(d.libros||[],'libros')+'</div>')+
+        col('🎬 Movies',      '<div>'+itemList(d.movies||[],'movies')+'</div>')+
+        '<div style="flex:0 0 auto;padding-left:16px"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.10em;color:rgba(255,255,255,.4);margin-bottom:10px">✨ No Rutinarias</div><div>'+itemList(d.noRutinarias||[],'norut')+'</div></div>'+
+      '</div>';
+      cont.addEventListener('click',function(e){
+        var c=e.target.closest('._act-chk');
+        if(c){var ok=!!c.querySelector('.fa-check');c.style.borderColor=ok?'rgba(255,255,255,.12)':'rgba(74,222,128,.75)';c.style.background=ok?'transparent':'rgba(74,222,128,.18)';c.innerHTML=ok?'':'<i class="fas fa-check" style="font-size:9px;color:#4ADE80;pointer-events:none"></i>';if(typeof api!=='undefined')api.setActivityCheck(c.dataset.tipo,parseInt(c.dataset.fila),c.dataset.dia,!ok);return;}
+        var it=e.target.closest('._act-item');
+        if(it){var ok=!!it.querySelector('.fa-check');it.style.borderColor=ok?'rgba(255,255,255,.12)':'rgba(74,222,128,.75)';it.style.background=ok?'transparent':'rgba(74,222,128,.18)';it.innerHTML=ok?'':'<i class="fas fa-check" style="font-size:9px;color:#4ADE80;pointer-events:none"></i>';var sp=it.parentElement.querySelector('span');if(sp)sp.style.color=ok?'rgba(255,255,255,.8)':'rgba(255,255,255,.35)';if(typeof api!=='undefined')api.setActivityCheck(it.dataset.tipo,parseInt(it.dataset.fila),null,!ok);}
+      });
+    };
+  }
+
+  if(typeof window.renderNutricion !== 'function'){
+    window.renderNutricion = function(data){
+      var body=document.getElementById('nut-panel-body'); if(!body)return;
+      if(!data||!data.ok){body.innerHTML='<div style="padding:40px;text-align:center;color:rgba(255,255,255,.25);font-size:12px">Sin registros</div>';return;}
+      var dias=data.semana||Object.values(data.dias||{});
+      var html='<div style="padding:0 20px 24px;display:flex;flex-direction:column;gap:10px">';
+      dias.forEach(function(dia){
+        if(!dia.items||!dia.items.length)return;
+        html+='<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:5px">'+dia.fecha+'</div>';
+        dia.items.forEach(function(it){html+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:9px;padding:2px 6px;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.35);text-transform:uppercase;flex-shrink:0">'+(it.momento||'—')+'</span><span style="flex:1;font-size:12px;color:rgba(255,255,255,.8)">'+it.alimento+'</span>'+(it.cal?'<span style="font-size:11px;font-weight:700;color:#fbbf24;flex-shrink:0">'+Math.round(it.cal)+' kcal</span>':'')+'</div>';});
+        html+='</div>';
+      });
+      html+='</div>';
+      body.innerHTML=html;
+    };
+  }
+
+});
