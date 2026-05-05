@@ -211,37 +211,8 @@
       </div>
     </div>
 
-    <!-- PANEL LOGROS -->
-    <div class="board-face panel-logros" id="board-logros">
-      <div class="reverso-header">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(251,191,36,.05));border:1px solid rgba(251,191,36,.2);display:flex;align-items:center;justify-content:center;font-size:14px">🏆</div>
-          <div>
-            <div class="reverso-title">Logros</div>
-            <div style="font-size:10px;color:var(--m);font-weight:500" id="reverso-count"></div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-          <select id="reverso-fil-proyecto" onchange="pintarReverso()" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;color:var(--m);font-family:inherit;font-size:11px;padding:4px 10px;outline:none;cursor:pointer;max-width:110px"><option value="">Proyecto</option></select>
-          <select id="reverso-fil-grupo"    onchange="pintarReverso()" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;color:var(--m);font-family:inherit;font-size:11px;padding:4px 10px;outline:none;cursor:pointer;max-width:110px"><option value="">Contacto</option></select>
-          <div style="display:flex;gap:4px;background:rgba(255,255,255,.04);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,.06)">
-            <button onclick="setOrdenLogros('az')"          id="lord-az"   class="rev-pill on">A–Z</button>
-            <button onclick="setOrdenLogros('monto-desc')"  id="lord-desc" class="rev-pill">$ ↓</button>
-            <button onclick="setOrdenLogros('monto')"       id="lord-asc"  class="rev-pill">$ ↑</button>
-          </div>
-          <button id="reverso-tog-done" onclick="toggleReversoMostrarDone()" class="rev-pill"><i class="fas fa-eye-slash" style="font-size:10px"></i> Completados</button>
-          <button onclick="resetReverso()" class="rev-pill"><i class="fas fa-rotate-left" style="font-size:10px"></i></button>
-          <button class="btn-flip active" onclick="volverAlAnverso()"><i class="fas fa-chevron-left" style="font-size:10px"></i> Volver</button>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start;padding:0 var(--pad,16px) 20px">
-        <div id="inv-grid-full" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px"></div>
-        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden;position:sticky;top:10px">
-          <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(74,222,128,.7)">✓ Completados</div>
-          <div id="logros-completados-tabla" style="max-height:calc(100vh - 160px);overflow-y:auto"></div>
-        </div>
-      </div>
-    </div>
+    <!-- PANEL LOGROS — montado por raw-logros.js -->
+    <div class="board-face panel-logros" id="board-logros" style="overflow:hidden;display:flex;flex-direction:column;background:#020810"></div>
 
     <!-- PANEL BITÁCORA -->
     <div class="board-face panel-bitacora" id="board-bitacora" style="overflow-y:auto;overflow-x:hidden">
