@@ -1908,3 +1908,22 @@ select{
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* ── BTN-HOME — siempre visible, regresa al anverso ── */
+#btn-home {
+  border-color: rgba(255,255,255,0.18) !important;
+  color: rgba(255,255,255,0.6) !important;
+  transition: all .15s !important;
+}
+#btn-home:hover {
+  border-color: rgba(255,255,255,0.4) !important;
+  color: #fff !important;
+  background: rgba(255,255,255,0.06) !important;
+}
+/* Cuando estamos en el anverso, HOME se ve activo/resaltado */
+#btn-home.on {
+  border-color: rgba(255,255,255,0.5) !important;
+  color: #fff !important;
+  background: rgba(255,255,255,0.08) !important;
+  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
