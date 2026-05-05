@@ -1381,6 +1381,84 @@ function irASheet(){ var url=sheetUrl||'https://docs.google.com/spreadsheets/d/1
 //  SHEETS EMBED
 // ══════════════════════════════════════════
 const SHEETS_CONFIG=[{id:'raw',label:'RAW',emoji:'📄',gid:'0',spreadsheetId:'15T14Hb7tvmv24ZAaC3su1NRtDwVS6-dWbJGxQYUGP1o'}];
+
+/* ═══════════════════════════════════════════════════════
+   NAVEGACIÓN — funciones de nav robustas
+═══════════════════════════════════════════════════════ */
+
+function _irAPanel(boardId, tabKey){
+  var anverso = document.getElementById('board-anverso');
+  var destino = document.getElementById(boardId);
+  if(!destino) return;
+
+  var esAnverso = (boardId === 'board-anverso');
+
+  // Ocultar anverso o mostrarlo según destino
+  if(anverso){
+    if(esAnverso){
+      anverso.classList.remove('slide-right','slide-left');
+    } else {
+      anverso.classList.add('slide-right');
+    }
+  }
+
+  // Quitar active de todos los paneles que NO son el anverso
+  document.querySelectorAll('.board-face:not(.anverso)').forEach(function(f){
+    f.classList.remove('active');
+  });
+
+  // Activar destino
+  if(!esAnverso){ destino.classList.add('active'); }
+
+  // Sincronizar mob-tab
+  document.querySelectorAll('.mob-tab').forEach(function(t){
+    t.classList.toggle('active', t.dataset.tab === tabKey);
+  });
+
+  // Marcar btn-flip activo — btn-maslow es el de bitácora
+  document.querySelectorAll('.btn-flip').forEach(function(b){ b.classList.remove('active'); });
+  var ids = { 'logros':'btn-logros', 'bitacora':'btn-maslow',
+               'activity':'btn-activity', 'nutricion':'btn-nutricion' };
+  var btnId = ids[tabKey] || ('btn-'+tabKey);
+  var heroBtn = document.getElementById(btnId);
+  if(heroBtn) heroBtn.classList.add('active');
+}
+
+function volverAlAnverso(){
+  _irAPanel('board-anverso','entrada');
+  var dd = document.getElementById('entrada-dropdown');
+  if(dd){ dd.classList.remove('show'); dd.style.display='none'; }
+}
+
+function irALogros(){
+  _irAPanel('board-logros','logros');
+  if(window._logrosData && typeof renderLogros==='function' && !document.getElementById('lgr-hdr')){
+    renderLogros(window._logrosData);
+  }
+}
+
+function irABitacora(){
+  _irAPanel('board-bitacora','bitacora');
+  if(typeof actualizarNecInline==='function'){
+    setTimeout(actualizarNecInline, 120);
+  }
+}
+
+function irAActivity(){
+  _irAPanel('board-activity','activity');
+  if(typeof renderActivity==='function' && window._actData) renderActivity();
+}
+
+function irANutricion(){
+  _irAPanel('board-nutricion','nutricion');
+}
+
+function _syncMobTab(tabKey){
+  document.querySelectorAll('.mob-tab').forEach(function(t){
+    t.classList.toggle('active', t.dataset.tab===tabKey);
+  });
+}
+
 function irASheets(sheetId){
   sheetId=sheetId||'raw';
   if(_pantalla==='sheets_'+sheetId){volverAlAnverso();return;}
