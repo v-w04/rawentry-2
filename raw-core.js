@@ -165,29 +165,132 @@ function _icoAhorro(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.arc(x,y,7*k,Math
 function _icoEfectivo(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.rect(x-9*k,y-5*k,18*k,10*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.moveTo(x-4*k,y);ctx.lineTo(x+4*k,y);ctx.strokeStyle=c;ctx.lineWidth=2.5;ctx.lineCap='round';ctx.stroke();}
 function _icoInversion(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.moveTo(x-8*k,y+6*k);ctx.lineTo(x-3*k,y);ctx.lineTo(x+2*k,y+4*k);ctx.lineTo(x+8*k,y-6*k);ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();}
 
+// Contexto pre-seleccionado desde el dial — se lee en abrirFormulario
+var _dialPreset = {};
+
+// Función helper para íconos de subs simples (texto)
+function _icoTexto(label){ return function(ctx,x,y,s,c){ var k=s/22; ctx.font='bold '+Math.round(s*0.38)+'px -apple-system,sans-serif'; ctx.fillStyle=c; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(label,x,y); }; }
+
 var _DIAL_ITEMS = [
-  { id:'activity',      label:'Activity',   accent:'#22d3c8',
+  // ── ACTIVITY — subs: tipo de registro ──
+  { id:'activity', label:'Activity', accent:'#22d3c8',
     draw:function(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.moveTo(x-8*k,y+4*k);ctx.lineTo(x-2*k,y-2*k);ctx.lineTo(x+3*k,y+3*k);ctx.lineTo(x+9*k,y-7*k);ctx.strokeStyle=c;ctx.lineWidth=2.4;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();},
-    subs:[{id:'libro',label:'Libros',accent:'#ec4899',draw:_icoLibro},{id:'movie',label:'Movies',accent:'#f59e0b',draw:_icoMovie},{id:'norut',label:'Pendientes',accent:'#8b5cf6',draw:_icoPendiente}]},
-  { id:'apartado',      label:'Apartado',   accent:'#4ade80',
+    subs:[
+      {id:'libro',   label:'Libros',     accent:'#ec4899', draw:_icoLibro,
+       preset:function(){ _dialPreset={tab:'libro'}; }},
+      {id:'movie',   label:'Movies',     accent:'#f59e0b', draw:_icoMovie,
+       preset:function(){ _dialPreset={tab:'movie'}; }},
+      {id:'norut',   label:'Pendientes', accent:'#8b5cf6', draw:_icoPendiente,
+       preset:function(){ _dialPreset={tab:'norut'}; }},
+    ]},
+
+  // ── APARTADO — directo al form ──
+  { id:'apartado', label:'Apartado', accent:'#4ade80',
     draw:function(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.arc(x,y-2*k,5.5*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.moveTo(x-8*k,y+5*k);ctx.lineTo(x+8*k,y+5*k);ctx.lineTo(x+6*k,y+10*k);ctx.lineTo(x-6*k,y+10*k);ctx.closePath();ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();}},
-  { id:'bancos',        label:'Bancos',     accent:'#f59e0b',
-    draw:function(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.moveTo(x-9*k,y+7*k);ctx.lineTo(x+9*k,y+7*k);ctx.moveTo(x-6*k,y-1*k);ctx.lineTo(x-6*k,y+7*k);ctx.moveTo(x,y-1*k);ctx.lineTo(x,y+7*k);ctx.moveTo(x+6*k,y-1*k);ctx.lineTo(x+6*k,y+7*k);ctx.moveTo(x-9*k,y-1*k);ctx.lineTo(x+9*k,y-1*k);ctx.moveTo(x-10*k,y-6*k);ctx.lineTo(x,y-12*k);ctx.lineTo(x+10*k,y-6*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();}},
-  { id:'entrenamiento', label:'Entrena',    accent:'#fb923c',
-    draw:function(ctx,x,y,s,c){var k=s/22;[[-9,0,3.5],[9,0,3.5]].forEach(function(p){ctx.beginPath();ctx.arc(x+p[0]*k,y+p[1]*k,p[2]*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.stroke();});ctx.beginPath();ctx.moveTo(x-5*k,y);ctx.lineTo(x+5*k,y);ctx.strokeStyle=c;ctx.lineWidth=3;ctx.lineCap='round';ctx.stroke();}},
-  { id:'nutricion',     label:'Nutrición',  accent:'#86efac',
-    draw:function(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.arc(x,y+2*k,7*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.moveTo(x,y-5*k);ctx.bezierCurveTo(x,y-12*k,x+7*k,y-11*k,x+6*k,y-5*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();}},
-  { id:'patrimonio',    label:'Patrimonio', accent:'#c4b5fd',
+
+  // ── BANCOS — subs: banco específico de _fijosData ──
+  { id:'bancos', label:'Bancos', accent:'#f59e0b',
+    draw:function(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.moveTo(x-9*k,y+7*k);ctx.lineTo(x+9*k,y+7*k);ctx.moveTo(x-6*k,y-1*k);ctx.lineTo(x-6*k,y+7*k);ctx.moveTo(x,y-1*k);ctx.lineTo(x,y+7*k);ctx.moveTo(x+6*k,y-1*k);ctx.lineTo(x+6*k,y+7*k);ctx.moveTo(x-9*k,y-1*k);ctx.lineTo(x+9*k,y-1*k);ctx.moveTo(x-10*k,y-6*k);ctx.lineTo(x,y-12*k);ctx.lineTo(x+10*k,y-6*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();},
+    subsGen:function(){
+      // Genera subs dinámicamente desde _fijosData al momento de abrir
+      var bancos=(window._fijosData||[]).filter(function(f){return f.nombre&&f.nombre!=='P';}).slice(0,5);
+      if(!bancos.length) return null;
+      return bancos.map(function(f){
+        return {id:'bancos', label:f.nombre, accent:'#f59e0b', draw:_icoTexto(f.nombre.slice(0,4)),
+          preset:function(){ _dialPreset={tab:'bancos', banco:f.nombre}; }};
+      });
+    }},
+
+  // ── ENTRENAMIENTO — subs: tipo de entrenamiento ──
+  { id:'entrenamiento', label:'Entrena', accent:'#fb923c',
+    draw:function(ctx,x,y,s,c){var k=s/22;[[-9,0,3.5],[9,0,3.5]].forEach(function(p){ctx.beginPath();ctx.arc(x+p[0]*k,y+p[1]*k,p[2]*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.stroke();});ctx.beginPath();ctx.moveTo(x-5*k,y);ctx.lineTo(x+5*k,y);ctx.strokeStyle=c;ctx.lineWidth=3;ctx.lineCap='round';ctx.stroke();},
+    subs:[
+      {id:'entrenamiento', label:'Fuerza',      accent:'#fb923c', draw:_icoTexto('💪'),
+       preset:function(){ _dialPreset={tab:'entrenamiento',tipo:'Fuerza'}; }},
+      {id:'entrenamiento', label:'Cardio',       accent:'#f87171', draw:_icoTexto('🏃'),
+       preset:function(){ _dialPreset={tab:'entrenamiento',tipo:'Cardio'}; }},
+      {id:'entrenamiento', label:'HIIT',         accent:'#fbbf24', draw:_icoTexto('⚡'),
+       preset:function(){ _dialPreset={tab:'entrenamiento',tipo:'HIIT'}; }},
+      {id:'entrenamiento', label:'Flex',         accent:'#86efac', draw:_icoTexto('🧘'),
+       preset:function(){ _dialPreset={tab:'entrenamiento',tipo:'Flexibilidad'}; }},
+      {id:'entrenamiento', label:'Deporte',      accent:'#93c5fd', draw:_icoTexto('⚽'),
+       preset:function(){ _dialPreset={tab:'entrenamiento',tipo:'Deporte'}; }},
+    ]},
+
+  // ── NUTRICIÓN — subs: momento del día ──
+  { id:'nutricion', label:'Nutrición', accent:'#86efac',
+    draw:function(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.arc(x,y+2*k,7*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.moveTo(x,y-5*k);ctx.bezierCurveTo(x,y-12*k,x+7*k,y-11*k,x+6*k,y-5*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();},
+    subs:[
+      {id:'nutricion', label:'Desayuno', accent:'#fbbf24', draw:_icoTexto('☀️'),
+       preset:function(){ _dialPreset={tab:'nutricion',momento:'Desayuno'}; }},
+      {id:'nutricion', label:'Comida',   accent:'#86efac', draw:_icoTexto('🍽'),
+       preset:function(){ _dialPreset={tab:'nutricion',momento:'Comida'}; }},
+      {id:'nutricion', label:'Cena',     accent:'#c4b5fd', draw:_icoTexto('🌙'),
+       preset:function(){ _dialPreset={tab:'nutricion',momento:'Cena'}; }},
+      {id:'nutricion', label:'Snack',    accent:'#f0abfc', draw:_icoTexto('🍎'),
+       preset:function(){ _dialPreset={tab:'nutricion',momento:'Snack'}; }},
+    ]},
+
+  // ── PATRIMONIO — subs: tipo de movimiento ──
+  { id:'patrimonio', label:'Patrimonio', accent:'#c4b5fd',
     draw:function(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.moveTo(x-10*k,y+8*k);ctx.lineTo(x+10*k,y+8*k);ctx.moveTo(x-6*k,y-1*k);ctx.lineTo(x-6*k,y+8*k);ctx.moveTo(x,y-1*k);ctx.lineTo(x,y+8*k);ctx.moveTo(x+6*k,y-1*k);ctx.lineTo(x+6*k,y+8*k);ctx.moveTo(x-10*k,y-1*k);ctx.lineTo(x+10*k,y-1*k);ctx.moveTo(x-12*k,y-7*k);ctx.lineTo(x,y-13*k);ctx.lineTo(x+12*k,y-7*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();},
-    subs:[{id:'ahorro',label:'Banco',accent:'#4ade80',draw:_icoAhorro},{id:'efectivo',label:'Efectivo',accent:'#fbbf24',draw:_icoEfectivo},{id:'inversion',label:'Inversión',accent:'#c4b5fd',draw:_icoInversion}]},
-  { id:'pensamiento',   label:'Pensa',      accent:'#f0abfc',
-    draw:function(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.arc(x-1*k,y-2*k,8*k,Math.PI*.3,Math.PI*2.2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(x+5*k,y+8*k,2.5*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(x+9*k,y+13*k,1.5*k,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();}},
-  { id:'persona',       label:'Persona',    accent:'#93c5fd',
-    draw:function(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.arc(x-3*k,y-5*k,4*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(x+5*k,y-7*k,3.2*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=1.8;ctx.stroke();ctx.beginPath();ctx.moveTo(x-12*k,y+10*k);ctx.quadraticCurveTo(x-3*k,y+2*k,x+5*k,y+10*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();ctx.beginPath();ctx.moveTo(x+3*k,y+4*k);ctx.quadraticCurveTo(x+11*k,y,x+14*k,y+10*k);ctx.strokeStyle=c;ctx.lineWidth=1.8;ctx.lineCap='round';ctx.stroke();}},
-  { id:'editar',        label:'Editar',     accent:'#a5b4fc',
-    draw:function(ctx,x,y,s,c){var k=s/22;ctx.save();ctx.translate(x,y);ctx.rotate(-Math.PI/4);ctx.beginPath();ctx.rect(-2.5*k,-9*k,5*k,16*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();ctx.beginPath();ctx.moveTo(-2.5*k,7*k);ctx.lineTo(0,12*k);ctx.lineTo(2.5*k,7*k);ctx.fillStyle=c;ctx.fill();ctx.restore();}},
-  { id:'salud',         label:'Salud',      accent:'#fca5a5',
-    draw:function(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.moveTo(x,y+9*k);ctx.bezierCurveTo(x-12*k,y,x-12*k,y-9*k,x,y-4*k);ctx.bezierCurveTo(x+12*k,y-9*k,x+12*k,y,x,y+9*k);ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.stroke();}},
+    subs:[
+      {id:'patrimonio', label:'Banco',     accent:'#4ade80',  draw:_icoAhorro,
+       preset:function(){ _dialPreset={tab:'patrimonio',tipo:'ahorro'}; }},
+      {id:'patrimonio', label:'Efectivo',  accent:'#fbbf24',  draw:_icoEfectivo,
+       preset:function(){ _dialPreset={tab:'patrimonio',tipo:'efectivo'}; }},
+      {id:'patrimonio', label:'Inversión', accent:'#c4b5fd',  draw:_icoInversion,
+       preset:function(){ _dialPreset={tab:'patrimonio',tipo:'inversion'}; }},
+    ]},
+
+  // ── PENSAMIENTO — subs: categoría ──
+  { id:'pensamiento', label:'Pensa', accent:'#f0abfc',
+    draw:function(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.arc(x-1*k,y-2*k,8*k,Math.PI*.3,Math.PI*2.2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(x+5*k,y+8*k,2.5*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(x+9*k,y+13*k,1.5*k,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();},
+    subs:[
+      {id:'pensamiento', label:'Emoción',   accent:'#ec4899', draw:_icoTexto('💗'),
+       preset:function(){ _dialPreset={tab:'pensamiento',categoria:'Emoción'}; }},
+      {id:'pensamiento', label:'Idea',       accent:'#fbbf24', draw:_icoTexto('💡'),
+       preset:function(){ _dialPreset={tab:'pensamiento',categoria:'Idea'}; }},
+      {id:'pensamiento', label:'Reflexión',  accent:'#8b5cf6', draw:_icoTexto('🔮'),
+       preset:function(){ _dialPreset={tab:'pensamiento',categoria:'Reflexión'}; }},
+      {id:'pensamiento', label:'Decisión',   accent:'#f59e0b', draw:_icoTexto('⚖'),
+       preset:function(){ _dialPreset={tab:'pensamiento',categoria:'Decisión'}; }},
+      {id:'pensamiento', label:'Sueño',      accent:'#67e8f9', draw:_icoTexto('💭'),
+       preset:function(){ _dialPreset={tab:'pensamiento',categoria:'Sueño'}; }},
+    ]},
+
+  // ── PERSONA — subs: energía ──
+  { id:'persona', label:'Persona', accent:'#93c5fd',
+    draw:function(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.arc(x-3*k,y-5*k,4*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.arc(x+5*k,y-7*k,3.2*k,0,Math.PI*2);ctx.strokeStyle=c;ctx.lineWidth=1.8;ctx.stroke();ctx.beginPath();ctx.moveTo(x-12*k,y+10*k);ctx.quadraticCurveTo(x-3*k,y+2*k,x+5*k,y+10*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();ctx.beginPath();ctx.moveTo(x+3*k,y+4*k);ctx.quadraticCurveTo(x+11*k,y,x+14*k,y+10*k);ctx.strokeStyle=c;ctx.lineWidth=1.8;ctx.lineCap='round';ctx.stroke();},
+    subs:[
+      {id:'persona', label:'+ Energía', accent:'#4ade80', draw:_icoTexto('+'),
+       preset:function(){ _dialPreset={tab:'persona',energia:1}; }},
+      {id:'persona', label:'Neutral',   accent:'#94a3b8', draw:_icoTexto('○'),
+       preset:function(){ _dialPreset={tab:'persona',energia:0}; }},
+      {id:'persona', label:'− Energía', accent:'#f87171', draw:_icoTexto('−'),
+       preset:function(){ _dialPreset={tab:'persona',energia:-1}; }},
+    ]},
+
+  // ── EDITAR — especial: abre input HTML flotante para ID ──
+  { id:'editar', label:'Editar', accent:'#a5b4fc',
+    draw:function(ctx,x,y,s,c){var k=s/22;ctx.save();ctx.translate(x,y);ctx.rotate(-Math.PI/4);ctx.beginPath();ctx.rect(-2.5*k,-9*k,5*k,16*k);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();ctx.beginPath();ctx.moveTo(-2.5*k,7*k);ctx.lineTo(0,12*k);ctx.lineTo(2.5*k,7*k);ctx.fillStyle=c;ctx.fill();ctx.restore();},
+    accionEspecial:true},  // abre input ID overlay en vez de subs canvas
+
+  // ── SALUD — subs: tipo de registro ──
+  { id:'salud', label:'Salud', accent:'#fca5a5',
+    draw:function(ctx,x,y,s,c){var k=s/22;ctx.beginPath();ctx.moveTo(x,y+9*k);ctx.bezierCurveTo(x-12*k,y,x-12*k,y-9*k,x,y-4*k);ctx.bezierCurveTo(x+12*k,y-9*k,x+12*k,y,x,y+9*k);ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.stroke();},
+    subs:[
+      {id:'salud', label:'Cita',        accent:'#67e8f9', draw:_icoTexto('📅'),
+       preset:function(){ _dialPreset={tab:'salud',tipo:'Cita'}; }},
+      {id:'salud', label:'Síntoma',     accent:'#f87171', draw:_icoTexto('🤒'),
+       preset:function(){ _dialPreset={tab:'salud',tipo:'Síntoma'}; }},
+      {id:'salud', label:'Medicamento', accent:'#a78bfa', draw:_icoTexto('💊'),
+       preset:function(){ _dialPreset={tab:'salud',tipo:'Medicamento'}; }},
+      {id:'salud', label:'Resultado',   accent:'#fbbf24', draw:_icoTexto('📋'),
+       preset:function(){ _dialPreset={tab:'salud',tipo:'Resultado'}; }},
+      {id:'salud', label:'Vacuna',      accent:'#86efac', draw:_icoTexto('💉'),
+       preset:function(){ _dialPreset={tab:'salud',tipo:'Vacuna'}; }},
+    ]},
 ];
 
 var _dialOverlay   = null;
@@ -339,17 +442,46 @@ function _crearDialOverlay(){
     var r=_dialCanvas.getBoundingClientRect();
     var mx=(e.clientX-r.left)*(_DC.W/r.width);
     var my=(e.clientY-r.top)*(_DC.H/r.height);
+    // ── Click en subanillo ──
     if(_dialActiveSub>=0){
       var hs=_dialHitTest(mx,my,true);
-      if(hs>=0){ var sub=_DIAL_ITEMS[_dialActiveSub].subs[hs]; cerrarDial(); abrirFormulario(sub.id); return; }
+      if(hs>=0){
+        var parentItem=_DIAL_ITEMS[_dialActiveSub];
+        var activeSubs=parentItem._subsResueltos||parentItem.subs||[];
+        var sub=activeSubs[hs];
+        if(sub){
+          _dialPreset={};
+          if(typeof sub.preset==='function') sub.preset();
+          cerrarDial();
+          abrirFormulario(sub.id);
+        }
+        return;
+      }
     }
+    // ── Click en anillo principal ──
     var h=_dialHitTest(mx,my,false);
     if(h>=0){
-      if(_DIAL_ITEMS[h].subs){ _dialActiveSub=(_dialActiveSub===h)?-1:h; _dialSubHov=-1; _dialDraw(); }
-      else { cerrarDial(); abrirFormulario(_DIAL_ITEMS[h].id); }
+      var item=_DIAL_ITEMS[h];
+      // Editar — acción especial: overlay HTML con input de ID
+      if(item.accionEspecial){
+        _abrirEditarOverlay();
+        return;
+      }
+      // Bancos — subs dinámicos desde _fijosData
+      if(item.subsGen && !item._subsResueltos){
+        var gen=item.subsGen();
+        item._subsResueltos = gen && gen.length ? gen : null;
+      }
+      var subsActivos = item._subsResueltos || item.subs;
+      if(subsActivos && subsActivos.length){
+        _dialActiveSub=(_dialActiveSub===h)?-1:h;
+        _dialSubHov=-1; _dialDraw();
+      } else {
+        _dialPreset={}; cerrarDial(); abrirFormulario(item.id);
+      }
     } else {
       var dx=mx-_DC.CX,dy=my-_DC.CY;
-      if(Math.sqrt(dx*dx+dy*dy)<_DC.R_IN){ cerrarDial(); abrirFormulario('nueva'); }
+      if(Math.sqrt(dx*dx+dy*dy)<_DC.R_IN){ _dialPreset={}; cerrarDial(); abrirFormulario('nueva'); }
     }
   });
 }
@@ -366,10 +498,11 @@ function _dialHitTest(mx,my,ring){
   } else {
     if(_dialActiveSub<0) return -1;
     var item=_DIAL_ITEMS[_dialActiveSub];
-    if(!item.subs) return -1;
+    var subsActivos=item._subsResueltos||item.subs;
+    if(!subsActivos||!subsActivos.length) return -1;
     if(dist<dc.R_SI||dist>dc.R_SO+12) return -1;
     var pmidA=Math.PI*2*(_dialActiveSub+0.5)/N-Math.PI/2;
-    var spread=Math.PI*0.50,nSub=item.subs.length,subSlice=spread/nSub;
+    var spread=Math.PI*0.50,nSub=subsActivos.length,subSlice=spread/nSub;
     var startA=pmidA-spread/2;
     var absA=Math.atan2(dy,dx);
     var diff=absA-startA;
@@ -617,7 +750,8 @@ function _dialDraw(){
   // ── Subanillo ──
   if(_dialActiveSub>=0){
     var parent=_DIAL_ITEMS[_dialActiveSub];
-    var nSub=parent.subs?parent.subs.length:0;
+    var _subsArr=parent._subsResueltos||parent.subs||[];
+    var nSub=_subsArr.length;
     if(nSub>0){
       var pmidA  = Math.PI*2*(_dialActiveSub+0.5)/N - Math.PI/2;
       var spread = Math.PI*0.48;
@@ -664,6 +798,102 @@ function _dialDraw(){
   _dialDrawCentro(ctx, dc, _dialCentroHov, _dialPulseT);
 }
 
+// ── Overlay HTML para Editar — input de ID antes del form ──
+function _abrirEditarOverlay(){
+  // Si ya existe, reusar
+  var existing = document.getElementById('editar-id-overlay');
+  if(existing){ existing.style.display='flex'; setTimeout(function(){ var inp=document.getElementById('editar-id-input-dial'); if(inp) inp.focus(); },80); return; }
+
+  var ov = document.createElement('div');
+  ov.id  = 'editar-id-overlay';
+  ov.style.cssText = [
+    'position:fixed','inset:0','z-index:9100',
+    'display:flex','align-items:center','justify-content:center',
+    'background:rgba(4,4,10,0.55)',
+    'backdrop-filter:blur(24px) saturate(140%)',
+    '-webkit-backdrop-filter:blur(24px) saturate(140%)',
+  ].join(';');
+
+  var box = document.createElement('div');
+  box.style.cssText = [
+    'background:rgba(14,14,24,0.97)',
+    'border:1px solid rgba(165,180,252,0.25)',
+    'border-radius:16px',
+    'box-shadow:0 0 40px rgba(165,180,252,0.12),0 8px 48px rgba(0,0,0,0.7)',
+    'padding:28px 28px 24px',
+    'width:340px','max-width:92vw',
+    'display:flex','flex-direction:column','gap:16px',
+  ].join(';');
+
+  box.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:2px">' +
+      '<span style="font-size:22px">✏️</span>' +
+      '<div>' +
+        '<div style="font-size:14px;font-weight:700;color:#e2e8f0;letter-spacing:.01em">Editar entrada</div>' +
+        '<div style="font-size:11px;color:rgba(255,255,255,0.38);margin-top:1px">Ingresa el ID de la fila a editar</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px">' +
+      '<input id="editar-id-input-dial" type="number" min="1" placeholder="Ej: 142"' +
+        ' style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(165,180,252,0.3);border-radius:10px;' +
+        'color:#e2e8f0;font-size:22px;font-weight:600;padding:10px 14px;outline:none;font-family:inherit;' +
+        'text-align:center;-webkit-appearance:none;appearance:none">' +
+      '<button id="editar-id-btn-dial"' +
+        ' style="background:rgba(165,180,252,0.15);border:1px solid rgba(165,180,252,0.35);border-radius:10px;' +
+        'color:#a5b4fc;font-size:13px;font-weight:700;padding:10px 18px;cursor:pointer;font-family:inherit;' +
+        'white-space:nowrap;transition:all .15s">' +
+        'Buscar →' +
+      '</button>' +
+    '</div>' +
+    '<div id="editar-id-msg-dial" style="font-size:11px;color:rgba(255,255,255,0.4);min-height:14px;text-align:center"></div>';
+
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+
+  // Cerrar al click fuera del box
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.style.display='none'; });
+
+  // Focus + enter
+  setTimeout(function(){
+    var inp = document.getElementById('editar-id-input-dial');
+    if(inp){
+      inp.focus();
+      inp.addEventListener('keydown', function(e){
+        if(e.key==='Enter') _confirmarEditarId();
+        if(e.key==='Escape') ov.style.display='none';
+      });
+      // Estilo focus
+      inp.addEventListener('focus', function(){ inp.style.borderColor='rgba(165,180,252,0.7)'; inp.style.boxShadow='0 0 0 2px rgba(165,180,252,0.18)'; });
+      inp.addEventListener('blur',  function(){ inp.style.borderColor='rgba(165,180,252,0.3)'; inp.style.boxShadow='none'; });
+    }
+    var btn = document.getElementById('editar-id-btn-dial');
+    if(btn){
+      btn.addEventListener('click', _confirmarEditarId);
+      btn.addEventListener('mouseenter', function(){ btn.style.background='rgba(165,180,252,0.25)'; btn.style.color='#c4b5fd'; });
+      btn.addEventListener('mouseleave', function(){ btn.style.background='rgba(165,180,252,0.15)'; btn.style.color='#a5b4fc'; });
+    }
+  }, 80);
+}
+
+function _confirmarEditarId(){
+  var inp = document.getElementById('editar-id-input-dial');
+  var msg = document.getElementById('editar-id-msg-dial');
+  if(!inp) return;
+  var id  = parseInt(inp.value,10);
+  if(!id || id < 1){
+    msg.textContent='Ingresa un ID válido';
+    msg.style.color='#f87171';
+    inp.focus(); return;
+  }
+  msg.textContent='Buscando…'; msg.style.color='rgba(255,255,255,0.4)';
+  // Ocultar overlay y abrir form de editar con ID pre-cargado
+  var ov = document.getElementById('editar-id-overlay');
+  if(ov) ov.style.display='none';
+  _dialPreset = { tab:'editar', filaId:id };
+  cerrarDial();
+  abrirFormulario('editar');
+}
+
 function toggleEntradaDropdown(){
   if(_dialVisible) cerrarDial(); else abrirDial();
 }
@@ -706,6 +936,95 @@ function abrirFormulario(modo){
   if(p1) p1.style.display='none';
   if(p2) p2.style.display='block';
   if(typeof setModoEntrada==='function') setModoEntrada(modo);
+  // ── Aplicar preset del dial con requestIdleCallback ──
+  if(_dialPreset && Object.keys(_dialPreset).length){
+    var presetSnap = JSON.parse(JSON.stringify(_dialPreset));
+    setTimeout(function(){ _aplicarDialPreset(presetSnap); }, 120);
+    _dialPreset = {};
+  }
+}
+
+// Aplica el contexto pre-seleccionado desde el dial al formulario abierto
+function _aplicarDialPreset(p){
+  // Helper: click en opt button cuyo texto coincide con val
+  function selectOpt(swId, val){
+    var w=document.getElementById(swId); if(!w) return;
+    w.querySelectorAll('.opt').forEach(function(b){
+      if(b.textContent.trim()===val){ if(!b.classList.contains('on')) b.click(); }
+    });
+  }
+  // Helper: setear valor en campo hidden o input
+  function setVal(id, val){
+    var el=document.getElementById('cv-'+id)||document.getElementById(id);
+    if(!el) return;
+    el.textContent=val; el.value=val;
+    el.classList.remove('empty');
+  }
+
+  // ── Nutrición: momento del día ──
+  if(p.momento){
+    selectOpt('sw-momento', p.momento);
+    setVal('momento', p.momento);
+  }
+
+  // ── Entrenamiento: tipo ──
+  if(p.tipo && p.tab==='entrenamiento'){
+    selectOpt('sw-tipo-entrena', p.tipo);
+    setVal('tipo', p.tipo);
+  }
+
+  // ── Salud: tipo de registro ──
+  if(p.tipo && p.tab==='salud'){
+    selectOpt('sw-tipo-salud', p.tipo);
+    setVal('tipo-salud', p.tipo);
+  }
+
+  // ── Patrimonio: tipo ──
+  if(p.tipo && p.tab==='patrimonio'){
+    selectOpt('sw-tipo-patrimonio', p.tipo);
+    setVal('tipo-patrimonio', p.tipo);
+  }
+
+  // ── Pensamiento: categoría ──
+  if(p.categoria){
+    selectOpt('sw-cat-pensamiento', p.categoria);
+    setVal('categoria', p.categoria);
+  }
+
+  // ── Persona: energía ──
+  if(p.energia !== undefined){
+    var eMap = {1:'Positiva', 0:'Neutral', '-1':'Negativa'};
+    var eLabel = eMap[String(p.energia)] || eMap[p.energia];
+    if(eLabel){ selectOpt('sw-energia-persona', eLabel); setVal('energia', eLabel); }
+  }
+
+  // ── Bancos: banco específico ──
+  if(p.banco){
+    selectOpt('sw-banco', p.banco);
+    setVal('banco', p.banco);
+    // Intentar abrir la fila del banco directamente
+    var entes=document.querySelectorAll('.ente-nombre');
+    entes.forEach(function(el){
+      if(el.textContent.trim()===p.banco){
+        var row=el.closest('.ente-row'); if(row) row.click();
+      }
+    });
+  }
+
+  // ── Editar: ID de fila — cargar directamente ──
+  if(p.tab==='editar' && p.filaId){
+    // Poner el ID en el input del form y disparar búsqueda
+    setTimeout(function(){
+      var inp=document.getElementById('editar-id-input');
+      if(inp){ inp.value=p.filaId; if(typeof buscarFilaId==='function') buscarFilaId(); }
+    }, 80);
+  }
+
+  // ── Activity: tab ──
+  if(p.tab && ['libro','movie','norut'].includes(p.tab)){
+    var btn=document.getElementById('btn-tab-'+p.tab);
+    if(btn && !btn.classList.contains('on')) btn.click();
+  }
 }
 
 function cerrarEntrada(){
