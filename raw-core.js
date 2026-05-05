@@ -1386,103 +1386,103 @@ const SHEETS_CONFIG=[{id:'raw',label:'RAW',emoji:'📄',gid:'0',spreadsheetId:'1
    NAVEGACIÓN — funciones de nav robustas
 ═══════════════════════════════════════════════════════ */
 
-// Panel activo actualmente
+/* ── NAVEGACIÓN — stubs de fallback
+   Solo se definen si el GAS no los inyectó primero.
+   El GAS define: irABitacora, irAActivity, irANutricion,
+                  volverAlAnverso, _syncMobTab, _setPantalla
+   Si corren en GAS → estas líneas no hacen nada (typeof !== 'undefined')
+   Si corren localmente → proporcionan navegación básica por CSS
+── */
+
 var _panelActual = 'anverso';
 
+// Helper interno — manipula clases CSS directamente
 function _irAPanel(boardId, tabKey){
-  var anverso = document.getElementById('board-anverso');
-  var destino = document.getElementById(boardId);
-  if(!destino) return;
-
   var esAnverso = (boardId === 'board-anverso');
 
-  // Toggle: si ya estás en este panel, vuelve al anverso
+  // Toggle: si ya estás aquí, vuelve al anverso
   if(!esAnverso && _panelActual === boardId){
-    volverAlAnverso();
+    if(typeof volverAlAnverso==='function') volverAlAnverso();
     return;
   }
-
   _panelActual = esAnverso ? 'anverso' : boardId;
 
-  // Anverso: quitar slide / poner slide
+  // Anverso: slide
+  var anverso = document.getElementById('board-anverso');
   if(anverso){
-    if(esAnverso){
-      anverso.classList.remove('slide-right','slide-left');
-    } else {
-      anverso.classList.add('slide-right');
-    }
+    if(esAnverso) anverso.classList.remove('slide-right','slide-left');
+    else          anverso.classList.add('slide-right');
   }
 
-  // Quitar active de todos los paneles secundarios
+  // Paneles secundarios
   document.querySelectorAll('.board-face:not(.anverso)').forEach(function(f){
     f.classList.remove('active');
   });
+  if(!esAnverso){
+    var dest = document.getElementById(boardId);
+    if(dest) dest.classList.add('active');
+  }
 
-  // Activar destino
-  if(!esAnverso){ destino.classList.add('active'); }
+  // Hero btns
+  document.querySelectorAll('.btn-flip').forEach(function(b){ b.classList.remove('active'); });
+  var bh = document.getElementById('btn-home');
+  if(bh) bh.classList.toggle('on', esAnverso);
+  var ids = {'logros':'btn-logros','bitacora':'btn-maslow',
+              'activity':'btn-activity','nutricion':'btn-nutricion','sheets':'btn-sheets'};
+  var heroBtn = document.getElementById(ids[tabKey] || ('btn-'+tabKey));
+  if(heroBtn) heroBtn.classList.add('active');
 
-  // Sincronizar mob-tab
+  // Mob tabs
   document.querySelectorAll('.mob-tab').forEach(function(t){
     t.classList.toggle('active', t.dataset.tab === tabKey);
   });
-
-  // Marcar btn-flip activo
-  document.querySelectorAll('.btn-flip').forEach(function(b){ b.classList.remove('active'); });
-  // Quitar highlight del HOME cuando vas a otro panel
-  var bh = document.getElementById('btn-home');
-  if(bh) bh.classList.toggle('on', esAnverso);
-  var ids = { 'logros':'btn-logros', 'bitacora':'btn-maslow',
-               'activity':'btn-activity', 'nutricion':'btn-nutricion' };
-  var btnId = ids[tabKey] || ('btn-'+tabKey);
-  var heroBtn = document.getElementById(btnId);
-  if(heroBtn) heroBtn.classList.add('active');
 }
 
-function volverAlAnverso(){
-  _panelActual = 'anverso';
-  _irAPanel('board-anverso','entrada');
-  var dd = document.getElementById('entrada-dropdown');
-  if(dd){ dd.classList.remove('show'); dd.style.display='none'; }
-  // Quitar active de todos los btn-flip nav (no el de nueva entrada)
-  ['btn-logros','btn-maslow','btn-activity','btn-nutricion','btn-sheets'].forEach(function(id){
-    var b = document.getElementById(id);
-    if(b) b.classList.remove('active');
-  });
-  // Marcar HOME como activo
-  var bh = document.getElementById('btn-home');
-  if(bh) bh.classList.add('on');
+// Cada función solo se define si el GAS no la definió primero
+if(typeof volverAlAnverso === 'undefined'){
+  function volverAlAnverso(){
+    _panelActual = 'anverso';
+    var anv = document.getElementById('board-anverso');
+    if(anv) anv.classList.remove('slide-right','slide-left');
+    document.querySelectorAll('.board-face:not(.anverso)').forEach(function(f){ f.classList.remove('active'); });
+    var bh = document.getElementById('btn-home'); if(bh) bh.classList.add('on');
+    document.querySelectorAll('.btn-flip').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('.mob-tab').forEach(function(t){ t.classList.toggle('active', t.dataset.tab==='entrada'); });
+    var dd = document.getElementById('entrada-dropdown');
+    if(dd){ dd.classList.remove('show'); dd.style.display='none'; }
+  }
 }
-
-function irALogros(){
-  _irAPanel('board-logros','logros');
-  if(window._logrosData && typeof renderLogros==='function' && !document.getElementById('lgr-hdr')){
-    renderLogros(window._logrosData);
+if(typeof irALogros === 'undefined'){
+  function irALogros(){
+    _irAPanel('board-logros','logros');
+    if(window._logrosData && typeof renderLogros==='function' && !document.getElementById('lgr-hdr'))
+      renderLogros(window._logrosData);
+  }
+}
+if(typeof irABitacora === 'undefined'){
+  function irABitacora(){
+    _irAPanel('board-bitacora','bitacora');
+  }
+}
+if(typeof irAActivity === 'undefined'){
+  function irAActivity(){
+    _irAPanel('board-activity','activity');
+    if(typeof renderActivity==='function' && window._actData) renderActivity();
+  }
+}
+if(typeof irANutricion === 'undefined'){
+  function irANutricion(){
+    _irAPanel('board-nutricion','nutricion');
+  }
+}
+if(typeof _syncMobTab === 'undefined'){
+  function _syncMobTab(tabKey){
+    document.querySelectorAll('.mob-tab').forEach(function(t){
+      t.classList.toggle('active', t.dataset.tab===tabKey);
+    });
   }
 }
 
-function irABitacora(){
-  _irAPanel('board-bitacora','bitacora');
-  if(typeof actualizarNecInline==='function'){
-    setTimeout(actualizarNecInline, 120);
-  }
-}
-
-function irAActivity(){
-  _irAPanel('board-activity','activity');
-  if(typeof renderActivity==='function' && window._actData) renderActivity();
-}
-
-
-
-function irANutricion(){
-  _irAPanel('board-nutricion','nutricion');
-}
-
-function _syncMobTab(tabKey){
-  document.querySelectorAll('.mob-tab').forEach(function(t){
-    t.classList.toggle('active', t.dataset.tab===tabKey);
-  });
-}
 
 function irASheets(sheetId){
   sheetId=sheetId||'raw';
