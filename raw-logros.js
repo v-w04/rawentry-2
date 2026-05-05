@@ -180,7 +180,7 @@
 /* Zona ícono — 2/3 superiores de la card, como RL */
 .lgr-ico-wrap {
   width:100%;
-  height:110px;
+  height:120px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -251,17 +251,28 @@
 
 /* Ícono */
 .lgr-ico {
-  font-size:52px;
-  line-height:1;
+  width:64px; height:64px;
+  display:flex; align-items:center; justify-content:center;
+  transition:filter .2s, transform .2s, opacity .2s;
+  opacity:.35;
+  color:var(--lgr-color, rgba(255,255,255,0.5));
+}
+.lgr-ico svg {
+  width:64px; height:64px;
+  fill:var(--lgr-color, rgba(255,255,255,0.5));
+  filter:none;
   transition:filter .2s, transform .2s;
-  filter:grayscale(60%) brightness(.4);
-  opacity:.45;
+  /* stroke para look outline */
+  stroke:none;
 }
 .lgr-card.done .lgr-ico,
 .lgr-card:hover .lgr-ico {
-  filter:drop-shadow(0 0 16px var(--lgr-color, rgba(255,255,255,0.5)));
   opacity:1;
-  transform:scale(1.08);
+  transform:scale(1.06);
+}
+.lgr-card.done .lgr-ico svg,
+.lgr-card:hover .lgr-ico svg {
+  filter:drop-shadow(0 0 14px var(--lgr-color)) drop-shadow(0 0 4px var(--lgr-color));
 }
 
 /* Nombre */
@@ -528,14 +539,69 @@ function _lgrCalcularNivel(items){
 }
 
 
-/* ── Mapa categoría → ícono ── */
-var _LGR_ICO_MAP = {
-  'Salud':'❤️','Educación':'📚','Tecnología':'💻','Hogar':'🏠',
-  'Personal':'✨','Entretenimiento':'🎮','Misceláneos':'📦',
-  'Accesorios':'⌚','Audio':'🎧','Baño':'🚿','Computación':'💻',
-  'Consumible':'🧴','Ejercicio':'🏋️','Ropa':'👕',
+/* ── Sistema de íconos SVG outline con glow — estilo futurista ── */
+var _LGR_SVG = {
+  // Categorías base
+  'Salud':       '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>',
+  'Educación':   '<path d="M12 3L1 9l4 2.18V17h2v-4.82l2 1.09V17c0 1.66 2.24 3 5 3s5-1.34 5-3v-3.73l3-1.64L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 16c0 .55-1.79 1-4 1s-4-.45-4-1v-2.27l4 2.18 4-2.18V16z"/>',
+  'Tecnología':  '<path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>',
+  'Hogar':       '<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>',
+  'Personal':    '<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>',
+  'Entretenimiento':'<path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5S14.67 12 15.5 12s1.5.67 1.5 1.5S16.33 15 15.5 15zm3-3c-.83 0-1.5-.67-1.5-1.5S17.67 9 18.5 9s1.5.67 1.5 1.5S19.33 12 18.5 12z"/>',
+  'Accesorios':  '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/>',
+  'Audio':       '<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/>',
+  'Baño':        '<path d="M21 10H7V6.83C7.56 6.4 8 5.74 8 5c0-1.1-.9-2-2-2s-2 .9-2 2c0 .74.44 1.4 1 1.83V21h2v-3h14v3h2V12c0-1.1-.9-2-2-2zM12 17H9v-5h3v5zm4 0h-3v-5h3v5zm4 0h-3v-5h3v5z"/>',
+  'Computación': '<path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6zm8 9c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>',
+  'Consumible':  '<path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7H1v-2h15.03v2zm0-4H1v-2h15.03v2z"/>',
+  'Ejercicio':   '<path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29l-1.43-1.43z"/>',
+  'Ropa':        '<path d="M4.5 4.5L9 3l3 3 3-3 4.5 1.5-2 5.5H16v9H8v-9H5.5l-1-5.5zM12 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/>',
+  'Misceláneos': '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>',
+  // Conceptos específicos (keywords en nombre)
+  'laptop':      '<path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>',
+  'telefono':    '<path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>',
+  'iphone':      '<path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4zM13 18h-2v-2h2v2zm0-4h-2V9h2v5z"/>',
+  'ropa':        '<path d="M4.5 4.5L9 3l3 3 3-3 4.5 1.5-2 5.5H16v9H8v-9H5.5l-1-5.5z"/>',
+  'zapato':      '<path d="M5 16.5c0 .83.67 1.5 1.5 1.5h11c.83 0 1.5-.67 1.5-1.5v-1c0-.83-.67-1.5-1.5-1.5h-11c-.83 0-1.5.67-1.5 1.5v1zM8.5 7c-2.49 0-4.5 2.01-4.5 4.5S6.01 16 8.5 16h8.5c1.1 0 2-.9 2-2v-5H10V8.5C10 7.67 9.33 7 8.5 7z"/>',
+  'diente':      '<path d="M12 2a5 5 0 0 0-5 5c0 1.17.41 2.24 1.07 3.09L7 22h2l1-4h4l1 4h2l-1.07-11.91A5 5 0 0 0 17 7a5 5 0 0 0-5-5zm0 8a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>',
+  'cobija':      '<path d="M7 16l-4-4 4-4 1.41 1.41L5.83 12l2.58 2.59L7 16zm10 0l4-4-4-4-1.41 1.41L18.17 12l-2.58 2.59L17 16zM8.76 21h2.07l4.38-18h-2.07z"/>',
+  'lentes':      '<path d="M12 4c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7zm3-9h-2V9h-2v2H9v2h2v2h2v-2h2v-2z"/>',
+  'camara':      '<path d="M12 15.2c-1.77 0-3.2-1.43-3.2-3.2 0-1.77 1.43-3.2 3.2-3.2 1.77 0 3.2 1.43 3.2 3.2 0 1.77-1.43 3.2-3.2 3.2zM20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/>',
+  'mueble':      '<path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/>',
+  'musica':      '<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/>',
+  'reloj':       '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/>',
+  'paraguas':    '<path d="M13 21.5c0 .83-.67 1.5-1.5 1.5S10 22.33 10 21.5V12H8v9.5C8 23.43 9.57 25 11.5 25S15 23.43 15 21.5V12h-2v9.5zM12 2C6.48 2 2 6.48 2 12h20c0-5.52-4.48-10-10-10z"/>',
+  'default':     '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>',
 };
-function _lgrCatIco(cat){ return _LGR_ICO_MAP[cat]||'🎯'; }
+
+function _lgrGetSvgPath(nombre, cat){
+  var n = (nombre||'').toLowerCase();
+  // Buscar keyword específica primero
+  var keywords = [
+    ['iphone','iphone'],['celular','telefono'],['telefon','telefono'],
+    ['laptop','laptop'],['comput','laptop'],['tablet','laptop'],
+    ['camara','camara'],['camara','camara'],
+    ['zapato','zapato'],['tenis','zapato'],['calzado','zapato'],
+    ['ropa','ropa'],['playera','ropa'],['camisa','ropa'],['pantalon','ropa'],
+    ['cobija','cobija'],['sabana','cobija'],['almohada','cobija'],['colchon','cobija'],
+    ['diente','diente'],['dental','diente'],['ortodo','diente'],
+    ['lentes','lentes'],['anteojos','lentes'],['gafas','lentes'],
+    ['mueble','mueble'],['silla','mueble'],['mesa','mueble'],['sofa','mueble'],
+    ['musica','musica'],['itunes','musica'],['spotify','musica'],
+    ['reloj','reloj'],['watch','reloj'],
+    ['paraguas','paraguas'],['ventilador','mueble'],
+    ['mochila','accesorios'],['bolsa','accesorios'],
+  ];
+  for(var i=0;i<keywords.length;i++){
+    if(n.indexOf(keywords[i][0])>=0) return _LGR_SVG[keywords[i][1]]||_LGR_SVG[cat]||_LGR_SVG.default;
+  }
+  return _LGR_SVG[cat]||_LGR_SVG.default;
+}
+
+function _lgrCatIco(cat, nombre){
+  // Retorna HTML del SVG con el path correcto
+  var path = _lgrGetSvgPath(nombre||'', cat);
+  return '__SVG__'+path+'__/SVG__';  // marker para render
+}
 
 /* ── Inferir categoría desde el concepto y proyecto ── */
 function _lgrInferirCat(concepto, proyecto){
@@ -710,7 +776,7 @@ function _lgrPintarGrid(){
     var prog   = done ? 1 : 0;
     var activo = l.proyecto;
     var desc   = (l.descripcion&&l.descripcion!==nombre) ? l.descripcion : '';
-    var ico    = _lgrCatIco(cat);
+    var ico    = _lgrCatIco(cat, nombre);
 
     var card = document.createElement('div');
     card.className = 'lgr-card' + (done?' done':'') + (activo?' activo':'');
@@ -722,7 +788,9 @@ function _lgrPintarGrid(){
       '<div class="lgr-ico-wrap">' +
         '<div class="lgr-lock"><i class="fas fa-lock"></i></div>' +
         (done?'<div class="lgr-done-badge">✓</div>':'') +
-        '<div class="lgr-ico">'+ico+'</div>' +
+        (ico.indexOf('__SVG__')>=0 ?
+        '<div class="lgr-ico"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;fill:none">'+ico.replace('__SVG__','').replace('__/SVG__','')+'</svg></div>' :
+        '<div class="lgr-ico">'+ico+'</div>') +
         // Línea de acento en borde inferior del ícono
         '<div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--lgr-color);box-shadow:0 0 10px var(--lgr-color);opacity:'+(done?1:.28)+'"></div>' +
       '</div>' +
