@@ -948,6 +948,13 @@ function abrirFormulario(modo){
   if(dd){
     dd.style.cssText='position:fixed;inset:0;z-index:9001;display:flex;align-items:center;justify-content:center;background:rgba(4,4,10,0.5);backdrop-filter:blur(24px) saturate(150%);-webkit-backdrop-filter:blur(24px) saturate(150%)';
     dd.classList.add('show');
+    // Cerrar al click fuera del formulario — solo registrar una vez
+    if(!dd._dialClickOut){
+      dd._dialClickOut=true;
+      dd.addEventListener('click',function(e){
+        if(e.target===dd) cerrarEntrada();
+      });
+    }
   }
   var inner=document.getElementById('sec-entrada');
   if(inner){
@@ -1086,7 +1093,7 @@ function guardarBanco(){
     .then(r=>{
       btn.disabled=false;
       if(r.ok){
-        showToast('✓ Banco guardado');
+        showToast('✓ Banco guardado');var sb=document.querySelector('.btn-save');if(sb){sb.classList.add('saved');setTimeout(function(){sb.classList.remove('saved');},1200);}  
         document.getElementById('banco-nombre').value='';
         document.getElementById('banco-monto').value='';
         const bfEl=document.getElementById('banco-fecha'); if(bfEl) bfEl.value=fmtD(new Date());
@@ -1328,7 +1335,7 @@ function upM(){
 function consultarSaldo(){
   const f=document.getElementById('saldo-fecha').value;if(!f)return;
   const el=document.getElementById('saldo-val');el.className='saldo-val ld';el.textContent='…';
-  api.getSaldoDia(f).then(r=>{el.textContent=r.display;el.className='saldo-val '+(r.valor>0?'pos':r.valor<0?'neg':'');}).catch(()=>{el.className='saldo-val ld';el.textContent='—';});
+  api.getSaldoDia(f).then(r=>{el.textContent=r.display;el.className='saldo-val '+(r.valor>0?'pos':r.valor<0?'neg':'')+' updated';setTimeout(function(){el.classList.remove('updated');},500);}).catch(()=>{el.className='saldo-val ld';el.textContent='—';});
 }
 
 // ══════════════════════════════════════════
@@ -1576,7 +1583,7 @@ function _guardarBancosForm(){
   res.textContent='Guardando…';res.style.color='var(--m)';
   api.guardarEnBancos(nombre,monto,fecha).then(r=>{
     res.textContent=r.ok?'✓ Guardado':'✗ '+(r.mensaje||'Error');res.style.color=r.ok?'var(--ok)':'var(--err)';
-    if(r.ok){showToast('✓ Banco guardado');document.getElementById('banco-nombre').value='';document.getElementById('banco-monto').value='';document.getElementById('banco-fecha').value=fmtD(new Date());api.getFijos().then(renderEntes);setTimeout(cerrarEntrada,800);}
+    if(r.ok){showToast('✓ Banco guardado');var sb=document.querySelector('.btn-save');if(sb){sb.classList.add('saved');setTimeout(function(){sb.classList.remove('saved');},1200);}  document.getElementById('banco-nombre').value='';document.getElementById('banco-monto').value='';document.getElementById('banco-fecha').value=fmtD(new Date());api.getFijos().then(renderEntes);setTimeout(cerrarEntrada,800);}
   }).catch(()=>{res.textContent='Error';res.style.color='var(--err)';});
 }
 
