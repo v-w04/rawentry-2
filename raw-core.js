@@ -2014,26 +2014,91 @@ document.addEventListener('DOMContentLoaded', function(){
         '</div>';
 
       // ── TABLA HÁBITOS ──
+      // ── Estado de filtros por columna ──
+      var _actFilter = {};  // {tipo: 'az'|'za'|'hoy_si'|'hoy_no'}
+
+      // ── Filtros bar ──
+      function filterBar(tipo){
+        var c = CAT[tipo];
+        var cur = _actFilter[tipo] || 'az';
+        var BTNS = [
+          {k:'az',     ico:'fa-arrow-down-a-z',  tip:'A → Z'},
+          {k:'za',     ico:'fa-arrow-up-z-a',    tip:'Z → A'},
+          {k:'hoy_si', ico:'fa-circle-check',    tip:'Con check hoy'},
+          {k:'hoy_no', ico:'fa-circle',           tip:'Sin check hoy'},
+        ];
+        return '<div class="_act-filter-bar" data-tipo="'+tipo+'" style="'+
+          'display:flex;gap:4px;padding:6px 12px;background:#0A0E1A;border-bottom:1px solid #1E2740;align-items:center">'+
+          '<span style="font-size:9px;font-weight:700;letter-spacing:.10em;color:#4A5266;text-transform:uppercase;margin-right:4px;flex-shrink:0">Orden</span>'+
+          BTNS.map(function(b){
+            var on = (cur===b.k);
+            return '<button class="_act-filter-btn" data-tipo="'+tipo+'" data-filter="'+b.k+'" title="'+b.tip+'" style="'+
+              'width:26px;height:26px;border-radius:6px;border:1px solid '+(on?c.color:'#26304A')+';'+
+              'background:'+(on?'rgba('+hexToRgb(c.color)+',0.15)':'transparent')+';'+
+              'color:'+(on?c.color:'#4A5266')+';cursor:pointer;font-size:11px;'+
+              'display:flex;align-items:center;justify-content:center;transition:all .12s;'+
+              'box-shadow:'+(on?'0 0 8px '+c.glow:'none')+';flex-shrink:0">'+
+              '<i class="fas '+b.ico+'" style="pointer-events:none"></i></button>';
+          }).join('')+
+        '</div>';
+      }
+
+      function hexToRgb(hex){
+        var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+        return r+','+g+','+b;
+      }
+
+      // ── Aplicar filtro a lista de hábitos ──
+      function applyHabFilter(items, tipo){
+        var f = _actFilter[tipo] || 'az';
+        var s = items.slice();
+        if(f==='az') s.sort(function(a,b){ return a.nombre.localeCompare(b.nombre); });
+        else if(f==='za') s.sort(function(a,b){ return b.nombre.localeCompare(a.nombre); });
+        else if(f==='hoy_si') s.sort(function(a,b){
+          var ac=a.checks&&a.checks[diaKey]?1:0, bc=b.checks&&b.checks[diaKey]?1:0;
+          return bc-ac;
+        });
+        else if(f==='hoy_no') s.sort(function(a,b){
+          var ac=a.checks&&a.checks[diaKey]?1:0, bc=b.checks&&b.checks[diaKey]?1:0;
+          return ac-bc;
+        });
+        return s;
+      }
+
+      // ── Aplicar filtro a lista de items ──
+      function applyItemFilter(items, tipo){
+        var f = _actFilter[tipo] || 'az';
+        var s = items.slice();
+        var isDone = function(it){ return it.completado===true||it.completado==='Sí'||it.completado==='Si'; };
+        if(f==='az') s.sort(function(a,b){ return a.nombre.localeCompare(b.nombre); });
+        else if(f==='za') s.sort(function(a,b){ return b.nombre.localeCompare(a.nombre); });
+        else if(f==='hoy_si') s.sort(function(a,b){ return (isDone(b)?1:0)-(isDone(a)?1:0); });
+        else if(f==='hoy_no') s.sort(function(a,b){ return (isDone(a)?1:0)-(isDone(b)?1:0); });
+        return s;
+      }
+
       function habTable(items, tipo){
         var c = CAT[tipo]; var dias = c.dias;
         if(!items||!items.length) return '<div style="padding:24px;text-align:center;color:#4A5266;font-size:12px">Sin hábitos</div>';
-        var h = '<table style="width:100%;border-collapse:collapse">';
+        var sorted = applyHabFilter(items, tipo);
+        var h = filterBar(tipo);
+        h += '<table style="width:100%;border-collapse:collapse">';
         h += '<tr><th style="text-align:left;padding:6px 16px;font-size:10px;font-weight:600;letter-spacing:.10em;color:#7A8499;border-bottom:1px solid #1E2740">HÁBITO</th>';
         dias.forEach(function(d){
           var esH=(d===diaKey);
           h += '<th style="text-align:center;padding:6px 4px;font-size:10px;font-weight:'+(esH?700:600)+';'+
                'color:'+(esH?c.color:'#7A8499')+';border-bottom:1px solid #1E2740;min-width:36px;'+
-               (esH?'text-shadow:0 0 8px '+c.glow:'')+'">'+DLBL[d]+'</th>';
+               (esH?'text-shadow:0 0 8px '+c.glow:'')+'">'+(DLBL[d]||d)+'</th>';
         });
         h += '</tr>';
-        items.forEach(function(hab){
+        sorted.forEach(function(hab){
           var allDone = dias.every(function(dia){ return hab.checks&&hab.checks[dia]; });
           h += '<tr class="_hab-row" style="transition:background .15s;cursor:default"'+
                ' onmouseover="this.style.background=\'#1A2238\'" onmouseout="this.style.background=\'transparent\'">'+
                '<td style="padding:8px 16px;border-bottom:1px solid #1E2740">'+
                  (hab.sims||hab.bw?'<div style="font-size:10px;font-weight:600;letter-spacing:.10em;color:#4A5266;text-transform:uppercase;margin-bottom:1px">'+(hab.sims||hab.bw)+'</div>':'')+
                  '<div style="font-size:13px;font-weight:500;color:'+(allDone?c.color:'#C8D0E0')+';'+
-                 (allDone?'text-shadow:0 0 8px '+c.glow:'')+'">'+hab.nombre+'</div>'+
+                 (allDone?'text-shadow:0 0 8px '+c.glow:'')+'">' + hab.nombre+'</div>'+
                '</td>';
           dias.forEach(function(dia){
             h += '<td style="text-align:center;padding:6px 4px;border-bottom:1px solid #1E2740">'+
@@ -2048,12 +2113,9 @@ document.addEventListener('DOMContentLoaded', function(){
       // ── LISTA ITEMS ──
       function itemList(items, tipo){
         if(!items||!items.length) return '<div style="padding:24px;text-align:center;color:#4A5266;font-size:12px">Sin registros</div>';
-        var sorted = items.slice().sort(function(a,b){
-          var ad=a.completado===true||a.completado==='Sí'||a.completado==='Si'?1:0;
-          var bd=b.completado===true||b.completado==='Sí'||b.completado==='Si'?1:0;
-          return ad-bd;
-        });
-        return '<div style="display:flex;flex-direction:column">'+
+        var sorted = applyItemFilter(items, tipo);
+        return filterBar(tipo)+
+          '<div style="display:flex;flex-direction:column">'+
           sorted.map(function(it){
             var done=it.completado===true||it.completado==='Sí'||it.completado==='Si';
             return '<div class="_item-row" style="display:flex;align-items:center;gap:10px;padding:8px 16px;'+
@@ -2129,14 +2191,14 @@ document.addEventListener('DOMContentLoaded', function(){
       // ── PANEL WRAPPER ──
       function panelCol(tipo, inner){
         var c = CAT[tipo];
-        return '<div style="flex:1;min-width:0;background:#0F1524;border:1px solid #26304A;border-radius:12px;'+
+        return '<div data-panel-tipo="'+tipo+'" style="flex:1;min-width:0;background:#0F1524;border:1px solid #26304A;border-radius:12px;'+
                'display:flex;flex-direction:column;overflow:hidden;'+
                'box-shadow:0 0 0 1px rgba(120,160,255,0.04),0 4px 24px rgba(0,0,0,0.4)">'+
           '<div style="padding:14px 16px 12px;border-bottom:1px solid #1E2740;display:flex;align-items:center;gap:8px">'+
             '<i class="fas '+c.icon+'" style="font-size:14px;color:'+c.color+';filter:drop-shadow(0 0 6px '+c.glow+')"></i>'+
             '<span style="font-size:13px;font-weight:700;letter-spacing:.08em;color:'+c.color+'">'+c.label+'</span>'+
           '</div>'+
-          '<div style="flex:1;overflow-y:auto">'+inner+'</div>'+
+          '<div data-panel-inner style="flex:1;overflow-y:auto">'+inner+'</div>'+
         '</div>';
       }
 
@@ -2216,6 +2278,30 @@ document.addEventListener('DOMContentLoaded', function(){
 
       // ── Event delegation ──
       board.addEventListener('click', function(e){
+
+        // Botón de filtro
+        var fb = e.target.closest('._act-filter-btn');
+        if(fb){
+          var tipo = fb.dataset.tipo;
+          var filt = fb.dataset.filter;
+          _actFilter[tipo] = filt;
+          // Re-renderizar solo el panel afectado
+          var d2 = window._actData;
+          if(!d2) return;
+          var panelEl = fb.closest('[data-panel-tipo]');
+          if(panelEl){
+            var inner = panelEl.querySelector('[data-panel-inner]');
+            if(inner){
+              var isHab = (tipo==='personal'||tipo==='electronics');
+              var items = isHab
+                ? (tipo==='personal'?d2.habitosPersonal:d2.habitosElectronics)||[]
+                : (tipo==='libro'?d2.libros:tipo==='movie'?d2.movies:d2.noRutinarias)||[];
+              inner.innerHTML = isHab ? habTable(items, tipo) : itemList(items, tipo);
+            }
+          }
+          return;
+        }
+
         // Check día (hábitos)
         var c = e.target.closest('._act-chk');
         if(c){
