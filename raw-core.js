@@ -333,13 +333,17 @@ function _crearDialOverlay(){
   _dialCanvas.style.cssText = 'display:block;cursor:pointer;width:min(850px,88vw);height:min(850px,88vw);position:relative';
   _dialCtx = _dialCanvas.getContext('2d');
 
-  // Overlay centrado — el dial siempre en el centro exacto
+  // Overlay centrado — fondo atmósferico del design system
   _dialOverlay.style.cssText = [
     'position:fixed','inset:0','z-index:9000',
     'display:none','align-items:center','justify-content:center',
-    'background:rgba(4,4,10,0.5)',
-    'backdrop-filter:blur(24px) saturate(150%)',
-    '-webkit-backdrop-filter:blur(24px) saturate(150%)',
+    // Tres capas: viñeta + tinte violeta + base
+    'background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,8,0.55) 100%),radial-gradient(ellipse at center,rgba(80,40,140,0.12) 0%,transparent 55%),rgba(4,4,14,0.6)',
+    'backdrop-filter:blur(26px) saturate(160%) brightness(0.72)',
+    '-webkit-backdrop-filter:blur(26px) saturate(160%) brightness(0.72)',
+    // Grid circuit-board sutil
+    'background-image:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,8,0.55) 100%),radial-gradient(ellipse at center,rgba(80,40,140,0.12) 0%,transparent 55%),linear-gradient(rgba(120,80,200,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(120,80,200,0.025) 1px,transparent 1px)',
+    'background-size:auto,auto,48px 48px,48px 48px',
   ].join(';');
 
   // ── Panel derecho — navegación a otras secciones ──
@@ -348,11 +352,18 @@ function _crearDialOverlay(){
   _navPanel.style.cssText = [
     'position:fixed',
     'top:50%',
-    'left:calc(50% + min(430px,52vw))',
+    'left:calc(50% + min(440px,53vw))',
     'transform:translateY(-50%)',
-    'display:flex','flex-direction:column','gap:6px',
-    'width:190px',
+    'display:flex','flex-direction:column','gap:5px',
+    'width:200px',
     'z-index:9001',
+    // Panel con borde violeta sutil del design system
+    'padding:16px',
+    'background:rgba(15,12,28,0.75)',
+    'border:1px solid rgba(140,100,220,0.18)',
+    'clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)',
+    'backdrop-filter:blur(16px)',
+    'box-shadow:0 0 0 1px rgba(120,80,200,0.08),0 4px 32px rgba(0,0,0,0.5)',
   ].join(';');
 
   var NAV_ITEMS = [
@@ -366,11 +377,14 @@ function _crearDialOverlay(){
 
   var hdr = document.createElement('div');
   hdr.style.cssText = [
-    'font-size:8px','font-weight:700','letter-spacing:.18em',
-    'text-transform:uppercase','color:rgba(255,255,255,0.22)',
-    'margin-bottom:6px','padding-left:4px',
+    'font-size:9px','font-weight:700','letter-spacing:.22em',
+    'text-transform:uppercase',
+    // Violeta del design system — text-title-dial
+    'color:#A78BFA',
+    'margin-bottom:10px','padding-left:4px',
+    'text-shadow:0 0 12px rgba(167,139,250,0.5)',
   ].join(';');
-  hdr.textContent = 'Navegación';
+  hdr.textContent = '⬡  NAVEGACIÓN';
   _navPanel.appendChild(hdr);
 
   NAV_ITEMS.forEach(function(nav){
@@ -378,18 +392,20 @@ function _crearDialOverlay(){
     // Estilo base: mismo lenguaje visual que el dial
     // fondo muy oscuro semitransparente, borde sutil de sector, sin radio
     btn.style.cssText = [
-      'display:flex','align-items:center','gap:13px',
-      'padding:10px 15px',
-      'background:rgba(18,18,28,0.88)',
-      'border:1px solid rgba(255,255,255,0.10)',
-      'border-radius:0',
+      'display:flex','align-items:center','gap:12px',
+      'padding:11px 16px',
+      // HUD panel style del design system: fondo oscuro violeta, chamfer corners
+      'background:rgba(15,12,28,0.88)',
+      'border:1px solid rgba(140,100,220,0.22)',
+      // Clip-path chamfer tipo cyberpunk
+      'clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)',
       'cursor:pointer',
       'font-family:-apple-system,BlinkMacSystemFont,sans-serif',
       'font-size:11px','font-weight:700',
-      'letter-spacing:.06em','text-transform:uppercase',
-      'color:rgba(255,255,255,0.55)',
+      'letter-spacing:.08em','text-transform:uppercase',
+      'color:rgba(212,216,232,0.65)',
       'text-align:left',
-      'transition:all .15s',
+      'transition:all .18s cubic-bezier(.16,1,.3,1)',
       'width:100%',
       'position:relative',
       'overflow:hidden',
@@ -406,27 +422,24 @@ function _crearDialOverlay(){
       '<span style="letter-spacing:.05em">' + nav.label + '</span>';
 
     btn.addEventListener('mouseenter', function(){
-      btn.style.background = 'rgba(26,26,40,0.97)';
-      btn.style.borderColor = nav.color + '70';
+      btn.style.background = 'rgba(25,18,50,0.97)';
+      btn.style.borderColor = nav.color + '80';
       btn.style.color = '#ffffff';
-      // glow exterior del acento — como el borde iluminado del sector en hover
       btn.style.boxShadow =
-        '0 0 0 1px ' + nav.color + '44,' +
-        '0 0 18px ' + nav.color + '18,' +
-        'inset 0 0 14px rgba(0,0,0,0.4)';
-      btn.style.transform = 'translateX(5px)';
-      // intensificar glow del ícono
+        'inset 0 0 20px ' + nav.color + '18,' +
+        '0 0 24px ' + nav.color + '22';
+      btn.style.transform = 'translateX(4px)';
       var ico = btn.querySelector('i');
-      if(ico) ico.style.filter = 'drop-shadow(0 0 8px ' + nav.color + ')';
+      if(ico) ico.style.filter = 'drop-shadow(0 0 6px '+nav.color+') drop-shadow(0 0 12px '+nav.color+')';
     });
     btn.addEventListener('mouseleave', function(){
-      btn.style.background = 'rgba(18,18,28,0.88)';
-      btn.style.borderColor = 'rgba(255,255,255,0.10)';
-      btn.style.color = 'rgba(255,255,255,0.55)';
+      btn.style.background = 'rgba(15,12,28,0.88)';
+      btn.style.borderColor = 'rgba(140,100,220,0.22)';
+      btn.style.color = 'rgba(212,216,232,0.65)';
       btn.style.boxShadow = 'none';
       btn.style.transform = 'translateX(0)';
       var ico = btn.querySelector('i');
-      if(ico) ico.style.filter = 'drop-shadow(0 0 4px ' + nav.color + '88)';
+      if(ico) ico.style.filter = 'drop-shadow(0 0 4px '+nav.color+'99)';
     });
     btn.addEventListener('click', function(e){
       e.stopPropagation();
@@ -834,43 +847,53 @@ function _abrirEditarOverlay(){
   ov.style.cssText = [
     'position:fixed','inset:0','z-index:9100',
     'display:flex','align-items:center','justify-content:center',
-    'background:rgba(4,4,10,0.55)',
-    'backdrop-filter:blur(24px) saturate(140%)',
-    '-webkit-backdrop-filter:blur(24px) saturate(140%)',
+    'background:radial-gradient(ellipse at center,rgba(80,40,140,0.18) 0%,rgba(4,4,14,0.72) 100%)',
+    'backdrop-filter:blur(28px) saturate(160%) brightness(0.7)',
+    '-webkit-backdrop-filter:blur(28px) saturate(160%) brightness(0.7)',
   ].join(';');
 
   var box = document.createElement('div');
   box.style.cssText = [
-    'background:rgba(14,14,24,0.97)',
-    'border:1px solid rgba(165,180,252,0.25)',
-    'border-radius:16px',
-    'box-shadow:0 0 40px rgba(165,180,252,0.12),0 8px 48px rgba(0,0,0,0.7)',
+    // HUD panel del design system: fondo oscuro violeta con chamfer
+    'background:rgba(15,12,28,0.97)',
+    'border:1px solid rgba(140,100,220,0.3)',
+    'clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)',
+    'box-shadow:0 0 0 1px rgba(120,80,200,0.12),0 0 40px rgba(168,85,247,0.12),0 8px 48px rgba(0,0,0,0.7)',
     'padding:28px 28px 24px',
-    'width:340px','max-width:92vw',
+    'width:360px','max-width:92vw',
     'display:flex','flex-direction:column','gap:16px',
+    // Patrón grid interno sutil
+    'background-image:linear-gradient(rgba(120,80,200,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(120,80,200,0.03) 1px,transparent 1px)',
+    'background-size:32px 32px',
   ].join(';');
 
   box.innerHTML =
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:2px">' +
-      '<span style="font-size:22px">✏️</span>' +
+    // Header con estilo HUD del design system
+    '<div style="display:flex;align-items:center;gap:14px;margin-bottom:4px;padding-bottom:14px;border-bottom:1px solid rgba(140,100,220,0.2)">' +
+      '<div style="width:44px;height:44px;border-radius:8px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.35);' +
+           'display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 12px rgba(139,92,246,0.25)">' +
+        '<i class="fas fa-pen" style="font-size:16px;color:#8B5CF6;filter:drop-shadow(0 0 6px rgba(139,92,246,0.8))"></i>' +
+      '</div>' +
       '<div>' +
-        '<div style="font-size:14px;font-weight:700;color:#e2e8f0;letter-spacing:.01em">Editar entrada</div>' +
-        '<div style="font-size:11px;color:rgba(255,255,255,0.38);margin-top:1px">Ingresa el ID de la fila a editar</div>' +
+        '<div style="font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#A78BFA;margin-bottom:2px">EDITAR ENTRADA</div>' +
+        '<div style="font-size:12px;color:rgba(212,216,232,0.5);font-weight:500">Ingresa el ID de la fila a editar</div>' +
       '</div>' +
     '</div>' +
     '<div style="display:flex;gap:8px">' +
-      '<input id="editar-id-input-dial" type="number" min="1" placeholder="Ej: 142"' +
-        ' style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(165,180,252,0.3);border-radius:10px;' +
-        'color:#e2e8f0;font-size:22px;font-weight:600;padding:10px 14px;outline:none;font-family:inherit;' +
-        'text-align:center;-webkit-appearance:none;appearance:none">' +
+      '<input id="editar-id-input-dial" type="number" min="1" placeholder="142"' +
+        ' style="flex:1;background:rgba(20,16,36,0.8);border:1px solid rgba(140,100,220,0.3);' +
+        'clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);' +
+        'color:#fff;font-size:24px;font-weight:700;padding:12px 16px;outline:none;font-family:inherit;' +
+        'text-align:center;-webkit-appearance:none;appearance:none;letter-spacing:.04em">' +
       '<button id="editar-id-btn-dial"' +
-        ' style="background:rgba(165,180,252,0.15);border:1px solid rgba(165,180,252,0.35);border-radius:10px;' +
-        'color:#a5b4fc;font-size:13px;font-weight:700;padding:10px 18px;cursor:pointer;font-family:inherit;' +
-        'white-space:nowrap;transition:all .15s">' +
-        'Buscar →' +
+        ' style="background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.35);' +
+        'clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);' +
+        'color:#A78BFA;font-size:12px;font-weight:700;padding:12px 20px;cursor:pointer;font-family:inherit;' +
+        'white-space:nowrap;transition:all .15s;letter-spacing:.08em;text-transform:uppercase">' +
+        '<i class="fas fa-search" style="margin-right:6px;font-size:11px"></i>Buscar' +
       '</button>' +
     '</div>' +
-    '<div id="editar-id-msg-dial" style="font-size:11px;color:rgba(255,255,255,0.4);min-height:14px;text-align:center"></div>';
+    '<div id="editar-id-msg-dial" style="font-size:11px;color:rgba(167,139,250,0.6);min-height:14px;text-align:center;letter-spacing:.04em"></div>';
 
   ov.appendChild(box);
   document.body.appendChild(ov);
@@ -888,14 +911,30 @@ function _abrirEditarOverlay(){
         if(e.key==='Escape') ov.style.display='none';
       });
       // Estilo focus
-      inp.addEventListener('focus', function(){ inp.style.borderColor='rgba(165,180,252,0.7)'; inp.style.boxShadow='0 0 0 2px rgba(165,180,252,0.18)'; });
-      inp.addEventListener('blur',  function(){ inp.style.borderColor='rgba(165,180,252,0.3)'; inp.style.boxShadow='none'; });
+      inp.addEventListener('focus', function(){
+        inp.style.borderColor='rgba(139,92,246,0.8)';
+        inp.style.boxShadow='0 0 0 1px rgba(139,92,246,0.35),0 0 16px rgba(139,92,246,0.25)';
+        inp.style.background='rgba(25,18,50,0.9)';
+      });
+      inp.addEventListener('blur',  function(){
+        inp.style.borderColor='rgba(140,100,220,0.3)';
+        inp.style.boxShadow='none';
+        inp.style.background='rgba(20,16,36,0.8)';
+      });
     }
     var btn = document.getElementById('editar-id-btn-dial');
     if(btn){
       btn.addEventListener('click', _confirmarEditarId);
-      btn.addEventListener('mouseenter', function(){ btn.style.background='rgba(165,180,252,0.25)'; btn.style.color='#c4b5fd'; });
-      btn.addEventListener('mouseleave', function(){ btn.style.background='rgba(165,180,252,0.15)'; btn.style.color='#a5b4fc'; });
+      btn.addEventListener('mouseenter', function(){
+        btn.style.background='rgba(139,92,246,0.3)';
+        btn.style.color='#fff';
+        btn.style.boxShadow='0 0 16px rgba(139,92,246,0.3)';
+      });
+      btn.addEventListener('mouseleave', function(){
+        btn.style.background='rgba(139,92,246,0.15)';
+        btn.style.color='#A78BFA';
+        btn.style.boxShadow='none';
+      });
     }
   }, 80);
 }
@@ -946,7 +985,17 @@ function cerrarDial(){
 function abrirFormulario(modo){
   var dd=document.getElementById('entrada-dropdown');
   if(dd){
-    dd.style.cssText='position:fixed;inset:0;z-index:9001;display:flex;align-items:center;justify-content:center;background:rgba(4,4,10,0.5);backdrop-filter:blur(24px) saturate(150%);-webkit-backdrop-filter:blur(24px) saturate(150%)';
+    dd.style.cssText=[
+      'position:fixed','inset:0','z-index:9001',
+      'display:flex','align-items:center','justify-content:center',
+      // Fondo del design system del dial: azul-violeta casi negro con viñeta
+      'background:radial-gradient(ellipse at center,rgba(80,40,140,0.18) 0%,rgba(4,4,14,0.72) 60%,rgba(0,0,8,0.82) 100%)',
+      'backdrop-filter:blur(28px) saturate(160%) brightness(0.7)',
+      '-webkit-backdrop-filter:blur(28px) saturate(160%) brightness(0.7)',
+      // Patrón grid sutil en el overlay
+      'background-image:radial-gradient(ellipse at center,rgba(80,40,140,0.18) 0%,rgba(4,4,14,0.72) 100%),linear-gradient(rgba(120,80,200,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(120,80,200,0.03) 1px,transparent 1px)',
+      'background-size:auto,48px 48px,48px 48px',
+    ].join(';');
     dd.classList.add('show');
     // Cerrar al click fuera del formulario — solo registrar una vez
     if(!dd._dialClickOut){
