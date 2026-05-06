@@ -364,7 +364,9 @@ function addItem(idx){
 //  REFRESH
 // ══════════════════════════════════════════
 function refreshTodo(){
-  const btn=document.getElementById('btn-rf');btn.classList.add('spinning');btn.disabled=true;progStart();setChip('load','Actualizando');
+  const btn=document.getElementById('btn-rf');
+  if(btn){btn.classList.add('spinning');btn.disabled=true;}
+  progStart();setChip('load','Actualizando');
   Promise.all([api.getAll(),consultarSaldo()]).then(([d])=>{
     if(d&&d.catalogos)onCats(d.catalogos);
     if(d&&d.apartados)renderApartados(d.apartados);
@@ -381,8 +383,8 @@ function refreshTodo(){
     api.getPatrimonio().then(renderPatrimonio).catch(()=>{});
     if(typeof cargarScore==='function')cargarScore();
     cargarRevision('mensual',new Date().getFullYear(),new Date().getMonth()+1,null);
-    btn.classList.remove('spinning');btn.disabled=false;progDone();showToast('Datos actualizados');
-  }).catch(()=>{btn.classList.remove('spinning');btn.disabled=false;progDone();showToast('Error al actualizar',false);});
+    if(btn){btn.classList.remove('spinning');btn.disabled=false;}progDone();showToast('Datos actualizados');
+  }).catch(()=>{if(btn){btn.classList.remove('spinning');btn.disabled=false;}progDone();showToast('Error al actualizar',false);});
 }
 
 // ══════════════════════════════════════════
