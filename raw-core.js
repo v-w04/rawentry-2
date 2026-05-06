@@ -1171,6 +1171,9 @@ window.addEventListener('DOMContentLoaded',()=>{
   if(fechaEl) fechaEl.value=hoy;
   _inyectarToggleModo();
 
+  // Abrir el dial automáticamente al cargar
+  setTimeout(function(){ abrirDial(); }, 120);
+
   setChip('load','Cargando');
   api.getAll()
     .then(d=>{
