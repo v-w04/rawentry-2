@@ -824,6 +824,172 @@ html.mob .tbl-wrap   { display:none !important; }
   margin: 0 !important;
 }
 
+/* ── FORMULARIO — Design system del dial ── */
+
+/* Overlay backdrop atmósferico */
+.entrada-dropdown.show {
+  background:
+    radial-gradient(ellipse at center, transparent 35%, rgba(0,0,8,0.62) 100%),
+    radial-gradient(ellipse at center, rgba(80,40,140,0.14) 0%, transparent 55%),
+    rgba(4,4,14,0.55) !important;
+  backdrop-filter: blur(28px) saturate(160%) brightness(0.72) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(160%) brightness(0.72) !important;
+}
+
+/* Panel principal — HUD style */
+.entrada-dropdown-inner,
+#sec-entrada {
+  background: rgba(12,10,24,0.98) !important;
+  border: 1px solid rgba(140,100,220,0.28) !important;
+  border-bottom: none !important;
+  /* Chamfer top corners */
+  clip-path: polygon(20px 0, calc(100% - 4px) 0, 100% 20px, 100% 100%, 0 100%, 0 20px) !important;
+  box-shadow:
+    0 0 0 1px rgba(120,80,200,0.10),
+    0 -8px 48px rgba(80,40,140,0.20),
+    inset 0 1px 0 rgba(167,139,250,0.08) !important;
+  /* Grid circuit-board sutil */
+  background-image:
+    linear-gradient(rgba(120,80,200,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120,80,200,0.025) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+}
+
+/* Header del formulario */
+#entrada-paso2 > div:first-child {
+  border-bottom: 1px solid rgba(140,100,220,0.18) !important;
+  background: rgba(15,12,28,0.6) !important;
+  padding: 14px 20px !important;
+}
+
+/* Botón volver al dial */
+#entrada-paso2 > div:first-child button:first-child {
+  color: #A78BFA !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  transition: all .15s !important;
+}
+#entrada-paso2 > div:first-child button:first-child:hover {
+  color: #fff !important;
+  text-shadow: 0 0 8px rgba(167,139,250,0.6) !important;
+}
+
+/* Título del paso 2 */
+#entrada-paso2-titulo {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase !important;
+  color: #A78BFA !important;
+  text-shadow: 0 0 10px rgba(167,139,250,0.4) !important;
+}
+
+/* Botón cerrar */
+.popup-close {
+  background: rgba(139,92,246,0.08) !important;
+  border: 1px solid rgba(139,92,246,0.3) !important;
+  color: #A78BFA !important;
+  border-radius: 6px !important;
+  transition: all .15s !important;
+}
+.popup-close:hover {
+  background: rgba(139,92,246,0.2) !important;
+  color: #fff !important;
+  box-shadow: 0 0 10px rgba(139,92,246,0.3) !important;
+}
+
+/* Campos del formulario */
+.cf {
+  border-bottom: 1px solid rgba(120,80,200,0.14) !important;
+  transition: background .15s !important;
+}
+.cf:hover {
+  background: rgba(25,18,50,0.4) !important;
+}
+.cf.active {
+  background: rgba(25,18,50,0.6) !important;
+  border-left: 2px solid #8B5CF6 !important;
+}
+
+/* Labels de campo */
+.cf-label {
+  color: rgba(167,139,250,0.65) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+}
+
+/* Opciones seleccionables */
+.opt {
+  background: rgba(20,16,36,0.8) !important;
+  border: 1px solid rgba(140,100,220,0.2) !important;
+  color: rgba(212,216,232,0.65) !important;
+  transition: all .15s !important;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px) !important;
+}
+.opt:hover {
+  background: rgba(30,22,58,0.9) !important;
+  border-color: rgba(139,92,246,0.5) !important;
+  color: #fff !important;
+}
+.opt.on {
+  background: rgba(139,92,246,0.2) !important;
+  border-color: rgba(139,92,246,0.6) !important;
+  color: #fff !important;
+  box-shadow: 0 0 10px rgba(139,92,246,0.2), inset 0 0 10px rgba(139,92,246,0.08) !important;
+}
+
+/* Inputs de texto */
+.cf-date, input[type="text"].cf-val, .cf-input {
+  background: rgba(20,16,36,0.8) !important;
+  border: 1px solid rgba(140,100,220,0.25) !important;
+  color: #fff !important;
+  border-radius: 6px !important;
+  transition: all .15s !important;
+}
+.cf-date:focus, input[type="text"].cf-val:focus, .cf-input:focus {
+  border-color: rgba(139,92,246,0.7) !important;
+  box-shadow: 0 0 0 1px rgba(139,92,246,0.3), 0 0 12px rgba(139,92,246,0.15) !important;
+  background: rgba(25,18,50,0.9) !important;
+  outline: none !important;
+}
+
+/* Botón guardar */
+.btn-save {
+  background: rgba(139,92,246,0.2) !important;
+  border: 1px solid rgba(139,92,246,0.45) !important;
+  color: #A78BFA !important;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px) !important;
+  font-weight: 700 !important;
+  letter-spacing: .1em !important;
+  text-transform: uppercase !important;
+  transition: all .18s !important;
+}
+.btn-save:hover {
+  background: rgba(139,92,246,0.35) !important;
+  color: #fff !important;
+  box-shadow: 0 0 20px rgba(139,92,246,0.3) !important;
+}
+.btn-save.saved {
+  background: rgba(34,197,94,0.2) !important;
+  border-color: rgba(34,197,94,0.5) !important;
+  color: #22C55E !important;
+  box-shadow: 0 0 16px rgba(34,197,94,0.25) !important;
+}
+
+/* Sec header dentro del form */
+.sec-hdr {
+  background: rgba(15,12,28,0.7) !important;
+  border-bottom: 1px solid rgba(140,100,220,0.15) !important;
+  color: #A78BFA !important;
+  font-size: 9px !important;
+  letter-spacing: .16em !important;
+  font-weight: 700 !important;
+}
+
 /* Opts horizontales scroll */
 .opts {
   flex-wrap: nowrap;
