@@ -1382,9 +1382,14 @@ function upM(){
 //  SALDO
 // ══════════════════════════════════════════
 function consultarSaldo(){
-  const f=document.getElementById('saldo-fecha').value;if(!f)return;
-  const el=document.getElementById('saldo-val');el.className='saldo-val ld';el.textContent='…';
-  api.getSaldoDia(f).then(r=>{el.textContent=r.display;el.className='saldo-val '+(r.valor>0?'pos':r.valor<0?'neg':'')+' updated';setTimeout(function(){el.classList.remove('updated');},500);}).catch(()=>{el.className='saldo-val ld';el.textContent='—';});
+  const fechaEl=document.getElementById('saldo-fecha');
+  const f=fechaEl?fechaEl.value:'';
+  if(!f) return Promise.resolve();  // retornar Promise para compatibilidad con Promise.all
+  const el=document.getElementById('saldo-val');
+  if(el){el.className='saldo-val ld';el.textContent='…';}
+  return api.getSaldoDia(f).then(r=>{
+    if(el){el.textContent=r.display;el.className='saldo-val '+(r.valor>0?'pos':r.valor<0?'neg':'')+' updated';setTimeout(function(){el.classList.remove('updated');},500);}
+  }).catch(()=>{if(el){el.className='saldo-val ld';el.textContent='—';}});
 }
 
 // ══════════════════════════════════════════
